@@ -1,0 +1,690 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import {
+  FolderKanban,
+  Plus,
+  Users,
+  ArrowRight,
+  Loader2,
+  Crown,
+  UserPlus,
+  X,
+  Search,
+  Info,
+  Calendar,
+  FileText,
+  Target,
+  BookOpen,
+  Mail,
+  GraduationCap,
+  MessageSquare,
+  ImagePlus,
+} from 'lucide-react';
+import type { Group, GroupMember } from '@/types/database';
+
+interface GroupWithMembers extends Group {
+  memberCount: number;
+  myRole: string;
+}
+
+interface MemberToAdd {
+  id: string;
+  full_name: string;
+  student_id: string;
+  email: string;
+  avatar_url: string | null;
+}
+
+export default function Groups() {
+  const { user, isLeader } = useAuth();
+  const { toast } = useToast();
+  const [groups, setGroups] = useState<GroupWithMembers[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupDescription, setNewGroupDescription] = useState('');
+  const [newGroupClassCode, setNewGroupClassCode] = useState('');
+  const [newGroupInstructorName, setNewGroupInstructorName] = useState('');
+  const [newGroupInstructorEmail, setNewGroupInstructorEmail] = useState('');
+  const [newGroupZaloLink, setNewGroupZaloLink] = useState('');
+  const [newGroupAdditionalInfo, setNewGroupAdditionalInfo] = useState('');
+  const [groupImage, setGroupImage] = useState<File | null>(null);
+  const [groupImagePreview, setGroupImagePreview] = useState<string | null>(null);
+
+  // Member adding
+  const [memberSearch, setMemberSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<MemberToAdd[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<MemberToAdd[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    fetchGroups();
+  }, [user]);
+
+  const fetchGroups = async () => {
+    if (!user) return;
+
+    try {
+      // Get groups where user is a member
+      const { data: memberData } = await supabase
+        .from('group_members')
+        .select('group_id, role')
+        .eq('user_id', user.id);
+
+      if (!memberData || memberData.length === 0) {
+        setGroups([]);
+        setIsLoading(false);
+        return;
+      }
+
+      const groupIds = memberData.map((m) => m.group_id);
+      const roleMap = new Map(memberData.map((m) => [m.group_id, m.role]));
+
+      // Get group details
+      const { data: groupsData } = await supabase
+        .from('groups')
+        .select('*')
+        .in('id', groupIds)
+        .order('created_at', { ascending: false });
+
+      if (groupsData) {
+        // Get member counts (robust, avoids relying on wide SELECTs)
+        const countEntries = await Promise.all(
+          groupIds.map(async (groupId) => {
+            const { count, error } = await supabase
+              .from('group_members')
+              .select('*', { count: 'exact', head: true })
+              .eq('group_id', groupId);
+
+            if (error) {
+              console.error('Error counting members for group:', groupId, error);
+              return [groupId, 0] as const;
+            }
+
+            return [groupId, count ?? 0] as const;
+          })
+        );
+
+        const countMap = new Map<string, number>(countEntries);
+
+        const groupsWithMembers: GroupWithMembers[] = groupsData.map((g) => ({
+          ...g,
+          memberCount: countMap.get(g.id) || 0,
+          myRole: roleMap.get(g.id) || 'member',
+        }));
+
+        setGroups(groupsWithMembers);
+      }
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearchMembers = async (query: string) => {
+    setMemberSearch(query);
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, student_id, email, avatar_url')
+        .eq('is_approved', true)
+        .neq('id', user!.id)
+        .or(`full_name.ilike.%${query}%,student_id.ilike.%${query}%,email.ilike.%${query}%`)
+        .limit(10);
+      
+      const filtered = (data || []).filter(
+        (p) => !selectedMembers.some((s) => s.id === p.id)
+      );
+      setSearchResults(filtered);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const addMember = (member: MemberToAdd) => {
+    setSelectedMembers((prev) => [...prev, member]);
+    setSearchResults((prev) => prev.filter((p) => p.id !== member.id));
+    setMemberSearch('');
+  };
+
+  const removeMember = (id: string) => {
+    setSelectedMembers((prev) => prev.filter((p) => p.id !== id));
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Lỗi', description: 'Ảnh không được vượt quá 5MB', variant: 'destructive' });
+      return;
+    }
+    setGroupImage(file);
+    setGroupImagePreview(URL.createObjectURL(file));
+  };
+
+  const resetForm = () => {
+    setNewGroupName('');
+    setNewGroupDescription('');
+    setNewGroupClassCode('');
+    setNewGroupInstructorName('');
+    setNewGroupInstructorEmail('');
+    setNewGroupZaloLink('');
+    setNewGroupAdditionalInfo('');
+    setGroupImage(null);
+    setGroupImagePreview(null);
+    setSelectedMembers([]);
+    setMemberSearch('');
+    setSearchResults([]);
+  };
+
+  const handleCreateGroup = async () => {
+    if (!newGroupName.trim()) {
+      toast({
+        title: 'Lỗi',
+        description: 'Vui lòng nhập tên dự án',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      const { data: newGroup, error: groupError } = await supabase
+        .from('groups')
+        .insert({
+          name: newGroupName.trim(),
+          description: newGroupDescription.trim() || null,
+          class_code: newGroupClassCode.trim() || null,
+          instructor_name: newGroupInstructorName.trim() || null,
+          instructor_email: newGroupInstructorEmail.trim() || null,
+          zalo_link: newGroupZaloLink.trim() || null,
+          additional_info: newGroupAdditionalInfo.trim() || null,
+          created_by: user!.id,
+          slug: '',
+        })
+        .select()
+        .single();
+
+      if (groupError) throw groupError;
+
+      // Upload image if selected
+      if (groupImage) {
+        const ext = groupImage.name.split('.').pop();
+        const filePath = `${newGroup.id}/cover.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('group-images')
+          .upload(filePath, groupImage, { upsert: true });
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('group-images')
+            .getPublicUrl(filePath);
+          await supabase.from('groups').update({ image_url: urlData.publicUrl }).eq('id', newGroup.id);
+        }
+      }
+
+      // Add creator as leader
+      const { error: memberError } = await supabase.from('group_members').insert({
+        group_id: newGroup.id,
+        user_id: user!.id,
+        role: 'leader',
+      });
+      if (memberError) throw memberError;
+
+      // Add selected members
+      if (selectedMembers.length > 0) {
+        const memberInserts = selectedMembers.map((m) => ({
+          group_id: newGroup.id,
+          user_id: m.id,
+          role: 'member' as const,
+        }));
+        await supabase.from('group_members').insert(memberInserts);
+      }
+
+      toast({
+        title: 'Thành công',
+        description: `Đã tạo dự án "${newGroup.name}"${selectedMembers.length > 0 ? ` với ${selectedMembers.length} thành viên` : ''}`,
+      });
+
+      setIsDialogOpen(false);
+      resetForm();
+      fetchGroups();
+    } catch (error: any) {
+      toast({
+        title: 'Lỗi',
+        description: error.message || 'Không thể tạo dự án',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return <Badge className="bg-destructive/10 text-destructive">Admin</Badge>;
+      case 'leader':
+        return <Badge className="bg-warning/10 text-warning">Leader</Badge>;
+      default:
+        return <Badge variant="secondary">Member</Badge>;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Nhóm của tôi</h1>
+            <p className="text-muted-foreground mt-1">
+              Quản lý các nhóm và dự án bạn tham gia
+            </p>
+          </div>
+          {isLeader && (
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) resetForm();
+            }}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tạo dự án mới
+                </Button>
+              </DialogTrigger>
+              <DialogContent
+                className="p-0 gap-0 border-0 bg-transparent shadow-none [&>button]:hidden"
+                style={{ maxWidth: 'none', width: 'auto' }}
+              >
+                <div
+                  className="bg-background border rounded-xl overflow-hidden flex flex-col"
+                  style={{ width: '1280px', maxWidth: '95vw', height: '720px', maxHeight: '90vh' }}
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-6 py-4 border-b bg-muted/30 flex-shrink-0">
+                    <div>
+                      <h2 className="text-xl font-bold flex items-center gap-2">
+                        <FolderKanban className="w-5 h-5 text-primary" />
+                        Tạo dự án mới
+                      </h2>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        Điền thông tin dự án và thêm thành viên (tùy chọn)
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(false)}>
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
+
+                  {/* Body with scroll */}
+                  <ScrollArea className="flex-1">
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-0 divide-y lg:divide-y-0 lg:divide-x">
+                      {/* Left: Project Info - 3 cols */}
+                      <div className="lg:col-span-3 p-6 space-y-5">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-primary uppercase tracking-wide">
+                          <FileText className="w-4 h-4" />
+                          Thông tin dự án
+                        </div>
+
+                        <div className="flex gap-3 items-end">
+                          <div className="flex-1 space-y-2">
+                            <Label htmlFor="group-name" className="flex items-center gap-1">
+                              Tên dự án <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                              id="group-name"
+                              placeholder="VD: Đồ án môn học CNTT"
+                              value={newGroupName}
+                              onChange={(e) => setNewGroupName(e.target.value)}
+                              className="text-base"
+                            />
+                          </div>
+
+                          {/* Image upload - tiny inline */}
+                          <label className="cursor-pointer flex-shrink-0 mb-0.5">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleImageSelect}
+                            />
+                            {groupImagePreview ? (
+                              <div className="relative w-9 h-9 rounded-md overflow-hidden border group/img">
+                                <img src={groupImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setGroupImage(null);
+                                    setGroupImagePreview(null);
+                                  }}
+                                  className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center"
+                                >
+                                  <X className="w-3 h-3 text-white" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="w-9 h-9 rounded-md border border-dashed border-muted-foreground/40 hover:border-primary/60 transition-colors flex items-center justify-center text-muted-foreground hover:text-primary" title="Tải ảnh bìa">
+                                <ImagePlus className="w-4 h-4" />
+                              </div>
+                            )}
+                          </label>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="group-description" className="flex items-center gap-1">
+                            <Target className="w-3.5 h-3.5" />
+                            Mô tả / Mục tiêu
+                          </Label>
+                          <Textarea
+                            id="group-description"
+                            placeholder="Mô tả chi tiết về dự án, mục tiêu cần đạt..."
+                            value={newGroupDescription}
+                            onChange={(e) => setNewGroupDescription(e.target.value)}
+                            rows={3}
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-1">
+                              <BookOpen className="w-3.5 h-3.5" />
+                              Mã lớp
+                            </Label>
+                            <Input
+                              placeholder="VD: 24C1INF50900301"
+                              value={newGroupClassCode}
+                              onChange={(e) => setNewGroupClassCode(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-1">
+                              <GraduationCap className="w-3.5 h-3.5" />
+                              Giảng viên
+                            </Label>
+                            <Input
+                              placeholder="VD: Nguyễn Văn A"
+                              value={newGroupInstructorName}
+                              onChange={(e) => setNewGroupInstructorName(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-1">
+                              <Mail className="w-3.5 h-3.5" />
+                              Email giảng viên
+                            </Label>
+                            <Input
+                              type="email"
+                              placeholder="gv@ueh.edu.vn"
+                              value={newGroupInstructorEmail}
+                              onChange={(e) => setNewGroupInstructorEmail(e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="flex items-center gap-1">
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              Link Zalo nhóm
+                            </Label>
+                            <Input
+                              placeholder="https://zalo.me/..."
+                              value={newGroupZaloLink}
+                              onChange={(e) => setNewGroupZaloLink(e.target.value)}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-1">
+                            <Info className="w-3.5 h-3.5" />
+                            Ghi chú thêm
+                          </Label>
+                          <Textarea
+                            placeholder="Thông tin bổ sung, lưu ý đặc biệt..."
+                            value={newGroupAdditionalInfo}
+                            onChange={(e) => setNewGroupAdditionalInfo(e.target.value)}
+                            rows={2}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Right: Members - 2 cols */}
+                      <div className="lg:col-span-2 p-6 space-y-4">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-primary uppercase tracking-wide">
+                          <UserPlus className="w-4 h-4" />
+                          Thêm thành viên
+                          <Badge variant="secondary" className="ml-auto text-xs">
+                            Tùy chọn
+                          </Badge>
+                        </div>
+
+                        <p className="text-xs text-muted-foreground">
+                          Tìm kiếm theo tên, MSSV hoặc email. Bạn cũng có thể thêm thành viên sau khi tạo dự án.
+                        </p>
+
+                        {/* Search */}
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Tìm thành viên..."
+                            value={memberSearch}
+                            onChange={(e) => handleSearchMembers(e.target.value)}
+                            className="pl-9"
+                          />
+                          {isSearching && (
+                            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+                          )}
+                        </div>
+
+                        {/* Search results */}
+                        {searchResults.length > 0 && (
+                          <div className="border rounded-lg max-h-32 overflow-y-auto">
+                            {searchResults.map((p) => (
+                              <button
+                                key={p.id}
+                                type="button"
+                                onClick={() => addMember(p)}
+                                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/50 transition-colors text-left text-sm"
+                              >
+                                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary flex-shrink-0">
+                                  {p.full_name.charAt(0)}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-medium truncate">{p.full_name}</div>
+                                  <div className="text-xs text-muted-foreground">{p.student_id}</div>
+                                </div>
+                                <Plus className="w-4 h-4 text-primary flex-shrink-0" />
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Selected members */}
+                        {selectedMembers.length > 0 && (
+                          <>
+                            <Separator />
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm font-medium">
+                                Đã chọn ({selectedMembers.length})
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs h-7"
+                                onClick={() => setSelectedMembers([])}
+                              >
+                                Xóa tất cả
+                              </Button>
+                            </div>
+                            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                              {selectedMembers.map((m) => (
+                                <div
+                                  key={m.id}
+                                  className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/50"
+                                >
+                                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary flex-shrink-0">
+                                    {m.full_name.charAt(0)}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-medium truncate">{m.full_name}</div>
+                                    <div className="text-xs text-muted-foreground">{m.student_id}</div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 flex-shrink-0"
+                                    onClick={() => removeMember(m.id)}
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+
+                        {selectedMembers.length === 0 && searchResults.length === 0 && !memberSearch && (
+                          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                            <Users className="w-10 h-10 mb-2 opacity-30" />
+                            <p className="text-sm">Chưa có thành viên nào</p>
+                            <p className="text-xs">Tìm kiếm để thêm thành viên</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </ScrollArea>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between px-6 py-4 border-t bg-muted/30 flex-shrink-0">
+                    <p className="text-xs text-muted-foreground">
+                      <span className="text-destructive">*</span> Chỉ tên dự án là bắt buộc, các trường còn lại có thể bổ sung sau.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        Hủy
+                      </Button>
+                      <Button onClick={handleCreateGroup} disabled={isCreating || !newGroupName.trim()}>
+                        {isCreating ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Đang tạo...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Tạo dự án
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+
+        {/* Groups List */}
+        {groups.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <FolderKanban className="w-16 h-16 text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-medium mb-2">Chưa có nhóm nào</h3>
+              <p className="text-muted-foreground text-center max-w-md">
+                {isLeader
+                  ? 'Bạn chưa tham gia hoặc tạo nhóm nào. Hãy tạo nhóm mới để bắt đầu!'
+                  : 'Bạn chưa được thêm vào nhóm nào. Hãy chờ Leader thêm bạn vào nhóm.'}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {groups.map((group) => (
+              <Link key={group.id} to={`/p/${group.slug}`}>
+                <Card className="h-full hover:shadow-md transition-shadow cursor-pointer group overflow-hidden">
+                  <CardHeader className="flex flex-row items-start gap-4 pb-3">
+                    {/* Thumbnail 1:1 - consistent with Dashboard */}
+                    <div className="relative w-24 h-24 flex-shrink-0 rounded-xl bg-muted overflow-hidden">
+                      {group.image_url ? (
+                        <img
+                          src={group.image_url}
+                          alt={group.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                          <FolderKanban className="w-10 h-10 text-primary/40" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <CardTitle className="line-clamp-2 text-base">{group.name}</CardTitle>
+                        {getRoleBadge(group.myRole)}
+                      </div>
+                      <CardDescription className="line-clamp-2">
+                        {group.description || 'Không có mô tả'}
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Users className="w-4 h-4" />
+                        <span>{group.memberCount} thành viên</span>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}
