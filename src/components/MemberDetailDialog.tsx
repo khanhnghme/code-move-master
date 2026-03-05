@@ -17,6 +17,7 @@ interface GroupInfo {
   id: string;
   name: string;
   role: string;
+  image_url: string | null;
 }
 
 interface ActivityInfo {
@@ -102,12 +103,13 @@ export default function MemberDetailDialog({
   const fetchGroups = async (userId: string) => {
     const { data } = await supabase
       .from('group_members')
-      .select('group_id, role, groups(name)')
+      .select('group_id, role, groups(name, image_url)')
       .eq('user_id', userId);
     setGroups((data || []).map((d: any) => ({
       id: d.group_id,
       name: d.groups?.name || 'Unknown',
       role: d.role,
+      image_url: d.groups?.image_url || null,
     })));
   };
 
@@ -345,9 +347,13 @@ export default function MemberDetailDialog({
                       {groups.map(g => (
                         <div key={g.id} className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-muted/30 transition-colors">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary">
-                              {g.name.charAt(0).toUpperCase()}
-                            </div>
+                            {g.image_url ? (
+                              <img src={g.image_url} alt={g.name} className="w-10 h-10 rounded-lg object-cover" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary">
+                                {g.name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
                             <span className="text-sm font-medium">{g.name}</span>
                           </div>
                           <Badge variant={g.role === 'leader' ? 'default' : 'secondary'} className="text-xs">

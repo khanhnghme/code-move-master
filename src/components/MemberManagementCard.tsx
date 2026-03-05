@@ -94,10 +94,10 @@ export default function MemberManagementCard({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isChangingRole, setIsChangingRole] = useState(false);
   
-  // Add member dialog - Only select from system members
+  // Add member dialog - Multi-select from system members
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isAddingMember, setIsAddingMember] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   const [selectedRole, setSelectedRole] = useState<'member' | 'leader'>('member');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -157,7 +157,7 @@ export default function MemberManagementCard({
   };
 
   const resetAddForm = () => {
-    setSelectedUserId('');
+    setSelectedUserIds(new Set());
     setSelectedRole('member');
     setSearchQuery('');
   };
@@ -187,29 +187,31 @@ export default function MemberManagementCard({
   });
 
   const handleAddMember = async () => {
-    if (!selectedUserId) {
-      toast({ title: 'Lỗi', description: 'Vui lòng chọn thành viên từ danh sách', variant: 'destructive' });
+    if (selectedUserIds.size === 0) {
+      toast({ title: 'Lỗi', description: 'Vui lòng chọn ít nhất một thành viên', variant: 'destructive' });
       return;
     }
     setIsAddingMember(true);
 
-    // Phó nhóm can only add as 'member', Group Creator can choose role
     const finalRole = isGroupCreator ? selectedRole : 'member';
 
     try {
-      const { error } = await supabase.from('group_members').insert({
+      const memberInserts = Array.from(selectedUserIds).map(uid => ({
         group_id: groupId,
-        user_id: selectedUserId,
+        user_id: uid,
         role: finalRole,
-      });
+      }));
+
+      const { error } = await supabase.from('group_members').insert(memberInserts);
 
       if (error) {
-        if (error.code === '23505') throw new Error('Thành viên này đã có trong project');
+        if (error.code === '23505') throw new Error('Một số thành viên đã có trong project');
         throw error;
       }
 
-      // Get the selected profile name for logging
-      const selectedProfile = availableProfiles.find(p => p.id === selectedUserId);
+      const addedNames = Array.from(selectedUserIds)
+        .map(uid => availableProfiles.find(p => p.id === uid)?.full_name)
+        .filter(Boolean);
 
       // Log activity
       await supabase.from('activity_logs').insert({
@@ -217,16 +219,15 @@ export default function MemberManagementCard({
         user_name: profile?.full_name || user?.email || 'Unknown',
         action: 'ADD_MEMBER_TO_PROJECT',
         action_type: 'member',
-        description: `Thêm ${selectedProfile?.full_name || 'thành viên'} vào project với vai trò ${finalRole === 'leader' ? 'Phó nhóm' : 'Thành viên'}`,
+        description: `Thêm ${selectedUserIds.size} thành viên vào project: ${addedNames.join(', ')}`,
         group_id: groupId,
         metadata: { 
-          added_user_id: selectedUserId, 
-          added_user_name: selectedProfile?.full_name,
+          added_user_ids: Array.from(selectedUserIds),
           role: finalRole 
         }
       });
 
-      toast({ title: 'Thành công', description: `Đã thêm ${selectedProfile?.full_name || 'thành viên'} vào project` });
+      toast({ title: 'Thành công', description: `Đã thêm ${selectedUserIds.size} thành viên vào project` });
       setIsAddDialogOpen(false);
       resetAddForm();
       onRefresh();
@@ -657,142 +658,222 @@ export default function MemberManagementCard({
         </CardContent>
       </Card>
 
-      {/* Add Member Dialog - Simplified: Only from system members */}
+      {/* Add Member Dialog - 1280x720, multi-select */}
       <Dialog open={isAddDialogOpen} onOpenChange={(open) => { setIsAddDialogOpen(open); if (!open) resetAddForm(); }}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-primary" />
-              Thêm thành viên vào Project
-            </DialogTitle>
-            <DialogDescription>
-              Chọn thành viên từ danh sách thành viên hệ thống. Thành viên mới có thể được tạo tại trang "Thành viên hệ thống".
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-5 py-2">
-            {/* Search */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Tìm kiếm thành viên</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Tìm theo tên, MSSV hoặc email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-11 pl-10"
-                />
-              </div>
-            </div>
-
-            {/* Member List */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Chọn thành viên <span className="text-destructive">*</span></Label>
-              <ScrollArea className="h-64 border rounded-lg p-2">
-                {filteredProfiles.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground text-sm">
-                    {searchQuery ? 'Không tìm thấy thành viên phù hợp' : 'Tất cả thành viên đã được thêm vào project'}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {filteredProfiles.map((p) => (
-                      <div
-                        key={p.id}
-                        className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                          selectedUserId === p.id 
-                            ? 'bg-primary/10 border-2 border-primary' 
-                            : 'bg-muted/30 hover:bg-muted/50 border-2 border-transparent'
-                        }`}
-                        onClick={() => setSelectedUserId(p.id)}
-                      >
-                        <UserAvatar 
-                          src={p.avatar_url} 
-                          name={p.full_name}
-                          size="md"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{p.full_name}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {p.student_id} • {p.email}
-                          </p>
-                        </div>
-                        {selectedUserId === p.id && (
-                          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                            <svg className="w-3 h-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
-
-            {/* Role Selection - Only for Group Creator */}
-            {isGroupCreator ? (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Vai trò trong Project <span className="text-destructive">*</span></Label>
-                <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as 'member' | 'leader')}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="member">
-                      <div className="flex items-center gap-2">
-                        <UserCheck className="w-4 h-4" />
-                        Thành viên - Được giao task và nộp bài
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="leader">
-                      <div className="flex items-center gap-2">
-                        <Crown className="w-4 h-4 text-warning" />
-                        Phó nhóm - Quản lý task, thành viên và giai đoạn
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-muted-foreground">Vai trò trong Project</Label>
-                <div className="h-11 flex items-center px-3 bg-muted/50 rounded-md border border-border">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <UserCheck className="w-4 h-4" />
-                    Thành viên
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground italic">
-                  Vai trò mặc định: Member (Phó nhóm không có quyền thay đổi)
+        <DialogContent
+          className="p-0 gap-0 border-0 bg-transparent shadow-none [&>button]:hidden"
+          style={{ maxWidth: 'none', width: 'auto' }}
+        >
+          <div
+            className="bg-background border rounded-xl overflow-hidden flex flex-col"
+            style={{ width: '1280px', maxWidth: '95vw', height: '720px', maxHeight: '90vh' }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b bg-muted/30 flex-shrink-0">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  <UserPlus className="w-5 h-5 text-primary" />
+                  Thêm thành viên vào Project
+                </h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Chọn nhiều thành viên từ hệ thống để thêm cùng lúc
                 </p>
               </div>
-            )}
+              <Button variant="ghost" size="icon" onClick={() => setIsAddDialogOpen(false)}>
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
 
-            {/* Info box */}
-            <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground">
-              <p>💡 Một tài khoản có thể có vai trò khác nhau ở các project khác nhau.</p>
+            {/* Body */}
+            <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-5 divide-y lg:divide-y-0 lg:divide-x">
+              {/* Left: Search & List - 3 cols */}
+              <div className="lg:col-span-3 flex flex-col min-h-0 p-6">
+                <div className="space-y-3 flex-shrink-0">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Tìm theo tên, MSSV hoặc email..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="h-11 pl-10"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{filteredProfiles.length} thành viên khả dụng</span>
+                    {filteredProfiles.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-7"
+                        onClick={() => {
+                          const allIds = new Set(selectedUserIds);
+                          filteredProfiles.forEach(p => allIds.add(p.id));
+                          setSelectedUserIds(allIds);
+                        }}
+                      >
+                        Chọn tất cả
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <ScrollArea className="flex-1 mt-3 border rounded-lg p-2">
+                  {filteredProfiles.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground text-sm">
+                      {searchQuery ? 'Không tìm thấy thành viên phù hợp' : 'Tất cả thành viên đã được thêm vào project'}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredProfiles.map((p) => (
+                        <div
+                          key={p.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                            selectedUserIds.has(p.id)
+                              ? 'bg-primary/10 border-2 border-primary' 
+                              : 'bg-muted/30 hover:bg-muted/50 border-2 border-transparent'
+                          }`}
+                          onClick={() => {
+                            setSelectedUserIds(prev => {
+                              const next = new Set(prev);
+                              if (next.has(p.id)) next.delete(p.id);
+                              else next.add(p.id);
+                              return next;
+                            });
+                          }}
+                        >
+                          <Checkbox
+                            checked={selectedUserIds.has(p.id)}
+                            onCheckedChange={() => {
+                              setSelectedUserIds(prev => {
+                                const next = new Set(prev);
+                                if (next.has(p.id)) next.delete(p.id);
+                                else next.add(p.id);
+                                return next;
+                              });
+                            }}
+                          />
+                          <UserAvatar 
+                            src={p.avatar_url} 
+                            name={p.full_name}
+                            size="md"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{p.full_name}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {p.student_id} • {p.email}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+
+              {/* Right: Selected & Role - 2 cols */}
+              <div className="lg:col-span-2 flex flex-col min-h-0 p-6">
+                <div className="text-sm font-semibold text-primary uppercase tracking-wide flex items-center gap-2 mb-4">
+                  <Users className="w-4 h-4" />
+                  Đã chọn ({selectedUserIds.size})
+                </div>
+
+                <ScrollArea className="flex-1 border rounded-lg p-2 mb-4">
+                  {selectedUserIds.size === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                      <Users className="w-10 h-10 mb-2 opacity-30" />
+                      <p className="text-sm">Chưa chọn thành viên nào</p>
+                      <p className="text-xs">Click vào danh sách bên trái để chọn</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {Array.from(selectedUserIds).map(uid => {
+                        const p = availableProfiles.find(ap => ap.id === uid);
+                        if (!p) return null;
+                        return (
+                          <div key={uid} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/50">
+                            <UserAvatar src={p.avatar_url} name={p.full_name} size="sm" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium truncate">{p.full_name}</p>
+                              <p className="text-xs text-muted-foreground">{p.student_id}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 flex-shrink-0"
+                              onClick={() => {
+                                setSelectedUserIds(prev => {
+                                  const next = new Set(prev);
+                                  next.delete(uid);
+                                  return next;
+                                });
+                              }}
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </ScrollArea>
+
+                {/* Role Selection */}
+                {isGroupCreator ? (
+                  <div className="space-y-2 mb-4">
+                    <Label className="text-sm font-medium">Vai trò trong Project</Label>
+                    <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as 'member' | 'leader')}>
+                      <SelectTrigger className="h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="member">
+                          <div className="flex items-center gap-2">
+                            <UserCheck className="w-4 h-4" />
+                            Thành viên
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="leader">
+                          <div className="flex items-center gap-2">
+                            <Crown className="w-4 h-4 text-warning" />
+                            Phó nhóm
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-2 mb-4">
+                    <Label className="text-sm font-medium text-muted-foreground">Vai trò</Label>
+                    <div className="h-11 flex items-center px-3 bg-muted/50 rounded-md border border-border text-muted-foreground">
+                      <UserCheck className="w-4 h-4 mr-2" /> Thành viên
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground mb-4">
+                  💡 Tất cả thành viên được chọn sẽ có cùng vai trò.
+                </div>
+
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => setIsAddDialogOpen(false)}>
+                    Hủy
+                  </Button>
+                  <Button className="flex-1" onClick={handleAddMember} disabled={selectedUserIds.size === 0 || isAddingMember}>
+                    {isAddingMember ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Đang thêm...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Thêm {selectedUserIds.size > 0 ? `${selectedUserIds.size} thành viên` : 'vào Project'}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleAddMember} disabled={!selectedUserId || isAddingMember} className="min-w-28">
-              {isAddingMember ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Đang thêm...
-                </>
-              ) : (
-                <>
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  Thêm vào Project
-                </>
-              )}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

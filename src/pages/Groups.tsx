@@ -146,19 +146,20 @@ export default function Groups() {
 
   const handleSearchMembers = async (query: string) => {
     setMemberSearch(query);
-    if (query.trim().length < 2) {
-      setSearchResults([]);
-      return;
-    }
     setIsSearching(true);
     try {
-      const { data } = await supabase
+      let queryBuilder = supabase
         .from('profiles')
         .select('id, full_name, student_id, email, avatar_url')
         .eq('is_approved', true)
         .neq('id', user!.id)
-        .or(`full_name.ilike.%${query}%,student_id.ilike.%${query}%,email.ilike.%${query}%`)
-        .limit(10);
+        .limit(20);
+      
+      if (query.trim().length >= 1) {
+        queryBuilder = queryBuilder.or(`full_name.ilike.%${query}%,student_id.ilike.%${query}%,email.ilike.%${query}%`);
+      }
+
+      const { data } = await queryBuilder;
       
       const filtered = (data || []).filter(
         (p) => !selectedMembers.some((s) => s.id === p.id)
@@ -170,6 +171,13 @@ export default function Groups() {
       setIsSearching(false);
     }
   };
+
+  // Load initial members when dialog opens
+  useEffect(() => {
+    if (isDialogOpen && searchResults.length === 0 && !memberSearch) {
+      handleSearchMembers('');
+    }
+  }, [isDialogOpen]);
 
   const addMember = (member: MemberToAdd) => {
     setSelectedMembers((prev) => [...prev, member]);
