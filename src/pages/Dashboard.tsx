@@ -104,19 +104,14 @@ export default function Dashboard() {
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
           <div className="relative flex items-center gap-6">
-            <div className="relative">
               <UserAvatar
                 src={profile?.avatar_url}
                 name={profile?.full_name}
                 size="xl"
                 className="border-4 border-white/20 shadow-xl"
+                showPresence={isConnected}
+                presenceStatus="online"
               />
-              {isConnected && (
-                <div className="absolute -bottom-1 -right-1">
-                  <UserPresenceIndicator status="online" size="md" />
-                </div>
-              )}
-            </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <Sparkles className="w-6 h-6 text-accent" />

@@ -498,14 +498,8 @@ export default function MemberManagement() {
         {isSelectMode && canManage && (
           <Checkbox checked={isSelected} onCheckedChange={() => toggleSelect(member.id)} onClick={(e) => e.stopPropagation()} className="shrink-0" />
         )}
-        <div className="relative">
-          <UserAvatar src={member.avatar_url} name={member.full_name} size="lg" className="border-2 border-background" />
-          {isConnected && (
-            <div className="absolute -bottom-0.5 -right-0.5">
-              <UserPresenceIndicator status={getPresenceStatus(member.id)} size="sm" />
-            </div>
-          )}
-        </div>
+        <UserAvatar src={member.avatar_url} name={member.full_name} size="lg" className="border-2 border-background"
+          showPresence={isConnected} presenceStatus={getPresenceStatus(member.id)} />
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">

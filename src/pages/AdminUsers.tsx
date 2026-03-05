@@ -453,16 +453,13 @@ export default function AdminUsers() {
                           onClick={() => handleViewProfile(m.userId)}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <UserAvatar 
-                                src={m.avatarUrl}
-                                name={m.fullName}
-                                size="md"
-                              />
-                              <div className="absolute -bottom-0.5 -right-0.5">
-                                <UserPresenceIndicator status={status} size="sm" />
-                              </div>
-                            </div>
+                            <UserAvatar 
+                              src={m.avatarUrl}
+                              name={m.fullName}
+                              size="md"
+                              showPresence={true}
+                              presenceStatus={status}
+                            />
                             <div>
                               <div className="flex items-center gap-2">
                                 <p className="font-medium">
