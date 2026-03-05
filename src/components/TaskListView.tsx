@@ -708,14 +708,6 @@ export default function TaskListView({
   // Detail view dialog state (view-only for non-assignees)
   const [detailTask, setDetailTask] = useState<Task | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-
-  // Keep dialog tasks in sync with latest data
-  const resolvedSubmissionTask = submissionTask 
-    ? tasks.find(t => t.id === submissionTask.id) as Task | undefined ?? submissionTask 
-    : null;
-  const resolvedDetailTask = detailTask 
-    ? tasks.find(t => t.id === detailTask.id) as Task | undefined ?? detailTask 
-    : null;
   
   // Scoring dialog state
   const [scoringTask, setScoringTask] = useState<Task | null>(null);
@@ -1508,20 +1500,20 @@ export default function TaskListView({
 
       {/* Submission Dialog */}
       <TaskSubmissionDialog
-        task={resolvedSubmissionTask}
+        task={submissionTask}
         isOpen={isSubmissionOpen}
         onClose={() => {
           setIsSubmissionOpen(false);
           setSubmissionTask(null);
         }}
         onSave={onRefresh}
-        isAssignee={resolvedSubmissionTask ? isUserAssignee(resolvedSubmissionTask) : false}
+        isAssignee={submissionTask ? isUserAssignee(submissionTask) : false}
         isLeaderInGroup={isLeaderInGroup}
       />
 
       {/* Detail Dialog (view-only for non-assignees) */}
       <TaskSubmissionDialog
-        task={resolvedDetailTask}
+        task={detailTask}
         isOpen={isDetailOpen}
         onClose={() => {
           setIsDetailOpen(false);

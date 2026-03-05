@@ -43,7 +43,6 @@ import {
   ImagePlus,
 } from 'lucide-react';
 import type { Group, GroupMember } from '@/types/database';
-import UserAvatar from '@/components/UserAvatar';
 
 interface GroupWithMembers extends Group {
   memberCount: number;
@@ -545,7 +544,9 @@ export default function Groups() {
                                     isSelected ? 'bg-primary/5 opacity-50 cursor-not-allowed' : 'hover:bg-muted/50 cursor-pointer'
                                   )}
                                 >
-                                  <UserAvatar src={p.avatar_url} name={p.full_name} size="sm" />
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary flex-shrink-0">
+                                    {p.full_name.charAt(0)}
+                                  </div>
                                   <div className="min-w-0 flex-1">
                                     <div className="font-medium truncate">{p.full_name}</div>
                                     <div className="text-xs text-muted-foreground">{p.student_id} • {p.email}</div>

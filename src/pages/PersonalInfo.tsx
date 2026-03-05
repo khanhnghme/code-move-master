@@ -255,7 +255,7 @@ export default function PersonalInfo() {
                   )}
                 </Avatar>
                 {isConnected && (
-                  <span className="absolute top-0 right-0 z-10">
+                  <span className="absolute bottom-2 right-2 z-10">
                     <UserPresenceIndicator status="online" size="md" />
                   </span>
                 )}
