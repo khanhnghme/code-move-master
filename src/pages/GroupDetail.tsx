@@ -605,7 +605,7 @@ export default function GroupDetail() {
               </div>
               
               <div className="grid lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2"><GroupDashboard tasks={tasks} members={members} stages={stages} /></div>
+                <div className="lg:col-span-2"><GroupDashboard tasks={tasks} members={members} stages={stages} groupId={group.id} leaderId={group.leader_id} /></div>
                 <div><GroupInfoCard group={group} canEdit={isLeaderInGroup} onUpdate={fetchGroupData} /></div>
               </div>
             </TabsContent>

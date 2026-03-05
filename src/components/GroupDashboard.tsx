@@ -20,9 +20,10 @@ interface GroupDashboardProps {
   members: GroupMember[];
   stages: Stage[];
   groupId?: string;
+  leaderId?: string | null;
 }
 
-export default function GroupDashboard({ tasks, members, stages, groupId }: GroupDashboardProps) {
+export default function GroupDashboard({ tasks, members, stages, groupId, leaderId }: GroupDashboardProps) {
   const { getPresenceStatus, presenceMap, isConnected } = useUserPresence(groupId);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
@@ -251,7 +252,7 @@ export default function GroupDashboard({ tasks, members, stages, groupId }: Grou
                         {member.profiles?.full_name}
                       </p>
                       <p className="text-[10px] text-muted-foreground">
-                        {member.role === 'leader' ? 'Phó nhóm' : 'Thành viên'}
+                        {member.user_id === leaderId ? 'Trưởng nhóm' : member.role === 'leader' ? 'Phó nhóm' : 'Thành viên'}
                       </p>
                     </div>
                   </div>
