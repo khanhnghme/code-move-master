@@ -40,11 +40,11 @@ const presenceSizeMap: Record<string, 'xs' | 'sm' | 'md'> = {
 };
 
 const presencePositionClasses = {
-  xs: '-bottom-0.5 -right-0.5',
-  sm: '-bottom-0.5 -right-0.5',
-  md: '-bottom-0.5 -right-0.5',
-  lg: '-bottom-1 -right-1',
-  xl: '-bottom-1 -right-1',
+  xs: 'bottom-0 right-0',
+  sm: 'bottom-0 right-0',
+  md: '-bottom-px -right-px',
+  lg: 'bottom-0 right-0',
+  xl: 'bottom-0.5 right-0.5',
 };
 
 /**

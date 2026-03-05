@@ -11,18 +11,18 @@ interface UserPresenceIndicatorProps {
 
 const statusConfig: Record<PresenceStatus, { color: string; label: string }> = {
   online: { 
-    color: 'bg-emerald-500', 
-    label: 'Online',
+    color: 'bg-[#31a24c]', 
+    label: 'Đang hoạt động',
   },
   offline: { 
-    color: 'bg-muted-foreground/40', 
-    label: 'Offline',
+    color: 'bg-muted-foreground/30', 
+    label: 'Ngoại tuyến',
   },
 };
 
 const sizeConfig = {
-  xs: 'w-2.5 h-2.5',
-  sm: 'w-3 h-3',
+  xs: 'w-2 h-2',
+  sm: 'w-2.5 h-2.5',
   md: 'w-3.5 h-3.5',
 };
 
@@ -38,10 +38,9 @@ export default function UserPresenceIndicator({
   const indicator = (
     <span 
       className={cn(
-        'rounded-full ring-2 ring-background flex-shrink-0',
+        'block rounded-full ring-2 ring-background flex-shrink-0',
         config.color,
         sizeClass,
-        status === 'online' && 'animate-pulse',
         className
       )}
     />
