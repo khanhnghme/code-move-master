@@ -11,19 +11,19 @@ interface UserPresenceIndicatorProps {
 
 const statusConfig: Record<PresenceStatus, { color: string; label: string }> = {
   online: { 
-    color: 'bg-green-500', 
+    color: 'bg-emerald-500', 
     label: 'Online',
   },
   offline: { 
-    color: 'bg-gray-400', 
+    color: 'bg-muted-foreground/40', 
     label: 'Offline',
   },
 };
 
 const sizeConfig = {
-  xs: 'w-2 h-2',
-  sm: 'w-2.5 h-2.5',
-  md: 'w-3 h-3',
+  xs: 'w-2.5 h-2.5',
+  sm: 'w-3 h-3',
+  md: 'w-3.5 h-3.5',
 };
 
 export default function UserPresenceIndicator({ 

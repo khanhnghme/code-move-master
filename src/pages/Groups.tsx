@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -500,8 +501,8 @@ export default function Groups() {
                       </div>
 
                       {/* Right: Members - 2 cols */}
-                      <div className="lg:col-span-2 p-6 space-y-4">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-primary uppercase tracking-wide">
+                      <div className="lg:col-span-2 p-6 flex flex-col min-h-0" style={{ maxHeight: 'calc(720px - 140px)' }}>
+                        <div className="flex items-center gap-2 text-sm font-semibold text-primary uppercase tracking-wide flex-shrink-0">
                           <UserPlus className="w-4 h-4" />
                           Thêm thành viên
                           <Badge variant="secondary" className="ml-auto text-xs">
@@ -509,12 +510,12 @@ export default function Groups() {
                           </Badge>
                         </div>
 
-                        <p className="text-xs text-muted-foreground">
-                          Tìm kiếm theo tên, MSSV hoặc email. Bạn cũng có thể thêm thành viên sau khi tạo dự án.
+                        <p className="text-xs text-muted-foreground mt-2 flex-shrink-0">
+                          Chọn thành viên để thêm vào dự án. Có thể thêm sau khi tạo.
                         </p>
 
                         {/* Search */}
-                        <div className="relative">
+                        <div className="relative mt-3 flex-shrink-0">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                           <Input
                             placeholder="Tìm thành viên..."
@@ -527,78 +528,66 @@ export default function Groups() {
                           )}
                         </div>
 
-                        {/* Search results */}
-                        {searchResults.length > 0 && (
-                          <div className="border rounded-lg max-h-32 overflow-y-auto">
-                            {searchResults.map((p) => (
-                              <button
-                                key={p.id}
-                                type="button"
-                                onClick={() => addMember(p)}
-                                className="w-full flex items-center gap-3 px-3 py-2 hover:bg-muted/50 transition-colors text-left text-sm"
-                              >
-                                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary flex-shrink-0">
-                                  {p.full_name.charAt(0)}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <div className="font-medium truncate">{p.full_name}</div>
-                                  <div className="text-xs text-muted-foreground">{p.student_id}</div>
-                                </div>
-                                <Plus className="w-4 h-4 text-primary flex-shrink-0" />
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                        {/* Available members list - fills remaining space */}
+                        <div className="flex-1 min-h-0 mt-3 border rounded-lg overflow-y-auto">
+                          {searchResults.length > 0 ? (
+                            searchResults.map((p) => {
+                              const isSelected = selectedMembers.some(s => s.id === p.id);
+                              return (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => !isSelected && addMember(p)}
+                                  disabled={isSelected}
+                                  className={cn(
+                                    "w-full flex items-center gap-3 px-3 py-2.5 transition-colors text-left text-sm border-b last:border-b-0",
+                                    isSelected ? 'bg-primary/5 opacity-50 cursor-not-allowed' : 'hover:bg-muted/50 cursor-pointer'
+                                  )}
+                                >
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary flex-shrink-0">
+                                    {p.full_name.charAt(0)}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="font-medium truncate">{p.full_name}</div>
+                                    <div className="text-xs text-muted-foreground">{p.student_id} • {p.email}</div>
+                                  </div>
+                                  {isSelected ? (
+                                    <Badge variant="secondary" className="text-xs flex-shrink-0">Đã chọn</Badge>
+                                  ) : (
+                                    <Plus className="w-4 h-4 text-primary flex-shrink-0" />
+                                  )}
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                              <Users className="w-10 h-10 mb-2 opacity-30" />
+                              <p className="text-sm">{memberSearch ? 'Không tìm thấy' : 'Không có thành viên khả dụng'}</p>
+                            </div>
+                          )}
+                        </div>
 
-                        {/* Selected members */}
+                        {/* Selected members - compact */}
                         {selectedMembers.length > 0 && (
-                          <>
-                            <Separator />
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">
+                          <div className="mt-3 flex-shrink-0">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-xs font-medium">
                                 Đã chọn ({selectedMembers.length})
                               </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-xs h-7"
-                                onClick={() => setSelectedMembers([])}
-                              >
+                              <Button variant="ghost" size="sm" className="text-xs h-6 px-2" onClick={() => setSelectedMembers([])}>
                                 Xóa tất cả
                               </Button>
                             </div>
-                            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                            <div className="flex flex-wrap gap-1.5">
                               {selectedMembers.map((m) => (
-                                <div
-                                  key={m.id}
-                                  className="flex items-center gap-3 px-3 py-2 rounded-lg bg-muted/50"
-                                >
-                                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary flex-shrink-0">
-                                    {m.full_name.charAt(0)}
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <div className="text-sm font-medium truncate">{m.full_name}</div>
-                                    <div className="text-xs text-muted-foreground">{m.student_id}</div>
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 flex-shrink-0"
-                                    onClick={() => removeMember(m.id)}
-                                  >
-                                    <X className="w-3.5 h-3.5" />
-                                  </Button>
-                                </div>
+                                <Badge key={m.id} variant="secondary" className="gap-1 pr-1">
+                                  {m.full_name}
+                                  <button onClick={() => removeMember(m.id)} className="ml-0.5 hover:text-destructive">
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </Badge>
                               ))}
                             </div>
-                          </>
-                        )}
-
-                        {selectedMembers.length === 0 && searchResults.length === 0 && !memberSearch && (
-                          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                            <Users className="w-10 h-10 mb-2 opacity-30" />
-                            <p className="text-sm">Chưa có thành viên nào</p>
-                            <p className="text-xs">Tìm kiếm để thêm thành viên</p>
                           </div>
                         )}
                       </div>
