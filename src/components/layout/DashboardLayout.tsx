@@ -38,6 +38,7 @@ import {
   FolderArchive,
   MessageSquare,
   UserCircle,
+  Shield,
 } from 'lucide-react';
 import uehLogo from '@/assets/ueh-logo-new.png';
 import UserChangePasswordDialog from '@/components/UserChangePasswordDialog';
@@ -68,6 +69,7 @@ const navigation: NavItem[] = [
   { name: 'Góp ý', href: '/feedback', icon: Lightbulb, description: 'Gửi ý kiến phản hồi' },
   { name: 'Thành viên', href: '/members', icon: Users, requiresAdmin: true, description: 'Quản lý người dùng' },
   { name: 'Sao lưu', href: '/admin/backup', icon: FolderArchive, requiresAdmin: true, description: 'Backup dữ liệu' },
+  { name: 'Quản trị', href: '/admin/system', icon: Shield, requiresAdmin: true, description: 'Quản trị hệ thống' },
 ];
 
 export default function DashboardLayout({ children, projectId, projectName, zaloLink }: DashboardLayoutProps) {

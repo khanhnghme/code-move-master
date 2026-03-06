@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile, UserRole, AppRole } from '@/types/database';
 import SuspendedScreen from '@/components/SuspendedScreen';
+import MaintenanceScreen from '@/components/MaintenanceScreen';
 
 interface AuthContextType {
   user: User | null;
@@ -28,6 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState('');
 
   const fetchProfile = async (userId: string) => {
     const { data: profileData } = await supabase
@@ -47,6 +50,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     if (rolesData) {
       setRoles(rolesData.map(r => r.role as AppRole));
+    }
+  };
+
+  const fetchMaintenanceMode = async () => {
+    try {
+      const { data } = await supabase
+        .from('system_settings')
+        .select('value')
+        .eq('key', 'maintenance_mode')
+        .maybeSingle();
+
+      if (data?.value) {
+        const val = data.value as { enabled?: boolean; message?: string };
+        setMaintenanceMode(val.enabled ?? false);
+        setMaintenanceMessage(val.message ?? 'Hệ thống đang bảo trì, vui lòng quay lại sau.');
+      }
+    } catch (err) {
+      console.warn('Error fetching maintenance mode:', err);
     }
   };
 
@@ -111,10 +132,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     
     initSession();
+    fetchMaintenanceMode();
+
+    // Poll maintenance mode every 30 seconds
+    const interval = setInterval(fetchMaintenanceMode, 30000);
 
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      clearInterval(interval);
     };
   }, []);
 
@@ -142,7 +168,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    // Clear state immediately before async call
     setUser(null);
     setSession(null);
     setProfile(null);
@@ -169,16 +194,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshProfile();
   }, [user]);
 
+  const contextValue = {
+    user, session, profile, roles, isLoading,
+    isAdmin, isLeader, isApproved, mustChangePassword,
+    signIn, signUp, signOut, refreshProfile,
+  };
+
+  // Show maintenance screen for non-admin logged-in users
+  if (user && profile && maintenanceMode && !isAdmin) {
+    return (
+      <AuthContext.Provider value={contextValue}>
+        <MaintenanceScreen message={maintenanceMessage} onSignOut={signOut} />
+      </AuthContext.Provider>
+    );
+  }
+
   // Show suspended screen if user is logged in but suspended (and not admin)
   if (user && profile && isSuspended && !isAdmin) {
     return (
-      <AuthContext.Provider
-        value={{
-          user, session, profile, roles, isLoading,
-          isAdmin, isLeader, isApproved, mustChangePassword,
-          signIn, signUp, signOut, refreshProfile,
-        }}
-      >
+      <AuthContext.Provider value={contextValue}>
         <SuspendedScreen
           suspendedUntil={profile.suspended_until!}
           suspensionReason={profile.suspension_reason}
@@ -190,13 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider
-      value={{
-        user, session, profile, roles, isLoading,
-        isAdmin, isLeader, isApproved, mustChangePassword,
-        signIn, signUp, signOut, refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

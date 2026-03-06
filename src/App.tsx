@@ -16,6 +16,7 @@ import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
 import AdminActivity from "./pages/AdminActivity";
 import AdminBackup from "./pages/AdminBackup";
+import AdminSystem from "./pages/AdminSystem";
 import Communication from "./pages/Communication";
 import PublicProjectView from "./pages/PublicProjectView";
 import FilePreview from "./pages/FilePreview";
@@ -59,6 +60,7 @@ function AppRoutes() {
       <Route path="/members" element={<ProtectedRoute><MemberManagement /></ProtectedRoute>} />
       <Route path="/admin/activity" element={<ProtectedRoute><AdminActivity /></ProtectedRoute>} />
       <Route path="/admin/backup" element={<ProtectedRoute><AdminBackup /></ProtectedRoute>} />
+      <Route path="/admin/system" element={<ProtectedRoute><AdminSystem /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
