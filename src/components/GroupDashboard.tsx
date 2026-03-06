@@ -251,7 +251,7 @@ export default function GroupDashboard({ tasks, members, stages, groupId }: Grou
                         {member.profiles?.full_name}
                       </p>
                       <p className="text-[10px] text-muted-foreground">
-                        {member.role === 'leader' ? 'Phó nhóm' : 'Thành viên'}
+                        {member.role === 'leader' ? 'Leader' : 'Thành viên'}
                       </p>
                     </div>
                   </div>

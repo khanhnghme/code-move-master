@@ -5,6 +5,8 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import UserAvatar from '@/components/UserAvatar';
+import UserPresenceIndicator from '@/components/UserPresenceIndicator';
+import { useUserPresence } from '@/hooks/useUserPresence';
 import { supabase } from '@/integrations/supabase/client';
 import {
   User, Mail, GraduationCap, BookOpen, Phone, Sparkles, FileText,
@@ -58,6 +60,7 @@ export default function MemberDetailDialog({
   const [scores, setScores] = useState<ScoreInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [suspensionTimeLeft, setSuspensionTimeLeft] = useState('');
+  const { getPresenceStatus, isConnected } = useUserPresence('system-global');
 
   const isSuspended = member?.suspended_until
     ? new Date(member.suspended_until).getTime() > Date.now()
@@ -169,6 +172,12 @@ export default function MemberDetailDialog({
     'VERIFIED': 'bg-blue-500/10 text-blue-600',
   };
 
+  const getRoleLabel = (role: string) => {
+    if (role === 'admin') return 'Admin';
+    if (role === 'leader') return 'Leader';
+    return 'Thành viên';
+  };
+
   const roleLabel: Record<string, string> = {
     'admin': 'Admin', 'leader': 'Leader', 'member': 'Thành viên'
   };
@@ -190,7 +199,9 @@ export default function MemberDetailDialog({
           </DialogHeader>
           <div className="flex items-start gap-5">
             <UserAvatar src={member.avatar_url} name={member.full_name} size="xl"
-              className="border-4 border-background shadow-xl ring-2 ring-primary/20" />
+              className="border-4 border-background shadow-xl ring-2 ring-primary/20"
+              showPresence={isConnected}
+              presenceStatus={getPresenceStatus(member.id)} />
             <div className="min-w-0 flex-1">
               <h2 className="text-xl font-bold truncate">{member.full_name}</h2>
               <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
