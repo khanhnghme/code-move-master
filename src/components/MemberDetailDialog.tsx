@@ -172,14 +172,14 @@ export default function MemberDetailDialog({
     'VERIFIED': 'bg-blue-500/10 text-blue-600',
   };
 
-  const getRoleLabel = (role: string) => {
-    if (role === 'admin') return 'Admin';
-    if (role === 'leader') return 'Leader';
-    return 'Thành viên';
+  // System role labels (for user_roles)
+  const systemRoleLabel: Record<string, string> = {
+    'admin': 'Admin', 'leader': 'Leader', 'member': 'Thành viên'
   };
 
-  const roleLabel: Record<string, string> = {
-    'admin': 'Admin', 'leader': 'Leader', 'member': 'Thành viên'
+  // Project role labels (for group_members)
+  const projectRoleLabel: Record<string, string> = {
+    'admin': 'Admin', 'leader': 'Phó nhóm', 'member': 'Thành viên'
   };
 
   const taskStats = {
@@ -215,7 +215,7 @@ export default function MemberDetailDialog({
                 {systemRoles.map(r => (
                   <Badge key={r} variant={r === 'admin' ? 'destructive' : 'secondary'} className="text-xs gap-1">
                     {r === 'admin' ? <Shield className="w-3 h-3" /> : <UserCheck className="w-3 h-3" />}
-                    {roleLabel[r] || r}
+                    {systemRoleLabel[r] || r}
                   </Badge>
                 ))}
                 <Badge variant={member.is_approved ? 'default' : 'outline'} className="text-xs gap-1">
@@ -368,7 +368,7 @@ export default function MemberDetailDialog({
                             <span className="text-sm font-medium">{g.name}</span>
                           </div>
                           <Badge variant={g.role === 'leader' ? 'default' : 'secondary'} className="text-xs">
-                            {roleLabel[g.role] || g.role}
+                            {projectRoleLabel[g.role] || g.role}
                           </Badge>
                         </div>
                       ))}

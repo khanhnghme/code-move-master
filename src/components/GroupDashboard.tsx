@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { Task, GroupMember, Stage, Profile } from '@/types/database';
 import { formatDeadlineShortVN, isDeadlineOverdue, parseLocalDateTime } from '@/lib/datetime';
+import { getProjectRoleLabel } from '@/lib/roleLabels';
 import UserAvatar from '@/components/UserAvatar';
 import UserPresenceIndicator from '@/components/UserPresenceIndicator';
 import ProfileViewDialog from '@/components/ProfileViewDialog';
@@ -20,9 +21,10 @@ interface GroupDashboardProps {
   members: GroupMember[];
   stages: Stage[];
   groupId?: string;
+  createdBy?: string;
 }
 
-export default function GroupDashboard({ tasks, members, stages, groupId }: GroupDashboardProps) {
+export default function GroupDashboard({ tasks, members, stages, groupId, createdBy }: GroupDashboardProps) {
   const { getPresenceStatus, presenceMap, isConnected } = useUserPresence(groupId);
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
@@ -251,7 +253,7 @@ export default function GroupDashboard({ tasks, members, stages, groupId }: Grou
                         {member.profiles?.full_name}
                       </p>
                       <p className="text-[10px] text-muted-foreground">
-                        {member.role === 'leader' ? 'Leader' : 'Thành viên'}
+                        {getProjectRoleLabel(member.role, member.user_id === createdBy)}
                       </p>
                     </div>
                   </div>
