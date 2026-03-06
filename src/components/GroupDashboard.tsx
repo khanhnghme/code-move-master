@@ -25,7 +25,7 @@ interface GroupDashboardProps {
 }
 
 export default function GroupDashboard({ tasks, members, stages, groupId, createdBy }: GroupDashboardProps) {
-  const { getPresenceStatus, presenceMap, isConnected } = useUserPresence(groupId);
+  const { getPresenceStatus, presenceMap, isConnected } = useUserPresence('system-global');
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [profileRole, setProfileRole] = useState<'admin' | 'leader' | 'member'>('member');
