@@ -88,7 +88,7 @@ export default function MemberManagementCard({
 }: MemberManagementCardProps) {
   const { toast } = useToast();
   const { user, profile } = useAuth();
-  const { getPresenceStatus } = useUserPresence(groupId);
+  const { getPresenceStatus } = useUserPresence('system-global');
   const [memberToDelete, setMemberToDelete] = useState<GroupMember | null>(null);
   const [memberToChangeRole, setMemberToChangeRole] = useState<GroupMember | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
