@@ -12,8 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useUserPresence } from '@/hooks/useUserPresence';
-import UserPresenceIndicator from '@/components/UserPresenceIndicator';
 import { 
   User, 
   Mail, 
@@ -44,7 +42,6 @@ export default function PersonalInfo() {
   const { user, profile, isAdmin, isLeader, refreshProfile } = useAuth();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { isConnected } = useUserPresence('system-global');
   
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -254,11 +251,6 @@ export default function PersonalInfo() {
                     </AvatarFallback>
                   )}
                 </Avatar>
-                {isConnected && (
-                  <span className="absolute bottom-2 right-2 z-10">
-                    <UserPresenceIndicator status="online" size="md" />
-                  </span>
-                )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploadingAvatar}

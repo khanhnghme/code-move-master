@@ -717,6 +717,18 @@ export default function TaskListView({
   // Local task order for drag & drop (maps stage_id -> ordered task ids)
   const [localTaskOrder, setLocalTaskOrder] = useState<Record<string, string[]>>({});
 
+  // Sync dialog task with latest data when tasks prop updates
+  useEffect(() => {
+    if (submissionTask) {
+      const updated = tasks.find(t => t.id === submissionTask.id);
+      if (updated) setSubmissionTask(updated);
+    }
+    if (detailTask) {
+      const updated = tasks.find(t => t.id === detailTask.id);
+      if (updated) setDetailTask(updated);
+    }
+  }, [tasks]);
+
   // Toggle task hidden status
   const handleToggleTaskHidden = async (task: ExtendedTask) => {
     try {
