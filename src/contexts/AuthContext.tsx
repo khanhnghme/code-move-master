@@ -31,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState('');
+  const [maintenanceEndAt, setMaintenanceEndAt] = useState<string | null>(null);
 
   const fetchProfile = async (userId: string) => {
     const { data: profileData } = await supabase
@@ -62,9 +63,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (data?.value) {
-        const val = data.value as { enabled?: boolean; message?: string };
-        setMaintenanceMode(val.enabled ?? false);
+        const val = data.value as { enabled?: boolean; message?: string; start_at?: string; end_at?: string };
+        
+        let isActive = val.enabled ?? false;
+        const endAt = val.end_at ?? null;
+        
+        // Auto-disable if end_at has passed
+        if (isActive && endAt) {
+          const endTime = new Date(endAt).getTime();
+          if (endTime <= Date.now()) {
+            isActive = false;
+            // Auto-disable in DB
+            await supabase
+              .from('system_settings')
+              .update({
+                value: { ...val, enabled: false },
+                updated_at: new Date().toISOString(),
+              })
+              .eq('key', 'maintenance_mode');
+          }
+        }
+        
+        setMaintenanceMode(isActive);
         setMaintenanceMessage(val.message ?? 'Hệ thống đang bảo trì, vui lòng quay lại sau.');
+        setMaintenanceEndAt(isActive ? endAt : null);
       }
     } catch (err) {
       console.warn('Error fetching maintenance mode:', err);
@@ -204,7 +226,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   if (user && profile && maintenanceMode && !isAdmin) {
     return (
       <AuthContext.Provider value={contextValue}>
-        <MaintenanceScreen message={maintenanceMessage} onSignOut={signOut} />
+        <MaintenanceScreen message={maintenanceMessage} endAt={maintenanceEndAt} onSignOut={signOut} />
       </AuthContext.Provider>
     );
   }

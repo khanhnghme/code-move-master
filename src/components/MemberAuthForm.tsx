@@ -5,12 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 import { useToast } from '@/hooks/use-toast';
 import { UEHLogo } from '@/components/UEHLogo';
-import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn } from 'lucide-react';
+import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn, FileText } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import ReactMarkdown from 'react-markdown';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Vui lòng nhập Mã số sinh viên'),
@@ -28,6 +33,69 @@ const registerSchema = z.object({
   path: ['confirmPassword'],
 });
 
+function PolicyCheckbox({
+  checked,
+  onCheckedChange,
+  policyContent,
+  policyUpdatedAt,
+  error,
+}: {
+  checked: boolean;
+  onCheckedChange: (v: boolean) => void;
+  policyContent: string;
+  policyUpdatedAt: string | null;
+  error?: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <div className="flex items-start gap-2">
+        <Checkbox
+          id="policy-agree"
+          checked={checked}
+          onCheckedChange={(v) => onCheckedChange(v === true)}
+          className="mt-0.5"
+        />
+        <div className="flex-1">
+          <label htmlFor="policy-agree" className="text-sm cursor-pointer leading-tight">
+            Tôi đồng ý với{' '}
+            <Dialog>
+              <DialogTrigger asChild>
+                <button type="button" className="text-primary hover:underline font-medium inline-flex items-center gap-1">
+                  <FileText className="w-3 h-3" />
+                  Chính sách hệ thống
+                </button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Chính sách hệ thống</DialogTitle>
+                </DialogHeader>
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  {policyContent ? (
+                    <ReactMarkdown>{policyContent}</ReactMarkdown>
+                  ) : (
+                    <p className="text-muted-foreground">Chưa có nội dung chính sách.</p>
+                  )}
+                </div>
+                {policyUpdatedAt && (
+                  <p className="text-xs text-muted-foreground mt-4 pt-3 border-t">
+                    Cập nhật lần cuối: {format(new Date(policyUpdatedAt), "HH:mm 'ngày' dd/MM/yyyy", { locale: vi })}
+                  </p>
+                )}
+              </DialogContent>
+            </Dialog>
+          </label>
+          {policyUpdatedAt && (
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Cập nhật lần cuối: {format(new Date(policyUpdatedAt), "HH:mm dd/MM/yyyy", { locale: vi })}
+            </p>
+          )}
+        </div>
+      </div>
+      {error && <p className="text-sm text-destructive ml-6">{error}</p>}
+    </div>
+  );
+}
+
 export function MemberAuthForm() {
   const navigate = useNavigate();
   const { signUp, signIn, user, profile, isLoading: authLoading } = useAuth();
@@ -40,6 +108,7 @@ export function MemberAuthForm() {
   // Login fields
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [loginPolicyAgreed, setLoginPolicyAgreed] = useState(true);
 
   // Register fields
   const [regStudentId, setRegStudentId] = useState('');
@@ -47,6 +116,11 @@ export function MemberAuthForm() {
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [regPolicyAgreed, setRegPolicyAgreed] = useState(false);
+
+  // Policy
+  const [policyContent, setPolicyContent] = useState('');
+  const [policyUpdatedAt, setPolicyUpdatedAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && profile) {
@@ -55,6 +129,23 @@ export function MemberAuthForm() {
       }
     }
   }, [user, profile, navigate]);
+
+  // Fetch policy
+  useEffect(() => {
+    const fetchPolicy = async () => {
+      const { data } = await supabase
+        .from('system_settings')
+        .select('value')
+        .eq('key', 'system_policy')
+        .maybeSingle();
+      if (data?.value) {
+        const val = data.value as { content?: string; updated_at?: string };
+        setPolicyContent(val.content ?? '');
+        setPolicyUpdatedAt(val.updated_at ?? null);
+      }
+    };
+    fetchPolicy();
+  }, []);
 
   // If logged in but not approved, show pending screen
   if (user && profile && !profile.is_approved) {
@@ -100,6 +191,11 @@ export function MemberAuthForm() {
     e.preventDefault();
     setErrors({});
 
+    if (!loginPolicyAgreed) {
+      setErrors({ policy: 'Vui lòng đồng ý với Chính sách hệ thống để tiếp tục' });
+      return;
+    }
+
     const result = loginSchema.safeParse({ identifier, password });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -114,7 +210,6 @@ export function MemberAuthForm() {
     const studentId = identifier.trim();
     
     try {
-      // Step 1: Check if student ID exists in system
       const { data: email, error: lookupError } = await supabase
         .rpc('get_email_by_student_id', { _student_id: studentId });
 
@@ -125,7 +220,6 @@ export function MemberAuthForm() {
       }
 
       if (!email) {
-        // State 1: Account does NOT exist
         setIsLoading(false);
         toast({
           title: 'MSSV không tồn tại',
@@ -135,7 +229,6 @@ export function MemberAuthForm() {
         return;
       }
 
-      // Step 2: Check approval status BEFORE sign in
       const { data: profileData } = await supabase
         .from('profiles')
         .select('is_approved')
@@ -143,7 +236,6 @@ export function MemberAuthForm() {
         .maybeSingle();
 
       if (profileData && !profileData.is_approved) {
-        // State 2: Account exists but NOT approved
         setIsLoading(false);
         toast({
           title: 'Tài khoản chờ duyệt',
@@ -152,7 +244,6 @@ export function MemberAuthForm() {
         return;
       }
 
-      // State 3: Account exists and is approved → proceed to login
       const { error } = await signIn(email, password);
       setIsLoading(false);
 
@@ -175,6 +266,11 @@ export function MemberAuthForm() {
     e.preventDefault();
     setErrors({});
 
+    if (!regPolicyAgreed) {
+      setErrors({ policy: 'Vui lòng đồng ý với Chính sách hệ thống để đăng ký' });
+      return;
+    }
+
     const result = registerSchema.safeParse({
       studentId: regStudentId,
       fullName: regFullName,
@@ -195,7 +291,6 @@ export function MemberAuthForm() {
     setIsLoading(true);
 
     try {
-      // Check if student ID already exists
       const { data: existingEmail } = await supabase
         .rpc('get_email_by_student_id', { _student_id: regStudentId.trim() });
 
@@ -216,7 +311,6 @@ export function MemberAuthForm() {
           toast({ title: 'Đăng ký thất bại', description: error.message, variant: 'destructive' });
         }
       } else {
-        // Sign out immediately to prevent auto-login showing pending screen
         await supabase.auth.signOut({ scope: 'local' });
         setIsLoading(false);
         setRegisterSuccess(true);
@@ -322,6 +416,16 @@ export function MemberAuthForm() {
                 </div>
                 {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
               </div>
+
+              {/* Policy checkbox - checked by default for login */}
+              <PolicyCheckbox
+                checked={loginPolicyAgreed}
+                onCheckedChange={setLoginPolicyAgreed}
+                policyContent={policyContent}
+                policyUpdatedAt={policyUpdatedAt}
+                error={errors.policy}
+              />
+
               <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
                 {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                 Đăng nhập
@@ -419,6 +523,16 @@ export function MemberAuthForm() {
                 </div>
                 {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
               </div>
+
+              {/* Policy checkbox - unchecked by default for register */}
+              <PolicyCheckbox
+                checked={regPolicyAgreed}
+                onCheckedChange={setRegPolicyAgreed}
+                policyContent={policyContent}
+                policyUpdatedAt={policyUpdatedAt}
+                error={errors.policy}
+              />
+
               <Button type="submit" className="w-full font-semibold" disabled={isLoading}>
                 {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                 Tạo tài khoản
