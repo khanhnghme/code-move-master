@@ -1,15 +1,20 @@
 import { Button } from '@/components/ui/button';
-import { Wrench, LogOut, Mail, Clock } from 'lucide-react';
+import { Wrench, LogOut, Mail, Clock, CalendarClock } from 'lucide-react';
 import uehLogo from '@/assets/ueh-logo-new.png';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 interface MaintenanceScreenProps {
   message?: string;
+  endAt?: string | null;
   onSignOut?: () => void;
 }
 
 const ADMIN_EMAIL = 'khanhngh.ueh@gmail.com';
 
-export default function MaintenanceScreen({ message, onSignOut }: MaintenanceScreenProps) {
+export default function MaintenanceScreen({ message, endAt, onSignOut }: MaintenanceScreenProps) {
+  const formattedEnd = endAt ? format(new Date(endAt), "HH:mm 'ngày' dd/MM/yyyy", { locale: vi }) : null;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -76,9 +81,16 @@ export default function MaintenanceScreen({ message, onSignOut }: MaintenanceScr
                   </span>
                   <p className="text-lg font-bold text-foreground">Đang bảo trì</p>
                 </div>
-                <p className="text-xs text-center text-muted-foreground">
-                  Hệ thống sẽ tự động hoạt động trở lại khi quá trình bảo trì hoàn tất.
-                </p>
+                {formattedEnd ? (
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <CalendarClock className="w-4 h-4" />
+                    <span>Dự kiến mở lại: <span className="font-semibold text-foreground">{formattedEnd}</span></span>
+                  </div>
+                ) : (
+                  <p className="text-xs text-center text-muted-foreground">
+                    Hệ thống sẽ tự động hoạt động trở lại khi quá trình bảo trì hoàn tất.
+                  </p>
+                )}
               </div>
 
               {/* Contact Admin */}
