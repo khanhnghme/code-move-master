@@ -41,6 +41,7 @@ import {
   Shield,
   Moon,
   Sun,
+  Wrench,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import uehLogo from '@/assets/ueh-logo-new.png';
