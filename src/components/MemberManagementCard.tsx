@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,8 @@ import {
   Eye,
   CheckSquare,
   X,
+  LogOut,
+  Clock,
 } from 'lucide-react';
 import { exportMembersToExcel, getRoleDisplayName } from '@/lib/excelExport';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,6 +66,7 @@ import UserAvatar from '@/components/UserAvatar';
 import ProfileViewDialog from '@/components/ProfileViewDialog';
 import { useUserPresence } from '@/hooks/useUserPresence';
 import ExcelMemberImport, { type ParsedRow, type ExcelImportAction, type ImportValidation } from '@/components/ExcelMemberImport';
+import { logActivity } from '@/lib/activityLogger';
 import type { GroupMember, Profile } from '@/types/database';
 
 interface MemberManagementCardProps {
