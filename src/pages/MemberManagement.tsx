@@ -1003,6 +1003,7 @@ export default function MemberManagement() {
               {bulkAction === 'suspend' && 'Xác nhận khóa hàng loạt'}
               {bulkAction === 'unsuspend' && 'Xác nhận mở khóa hàng loạt'}
               {bulkAction === 'promote' && 'Xác nhận nâng cấp hàng loạt'}
+              {bulkAction === 'demote' && 'Xác nhận hạ cấp hàng loạt'}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {bulkAction === 'delete' && (<>Bạn sắp xóa <span className="font-semibold">{selectedIds.size}</span> tài khoản khỏi hệ thống.<br /><br /><span className="text-destructive font-medium">Thao tác này không thể hoàn tác!</span></>)}
