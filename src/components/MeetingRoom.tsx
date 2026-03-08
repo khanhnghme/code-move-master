@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { logActivity } from '@/lib/activityLogger';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Video, VideoOff, Users, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ArrowLeft, Video, VideoOff, Users, CheckCircle, Clock, XCircle, ChevronDown, ChevronUp, StickyNote, Save, Loader2 } from 'lucide-react';
 import type { GroupMember } from '@/types/database';
 
 interface MeetingRoomProps {
@@ -25,10 +27,34 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
   const { toast } = useToast();
   const [attendance, setAttendance] = useState<any[]>([]);
   const [isEnding, setIsEnding] = useState(false);
+  const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+  const [notes, setNotes] = useState(meeting.notes || '');
+  const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetchAttendance();
   }, [meeting.id]);
+
+  // Auto-save notes with debounce
+  const handleNotesChange = (value: string) => {
+    setNotes(value);
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    notesTimerRef.current = setTimeout(() => saveNotes(value), 1500);
+  };
+
+  const saveNotes = async (content: string) => {
+    setIsSavingNotes(true);
+    try {
+      await (supabase.from('meetings') as any)
+        .update({ notes: content, updated_at: new Date().toISOString() })
+        .eq('id', meeting.id);
+    } catch (e) {
+      // silent
+    } finally {
+      setIsSavingNotes(false);
+    }
+  };
 
   const fetchAttendance = async () => {
     const { data } = await (supabase.from('meeting_attendance') as any)
@@ -39,10 +65,10 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
 
   const handleUpdateAttendance = async (userId: string, status: string) => {
     await (supabase.from('meeting_attendance') as any)
-      .update({ 
-        status, 
+      .update({
+        status,
         marked_by: user!.id,
-        joined_at: status === 'present' ? new Date().toISOString() : null 
+        joined_at: status === 'present' ? new Date().toISOString() : null
       })
       .eq('meeting_id', meeting.id)
       .eq('user_id', userId);
@@ -53,7 +79,6 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
     await (supabase.from('meetings') as any)
       .update({ status: 'in_progress' })
       .eq('id', meeting.id);
-    
     await logActivity({
       userId: user!.id,
       userName: profile?.full_name || user?.email || 'Unknown',
@@ -67,26 +92,19 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
   const handleEndMeeting = async () => {
     setIsEnding(true);
     try {
-      // Update meeting status
       await (supabase.from('meetings') as any)
-        .update({ status: 'completed', updated_at: new Date().toISOString() })
+        .update({ status: 'completed', notes, updated_at: new Date().toISOString() })
         .eq('id', meeting.id);
-
-      // Mark present members' task as DONE
       if (meeting.task_id) {
-        const presentMembers = attendance.filter(a => a.status === 'present');
-        // Update task to DONE
         await supabase.from('tasks').update({ status: 'DONE' }).eq('id', meeting.task_id);
       }
-
       await logActivity({
         userId: user!.id,
         userName: profile?.full_name || user?.email || 'Unknown',
         action: 'END_MEETING', actionType: 'task',
-        description: `Kết thúc cuộc họp "${meeting.title}" - ${attendance.filter(a => a.status === 'present').length}/${members.length} có mặt`,
+        description: `Kết thúc cuộc họp "${meeting.title}" - ${presentCount}/${members.length} có mặt`,
         groupId,
       });
-
       toast({ title: 'Đã kết thúc cuộc họp', description: 'Task đã được cập nhật trạng thái DONE' });
       onRefresh();
       onBack();
@@ -97,66 +115,62 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
     }
   };
 
+  const presentCount = attendance.filter(a => a.status === 'present').length;
+  const lateCount = attendance.filter(a => a.status === 'late').length;
+
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'present': return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'late': return <Clock className="w-4 h-4 text-yellow-500" />;
-      default: return <XCircle className="w-4 h-4 text-destructive" />;
+      case 'present': return <CheckCircle className="w-3.5 h-3.5 text-green-500" />;
+      case 'late': return <Clock className="w-3.5 h-3.5 text-yellow-500" />;
+      default: return <XCircle className="w-3.5 h-3.5 text-destructive" />;
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'present': return <Badge className="bg-green-500/15 text-green-600 border-green-500/30">Có mặt</Badge>;
-      case 'late': return <Badge className="bg-yellow-500/15 text-yellow-600 border-yellow-500/30">Trễ</Badge>;
-      default: return <Badge variant="destructive" className="bg-destructive/15 text-destructive border-destructive/30">Vắng</Badge>;
+      case 'present': return <Badge className="bg-green-500/15 text-green-600 border-green-500/30 text-[10px] px-1.5 py-0">Có mặt</Badge>;
+      case 'late': return <Badge className="bg-yellow-500/15 text-yellow-600 border-yellow-500/30 text-[10px] px-1.5 py-0">Trễ</Badge>;
+      default: return <Badge variant="destructive" className="bg-destructive/15 text-destructive border-destructive/30 text-[10px] px-1.5 py-0">Vắng</Badge>;
     }
   };
 
   const jitsiUrl = `https://meet.jit.si/${meeting.jitsi_room_name}#userInfo.displayName="${encodeURIComponent(profile?.full_name || 'User')}"`;
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="w-4 h-4 mr-1" /> Quay lại
+    <div className="space-y-3">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <h2 className="text-xl font-bold">{meeting.title}</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="text-lg font-bold leading-tight">{meeting.title}</h2>
+            <p className="text-xs text-muted-foreground">
               {new Date(meeting.scheduled_at).toLocaleString('vi-VN')} • {meeting.duration_minutes} phút
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {meeting.status === 'scheduled' && isLeader && (
-            <Button onClick={handleStartMeeting} className="gap-2">
-              <Video className="w-4 h-4" /> Bắt đầu họp
+            <Button size="sm" onClick={handleStartMeeting} className="gap-1.5 h-8">
+              <Video className="w-3.5 h-3.5" /> Bắt đầu
             </Button>
           )}
           {meeting.status === 'in_progress' && isLeader && (
-            <Button variant="destructive" onClick={handleEndMeeting} disabled={isEnding} className="gap-2">
-              <VideoOff className="w-4 h-4" /> Kết thúc họp
+            <Button variant="destructive" size="sm" onClick={handleEndMeeting} disabled={isEnding} className="gap-1.5 h-8">
+              <VideoOff className="w-3.5 h-3.5" /> Kết thúc
             </Button>
           )}
-          <Badge variant={meeting.status === 'in_progress' ? 'default' : meeting.status === 'completed' ? 'secondary' : 'outline'}>
+          <Badge variant={meeting.status === 'in_progress' ? 'default' : meeting.status === 'completed' ? 'secondary' : 'outline'} className="text-xs">
             {meeting.status === 'scheduled' ? 'Đã lên lịch' : meeting.status === 'in_progress' ? '🔴 Đang họp' : 'Đã kết thúc'}
           </Badge>
         </div>
       </div>
 
-      {meeting.description && (
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-sm text-muted-foreground">{meeting.description}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid lg:grid-cols-3 gap-4" style={{ height: 'calc(100vh - 320px)' }}>
-        {/* Jitsi iframe */}
+      {/* Main content: Video + Sidebar */}
+      <div className="grid lg:grid-cols-3 gap-3" style={{ height: 'calc(100vh - 260px)' }}>
+        {/* Jitsi iframe - takes most space */}
         <div className="lg:col-span-2 rounded-xl overflow-hidden border border-border/50 bg-muted/30">
           {meeting.status === 'in_progress' || meeting.status === 'scheduled' ? (
             <iframe
@@ -175,62 +189,97 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
           )}
         </div>
 
-        {/* Attendance panel */}
-        <Card className="flex flex-col">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Điểm danh ({attendance.filter(a => a.status === 'present').length}/{members.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 p-0">
-            <ScrollArea className="h-full max-h-[calc(100vh-440px)]">
-              <div className="space-y-1 px-4 pb-4">
-                {members.map(member => {
-                  const att = attendance.find(a => a.user_id === member.user_id);
-                  const memberProfile = member.profiles;
-                  return (
-                    <div key={member.user_id} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors">
-                      {getStatusIcon(att?.status || 'absent')}
-                      {memberProfile?.avatar_url ? (
-                        <img src={memberProfile.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
-                          {memberProfile?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{memberProfile?.full_name}</p>
-                        {att?.joined_at && (
-                          <p className="text-[11px] text-muted-foreground">
-                            Vào lúc {new Date(att.joined_at).toLocaleTimeString('vi-VN')}
-                          </p>
-                        )}
-                      </div>
-                      {isLeader && meeting.status !== 'completed' ? (
-                        <Select
-                          value={att?.status || 'absent'}
-                          onValueChange={(v) => handleUpdateAttendance(member.user_id, v)}
-                        >
-                          <SelectTrigger className="w-[100px] h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="present">Có mặt</SelectItem>
-                            <SelectItem value="late">Trễ</SelectItem>
-                            <SelectItem value="absent">Vắng</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        getStatusBadge(att?.status || 'absent')
-                      )}
+        {/* Right sidebar: collapsible attendance + notes */}
+        <div className="flex flex-col gap-3 min-h-0 overflow-hidden">
+          {/* Attendance - collapsible */}
+          <Collapsible open={isAttendanceOpen} onOpenChange={setIsAttendanceOpen}>
+            <Card className="flex flex-col">
+              <CollapsibleTrigger asChild>
+                <button className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors rounded-t-lg">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <Users className="w-4 h-4 text-primary" />
+                    Điểm danh
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">
+                      {presentCount}/{members.length}
+                    </Badge>
+                    {lateCount > 0 && (
+                      <Badge className="bg-yellow-500/15 text-yellow-600 border-yellow-500/30 text-[10px] px-1.5 py-0">
+                        {lateCount} trễ
+                      </Badge>
+                    )}
+                  </div>
+                  {isAttendanceOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="p-0 border-t">
+                  <ScrollArea className="max-h-[280px]">
+                    <div className="space-y-0.5 p-2">
+                      {members.map(member => {
+                        const att = attendance.find(a => a.user_id === member.user_id);
+                        const mp = member.profiles;
+                        return (
+                          <div key={member.user_id} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50 transition-colors">
+                            {getStatusIcon(att?.status || 'absent')}
+                            {mp?.avatar_url ? (
+                              <img src={mp.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                                {mp?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                            <span className="text-xs font-medium truncate flex-1">{mp?.full_name}</span>
+                            {isLeader && meeting.status !== 'completed' ? (
+                              <Select
+                                value={att?.status || 'absent'}
+                                onValueChange={(v) => handleUpdateAttendance(member.user_id, v)}
+                              >
+                                <SelectTrigger className="w-[80px] h-6 text-[10px] px-2">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="present">Có mặt</SelectItem>
+                                  <SelectItem value="late">Trễ</SelectItem>
+                                  <SelectItem value="absent">Vắng</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              getStatusBadge(att?.status || 'absent')
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </ScrollArea>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
+          {/* Meeting Notes */}
+          <Card className="flex-1 flex flex-col min-h-0">
+            <div className="flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <StickyNote className="w-4 h-4 text-primary" />
+                Ghi chú buổi họp
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+              {isSavingNotes && (
+                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Đang lưu...
+                </div>
+              )}
+            </div>
+            <CardContent className="flex-1 p-0 px-4 pb-4 min-h-0">
+              <Textarea
+                value={notes}
+                onChange={e => handleNotesChange(e.target.value)}
+                placeholder="Ghi chú nội dung cuộc họp, quyết định, action items..."
+                className="h-full min-h-[120px] resize-none text-sm"
+                readOnly={!isLeader && meeting.status === 'completed'}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
