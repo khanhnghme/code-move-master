@@ -784,7 +784,7 @@ export default function Landing() {
       )}
       <div className="relative flex flex-col flex-1 min-h-screen" style={{ zIndex: 2 }}>
       {/* Header */}
-      <header className="border-b bg-primary text-primary-foreground sticky top-0 z-50">
+      <header className="border-b bg-primary/80 backdrop-blur-md text-primary-foreground sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img src={uehLogo} alt="UEH logo" className="h-8 w-auto drop-shadow-md" loading="lazy" />
