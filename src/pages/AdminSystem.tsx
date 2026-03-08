@@ -18,6 +18,7 @@ import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import { UEHLogo } from '@/components/UEHLogo';
 
 export default function AdminSystem() {
