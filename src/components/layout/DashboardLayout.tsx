@@ -39,7 +39,10 @@ import {
   MessageSquare,
   UserCircle,
   Shield,
+  Moon,
+  Sun,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import uehLogo from '@/assets/ueh-logo-new.png';
 import UserChangePasswordDialog from '@/components/UserChangePasswordDialog';
 import NotificationBell from '@/components/NotificationBell';
