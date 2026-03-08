@@ -156,10 +156,11 @@ serve(async (req: Request) => {
     }
 
     if (body.action === "create_member") {
-      const { email, student_id, full_name } = body;
+      const { student_id, full_name } = body;
+      const email = body.email && body.email.trim() ? body.email.trim() : `${(student_id || '').toLowerCase()}@teamworks.local`;
       
-      if (!email || !student_id || !full_name) {
-        return new Response(JSON.stringify({ error: "Missing required fields" }), {
+      if (!student_id || !full_name) {
+        return new Response(JSON.stringify({ error: "Missing required fields (student_id, full_name)" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

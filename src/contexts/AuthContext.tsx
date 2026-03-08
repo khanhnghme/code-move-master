@@ -5,6 +5,7 @@ import type { Profile, UserRole, AppRole } from '@/types/database';
 import SuspendedScreen from '@/components/SuspendedScreen';
 import MaintenanceScreen from '@/components/MaintenanceScreen';
 import { ProfileCompletionForm } from '@/components/ProfileCompletionForm';
+import ForceGoogleLinkScreen from '@/components/ForceGoogleLinkScreen';
 
 interface AuthContextType {
   user: User | null;
@@ -253,6 +254,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return (
       <AuthContext.Provider value={contextValue}>
         <ProfileCompletionForm />
+      </AuthContext.Provider>
+    );
+  }
+
+  // Force Google link for users with placeholder email
+  const needsGoogleLink = !!(user && profile && profile.email?.endsWith('@teamworks.local') && !isAdmin);
+  if (needsGoogleLink) {
+    return (
+      <AuthContext.Provider value={contextValue}>
+        <ForceGoogleLinkScreen onSignOut={signOut} />
       </AuthContext.Provider>
     );
   }

@@ -106,7 +106,6 @@ export default function MemberManagementCard({
   const [isCreatingMember, setIsCreatingMember] = useState(false);
   const [newMemberFullName, setNewMemberFullName] = useState('');
   const [newMemberStudentId, setNewMemberStudentId] = useState('');
-  const [newMemberEmail, setNewMemberEmail] = useState('');
   const [newMemberRole, setNewMemberRole] = useState<'member' | 'leader'>('member');
 
   // New role for change role dialog
@@ -169,7 +168,6 @@ export default function MemberManagementCard({
   const resetCreateForm = () => {
     setNewMemberFullName('');
     setNewMemberStudentId('');
-    setNewMemberEmail('');
     setNewMemberRole('member');
   };
 
@@ -245,26 +243,20 @@ export default function MemberManagementCard({
 
   // Create new member and add to project
   const handleCreateMember = async () => {
-    if (!newMemberFullName.trim() || !newMemberStudentId.trim() || !newMemberEmail.trim()) {
+    if (!newMemberFullName.trim() || !newMemberStudentId.trim()) {
       toast({ title: 'Lỗi', description: 'Vui lòng điền đầy đủ thông tin', variant: 'destructive' });
-      return;
-    }
-    
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newMemberEmail.trim())) {
-      toast({ title: 'Lỗi', description: 'Email không hợp lệ', variant: 'destructive' });
       return;
     }
 
     setIsCreatingMember(true);
+    const placeholderEmail = `${newMemberStudentId.trim().toLowerCase()}@teamworks.local`;
 
     try {
       // Step 1: Create user in system via edge function
       const { data: createResult, error: createError } = await supabase.functions.invoke('manage-users', {
         body: {
           action: 'create_member',
-          email: newMemberEmail.trim(),
+          email: placeholderEmail,
           student_id: newMemberStudentId.trim(),
           full_name: newMemberFullName.trim(),
         }
@@ -300,7 +292,6 @@ export default function MemberManagementCard({
         metadata: { 
           created_user_id: newUserId, 
           created_user_name: newMemberFullName.trim(),
-          created_user_email: newMemberEmail.trim(),
           role: roleToAssign
         }
       });
@@ -1055,16 +1046,9 @@ export default function MemberManagementCard({
               />
             </div>
 
-            {/* Email */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Email <span className="text-destructive">*</span></Label>
-              <Input
-                type="email"
-                placeholder="example@gmail.com"
-                value={newMemberEmail}
-                onChange={(e) => setNewMemberEmail(e.target.value)}
-                className="h-11"
-              />
+            {/* Info: Email sẽ được lấy từ Google */}
+            <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
+              📧 Email sẽ được tự động lấy khi thành viên liên kết tài khoản Google lần đầu đăng nhập.
             </div>
 
             {/* Role info */}
@@ -1109,7 +1093,7 @@ export default function MemberManagementCard({
             </Button>
             <Button 
               onClick={handleCreateMember} 
-              disabled={!newMemberFullName.trim() || !newMemberStudentId.trim() || !newMemberEmail.trim() || isCreatingMember} 
+              disabled={!newMemberFullName.trim() || !newMemberStudentId.trim() || isCreatingMember} 
               className="min-w-28"
             >
               {isCreatingMember ? (
@@ -1148,12 +1132,15 @@ export default function MemberManagementCard({
           const results: ImportValidation[] = [];
           for (const row of rows) {
             if (action === 'add') {
-              if (!row.fullName || !row.email) {
-                results.push({ row, status: 'missing_field', message: `Thiếu ${!row.fullName ? 'họ tên' : 'email'}` });
+              if (!row.fullName) {
+                results.push({ row, status: 'missing_field', message: 'Thiếu họ tên' });
                 continue;
               }
-              // Check if already in project
-              const existing = members.find(m => m.profiles?.email?.toLowerCase() === row.email.toLowerCase());
+              // Check if already in project by studentId or email
+              const existing = members.find(m => 
+                (row.studentId && m.profiles?.student_id === row.studentId) ||
+                (row.email && m.profiles?.email?.toLowerCase() === row.email.toLowerCase())
+              );
               if (existing) {
                 results.push({ row, status: 'duplicate', message: 'Đã có trong project' });
               } else {
@@ -1183,14 +1170,18 @@ export default function MemberManagementCard({
           if (action === 'add') {
             for (const row of rows) {
               try {
-                // Find existing profile by email
-                const existingProfile = availableProfiles.find(p => p.email.toLowerCase() === row.email.toLowerCase());
+                // Find existing profile by studentId or email
+                const existingProfile = availableProfiles.find(p => 
+                  (row.studentId && p.student_id === row.studentId) ||
+                  (row.email && p.email.toLowerCase() === row.email.toLowerCase())
+                );
                 let userId = existingProfile?.id;
 
                 if (!userId) {
-                  // Create new system account
+                  // Create new system account with placeholder email
+                  const emailForCreate = row.email || `${row.studentId.toLowerCase()}@teamworks.local`;
                   const { data, error } = await supabase.functions.invoke('manage-users', {
-                    body: { action: 'create_member', email: row.email, student_id: row.studentId, full_name: row.fullName },
+                    body: { action: 'create_member', email: emailForCreate, student_id: row.studentId, full_name: row.fullName },
                   });
                   if (error || data?.error) throw new Error(data?.error || error?.message);
                   userId = data?.user?.id;

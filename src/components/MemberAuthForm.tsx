@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn, FileText, Shield } from 'lucide-react';
+import { Loader2, Hash, Lock, Users, User, UserPlus, LogIn, FileText, Shield } from 'lucide-react';
 import { UEHLogo } from '@/components/UEHLogo';
 import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { z } from 'zod';
@@ -29,12 +29,7 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   studentId: z.string().min(1, 'Vui lòng nhập MSSV').max(20, 'MSSV tối đa 20 ký tự'),
   fullName: z.string().min(1, 'Vui lòng nhập họ tên').max(100, 'Họ tên tối đa 100 ký tự'),
-  email: z.string().email('Email không hợp lệ').max(255, 'Email tối đa 255 ký tự'),
   password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
-  confirmPassword: z.string().min(6, 'Xác nhận mật khẩu tối thiểu 6 ký tự'),
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'Mật khẩu xác nhận không khớp',
-  path: ['confirmPassword'],
 });
 
 function PolicyCheckbox({
@@ -145,9 +140,7 @@ export function MemberAuthForm() {
   // Register fields
   const [regStudentId, setRegStudentId] = useState('');
   const [regFullName, setRegFullName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [regPolicyAgreed, setRegPolicyAgreed] = useState(false);
 
   // Policy
@@ -306,9 +299,7 @@ export function MemberAuthForm() {
     const result = registerSchema.safeParse({
       studentId: regStudentId,
       fullName: regFullName,
-      email: regEmail,
       password: regPassword,
-      confirmPassword: regConfirmPassword,
     });
 
     if (!result.success) {
@@ -332,16 +323,12 @@ export function MemberAuthForm() {
         return;
       }
 
-      const { error } = await signUp(regEmail.trim(), regPassword, regStudentId.trim(), regFullName.trim());
+      const placeholderEmail = `${regStudentId.trim().toLowerCase()}@teamworks.local`;
+      const { error } = await signUp(placeholderEmail, regPassword, regStudentId.trim(), regFullName.trim());
 
       if (error) {
         setIsLoading(false);
-        const msg = error.message?.toLowerCase() || '';
-        if (msg.includes('already registered') || msg.includes('already exists')) {
-          toast({ title: 'Email đã tồn tại', description: 'Email này đã được sử dụng. Vui lòng dùng email khác.', variant: 'destructive' });
-        } else {
-          toast({ title: 'Đăng ký thất bại', description: error.message, variant: 'destructive' });
-        }
+        toast({ title: 'Đăng ký thất bại', description: error.message, variant: 'destructive' });
       } else {
         await supabase.auth.signOut({ scope: 'local' });
         setIsLoading(false);
@@ -380,9 +367,7 @@ export function MemberAuthForm() {
                 setActiveTab('login');
                 setRegStudentId('');
                 setRegFullName('');
-                setRegEmail('');
                 setRegPassword('');
-                setRegConfirmPassword('');
               }}
             >
               Quay lại đăng nhập
@@ -548,22 +533,6 @@ export function MemberAuthForm() {
                 {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="reg-email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="reg-email"
-                    type="email"
-                    placeholder="email@example.com"
-                    className="pl-10"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="reg-password">Mật khẩu</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -578,22 +547,6 @@ export function MemberAuthForm() {
                   />
                 </div>
                 {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reg-confirm-password">Xác nhận mật khẩu</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="reg-confirm-password"
-                    type="password"
-                    placeholder="Nhập lại mật khẩu"
-                    className="pl-10"
-                    value={regConfirmPassword}
-                    onChange={(e) => setRegConfirmPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
               </div>
 
               {/* Policy checkbox - unchecked by default for register */}
@@ -610,7 +563,7 @@ export function MemberAuthForm() {
                 Tạo tài khoản
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                Sau khi tạo, tài khoản cần được Admin duyệt trước khi sử dụng.
+                Sau khi tạo, tài khoản cần được Admin duyệt. Khi đăng nhập lần đầu, bạn cần liên kết tài khoản Google.
               </p>
               <p className="text-sm text-center text-muted-foreground">
                 Đã có tài khoản?{' '}
