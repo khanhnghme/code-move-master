@@ -69,10 +69,11 @@ export default function AdminSystem() {
 
   const fetchSettings = async () => {
     try {
-      const [maintenanceRes, policyRes, errorLoggingRes] = await Promise.all([
+      const [maintenanceRes, policyRes, errorLoggingRes, videoRes] = await Promise.all([
         supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
+        supabase.from('system_settings').select('*').eq('key', 'dashboard_video_bg').maybeSingle(),
       ]);
 
       if (maintenanceRes.data?.value) {
@@ -96,6 +97,13 @@ export default function AdminSystem() {
       if (errorLoggingRes.data?.value) {
         const val = errorLoggingRes.data.value as { enabled?: boolean };
         setErrorLoggingEnabled(val.enabled ?? true);
+      }
+
+      if (videoRes.data?.value) {
+        const val = videoRes.data.value as { enabled?: boolean; opacity?: number; url?: string };
+        setVideoBgEnabled(val.enabled ?? false);
+        setVideoBgOpacity(Math.round((val.opacity ?? 0.2) * 100));
+        setVideoBgUrl(val.url ?? '');
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
