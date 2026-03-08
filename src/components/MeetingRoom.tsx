@@ -256,57 +256,24 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
 
       {/* Main content area */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Main area - meeting info + join button */}
-        <div className="flex-1 min-w-0 flex items-center justify-center">
+        {/* Main area - embedded Jitsi or meeting info */}
+        <div className="flex-1 min-w-0 flex flex-col">
           {isActive ? (
-            <div className="text-center space-y-6 max-w-md px-6">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-                <Video className="w-10 h-10 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-1">{meeting.title}</h3>
-                {meeting.description && (
-                  <p className="text-sm text-muted-foreground mb-3">{meeting.description}</p>
-                )}
-                <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" />
-                    {new Date(meeting.scheduled_at).toLocaleString('vi-VN')}
-                  </span>
-                  <span>{meeting.duration_minutes} phút</span>
-                </div>
-              </div>
-
-              {meeting.external_link ? (
-                <Button size="lg" className="gap-2 text-base px-8" onClick={handleOpenMeetingLink}>
-                  <ExternalLink className="w-5 h-5" />
-                  Tham gia phòng họp
-                </Button>
-              ) : (
-                <p className="text-sm text-muted-foreground">Chưa có link phòng họp</p>
-              )}
-
-              {meeting.external_link && (
-                <p className="text-xs text-muted-foreground">
-                  Phòng họp sẽ mở trong tab mới • {getLinkPlatform(meeting.external_link)}
-                </p>
-              )}
-
-              <div className="flex items-center justify-center gap-2 text-sm">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                <span className={presentCount > 0 ? 'font-medium text-green-600' : 'text-muted-foreground'}>
-                  {presentCount}/{members.length} đã điểm danh
-                </span>
-              </div>
-            </div>
+            <JitsiEmbed
+              roomName={`${JAAS_APP_ID}/${meeting.jitsi_room_name}`}
+              displayName={profile?.full_name || user?.email || 'User'}
+              email={user?.email || ''}
+            />
           ) : (
-            <div className="text-center space-y-4">
-              <VideoOff className="w-16 h-16 mx-auto text-muted-foreground/40" />
-              <div>
-                <p className="font-semibold text-lg">Cuộc họp đã kết thúc</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {presentCount}/{members.length} thành viên đã tham gia
-                </p>
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <VideoOff className="w-16 h-16 mx-auto text-muted-foreground/40" />
+                <div>
+                  <p className="font-semibold text-lg">Cuộc họp đã kết thúc</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {presentCount}/{members.length} thành viên đã tham gia
+                  </p>
+                </div>
               </div>
             </div>
           )}
