@@ -992,6 +992,7 @@ export default function Landing() {
           from { width: 0; }
         }
       `}</style>
+      </div>
     </div>
   );
 }
