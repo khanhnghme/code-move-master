@@ -924,6 +924,15 @@ export default function TaskListView({
           await supabase.from('submission_history').delete().eq('task_id', taskId);
           await supabase.from('tasks').delete().eq('id', taskId);
         }
+        if (user && profile) {
+          const deletedTasks = tasks.filter(t => idsToDelete.has(t.id));
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'BATCH_DELETE_TASKS', actionType: 'task',
+            description: `Xóa hàng loạt ${count} task: ${deletedTasks.map(t => t.title).join(', ')}`,
+            groupId,
+          });
+        }
         onRefresh();
       },
       onUndo: () => {
