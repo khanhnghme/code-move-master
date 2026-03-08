@@ -347,6 +347,7 @@ export type Database = {
           group_id: string
           id: string
           jitsi_room_name: string
+          notes: string | null
           scheduled_at: string
           status: string
           task_id: string | null
@@ -361,6 +362,7 @@ export type Database = {
           group_id: string
           id?: string
           jitsi_room_name: string
+          notes?: string | null
           scheduled_at: string
           status?: string
           task_id?: string | null
@@ -375,6 +377,7 @@ export type Database = {
           group_id?: string
           id?: string
           jitsi_room_name?: string
+          notes?: string | null
           scheduled_at?: string
           status?: string
           task_id?: string | null
