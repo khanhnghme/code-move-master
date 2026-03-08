@@ -155,6 +155,16 @@ export default function KanbanBoard({
         title: 'Đã di chuyển task',
         description: 'Task đã được chuyển sang giai đoạn mới',
       });
+      const task = tasks.find(t => t.id === taskId);
+      const newStageName = stages.find(s => s.id === newStageId)?.name || 'Chưa phân giai đoạn';
+      if (user && profile && task) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'MOVE_TASK_STAGE', actionType: 'task',
+          description: `Di chuyển task "${task.title}" sang giai đoạn "${newStageName}"`,
+          groupId,
+        });
+      }
       onRefresh();
     } catch (error: any) {
       toast({
