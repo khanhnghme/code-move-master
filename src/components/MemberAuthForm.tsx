@@ -134,7 +134,7 @@ export function MemberAuthForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<'login' | 'register' | 'forgot'>('login');
-  const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [registerSuccess, setRegisterSuccess] = useState<false | 'pending' | 'approved'>(false);
   const [forgotIdentifier, setForgotIdentifier] = useState('');
   const [forgotEmailInput, setForgotEmailInput] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
