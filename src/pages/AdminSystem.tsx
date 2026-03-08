@@ -13,8 +13,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle, Bug, Video } from 'lucide-react';
+import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle, Bug, Video, Upload, Link, Loader2 } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -58,6 +59,7 @@ export default function AdminSystem() {
   const [videoBgOpacity, setVideoBgOpacity] = useState(20);
   const [videoBgUrl, setVideoBgUrl] = useState('');
   const [savingVideo, setSavingVideo] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAdmin) {
@@ -419,15 +421,72 @@ export default function AdminSystem() {
                 </div>
               </CardHeader>
               <CardContent className="pt-0 space-y-3">
-                <div>
-                  <Label className="text-xs text-muted-foreground">URL video</Label>
-                  <Input
-                    placeholder="https://example.com/video.mp4"
-                    value={videoBgUrl}
-                    onChange={(e) => setVideoBgUrl(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
+                <Tabs defaultValue="upload" className="w-full">
+                  <TabsList className="w-full grid grid-cols-2">
+                    <TabsTrigger value="upload" className="gap-1.5 text-xs">
+                      <Upload className="w-3 h-3" /> Tải video lên
+                    </TabsTrigger>
+                    <TabsTrigger value="link" className="gap-1.5 text-xs">
+                      <Link className="w-3 h-3" /> Dán link
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="upload" className="space-y-2 mt-2">
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm,video/ogg"
+                      id="video-upload"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 50 * 1024 * 1024) {
+                          toast({ title: 'File quá lớn', description: 'Tối đa 50MB', variant: 'destructive' });
+                          return;
+                        }
+                        setUploadingVideo(true);
+                        try {
+                          const ext = file.name.split('.').pop();
+                          const fileName = `dashboard-bg-${Date.now()}.${ext}`;
+                          const { error: uploadError } = await supabase.storage
+                            .from('system-assets')
+                            .upload(fileName, file, { upsert: true });
+                          if (uploadError) throw uploadError;
+                          const { data: urlData } = supabase.storage
+                            .from('system-assets')
+                            .getPublicUrl(fileName);
+                          setVideoBgUrl(urlData.publicUrl);
+                          toast({ title: 'Đã tải video lên thành công' });
+                        } catch (err: any) {
+                          toast({ title: 'Lỗi tải lên', description: err.message, variant: 'destructive' });
+                        } finally {
+                          setUploadingVideo(false);
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2"
+                      disabled={uploadingVideo}
+                      onClick={() => document.getElementById('video-upload')?.click()}
+                    >
+                      {uploadingVideo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {uploadingVideo ? 'Đang tải lên...' : 'Chọn file video (MP4, WebM, tối đa 50MB)'}
+                    </Button>
+                    {videoBgUrl && (
+                      <p className="text-xs text-muted-foreground break-all">
+                        Video hiện tại: {videoBgUrl.split('/').pop()}
+                      </p>
+                    )}
+                  </TabsContent>
+                  <TabsContent value="link" className="space-y-2 mt-2">
+                    <Input
+                      placeholder="https://example.com/video.mp4"
+                      value={videoBgUrl}
+                      onChange={(e) => setVideoBgUrl(e.target.value)}
+                    />
+                  </TabsContent>
+                </Tabs>
+
                 <div>
                   <Label className="text-xs text-muted-foreground">Độ hiển thị: {videoBgOpacity}%</Label>
                   <Slider
