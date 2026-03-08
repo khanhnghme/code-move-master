@@ -138,8 +138,11 @@ export function MemberAuthForm() {
   const [forgotIdentifier, setForgotIdentifier] = useState('');
   const [forgotEmailInput, setForgotEmailInput] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
-  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotStep, setForgotStep] = useState<'input' | 'otp' | 'newpass' | 'done'>('input');
   const [forgotEmail, setForgotEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
 
   // Login fields
   const [identifier, setIdentifier] = useState('');
