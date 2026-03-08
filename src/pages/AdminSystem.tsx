@@ -276,10 +276,10 @@ export default function AdminSystem() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Policy preview */}
-              <div className="rounded-lg border bg-muted/30 p-3 max-h-[220px] overflow-y-auto">
+              <div className="rounded-lg border bg-muted/30 p-3 h-[280px] overflow-y-auto">
                 {policyContent ? (
                   <div className="prose prose-sm dark:prose-invert max-w-none text-xs">
-                    <ReactMarkdown>{policyContent}</ReactMarkdown>
+                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>{policyContent}</ReactMarkdown>
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-6">Chưa có nội dung chính sách</p>
