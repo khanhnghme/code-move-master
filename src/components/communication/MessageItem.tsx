@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import UserAvatar from '@/components/UserAvatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,15 +22,12 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { 
-  MessageSquare, 
   ExternalLink, 
   MoreHorizontal, 
   Trash2, 
-  Clock,
-  ArrowRight,
-  User,
   Reply,
-  CornerDownRight
+  CornerDownRight,
+  CheckCheck
 } from 'lucide-react';
 
 export interface Message {
@@ -53,18 +48,16 @@ export interface Message {
 interface MessageItemProps {
   message: Message;
   isOwn: boolean;
+  showAvatar?: boolean;
+  showName?: boolean;
   onTaskClick?: (taskId: string) => void;
   onDelete?: (messageId: string) => void;
   onReply?: (message: Message) => void;
 }
 
-export default function MessageItem({ message, isOwn, onTaskClick, onDelete, onReply }: MessageItemProps) {
+export default function MessageItem({ message, isOwn, showAvatar = true, showName = true, onTaskClick, onDelete, onReply }: MessageItemProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  };
 
   const segments = renderMessageContent(message.content);
 
@@ -80,161 +73,115 @@ export default function MessageItem({ message, isOwn, onTaskClick, onDelete, onR
   };
 
   const formattedTime = format(new Date(message.created_at), 'HH:mm');
-  const formattedDate = format(new Date(message.created_at), 'dd/MM/yyyy', { locale: vi });
   const formattedDateTime = format(new Date(message.created_at), "EEEE, dd/MM/yyyy 'lúc' HH:mm", { locale: vi });
 
   return (
     <>
       <div className={cn(
-        'flex gap-3 mb-4 group',
-        isOwn && 'flex-row-reverse'
+        'flex items-end gap-2 mb-1 group',
+        isOwn ? 'flex-row-reverse' : 'flex-row',
+        !showAvatar && (isOwn ? 'mr-10' : 'ml-10')
       )}>
         {/* Avatar */}
-        <UserAvatar 
-          src={message.avatar_url}
-          name={message.user_name}
-          size="md"
-          className={cn(
-            "shadow-sm",
-            isOwn ? "ring-2 ring-primary/30" : "ring-2 ring-border"
-          )}
-          fallbackClassName={cn(
-            isOwn 
-              ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground' 
-              : 'bg-gradient-to-br from-muted to-muted/80'
-          )}
-        />
+        {showAvatar ? (
+          <UserAvatar 
+            src={message.avatar_url}
+            name={message.user_name}
+            size="sm"
+            className="shrink-0 mb-0.5"
+          />
+        ) : (
+          <div className="w-8 shrink-0" />
+        )}
 
-        {/* Message Card - Unified Box */}
-        <Card className={cn(
-          'flex-1 max-w-[80%] overflow-hidden transition-all duration-200 group-hover:shadow-md',
-          isOwn 
-            ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground border-primary/30' 
-            : 'bg-card border-border/80'
+        {/* Bubble */}
+        <div className={cn(
+          'relative max-w-[75%] group/bubble',
+          isOwn ? 'items-end' : 'items-start'
         )}>
-          {/* Header: Sender + Time + Actions */}
-          <div className={cn(
-            "flex items-center justify-between gap-2 px-3 py-2 border-b",
-            isOwn ? "border-primary-foreground/10" : "border-border/50 bg-muted/30"
-          )}>
-            <div className="flex items-center gap-2 min-w-0">
-              <User className={cn(
-                "w-3.5 h-3.5 shrink-0",
-                isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
-              )} />
-              <span className={cn(
-                "text-sm font-semibold truncate",
-                isOwn ? "text-primary-foreground" : "text-foreground"
-              )}>
-                {isOwn ? 'Bạn' : message.user_name}
-              </span>
-              <div className={cn(
-                "flex items-center gap-1 text-[11px]",
-                isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
-              )}>
-                <Clock className="w-3 h-3" />
-                <span title={formattedDateTime}>{formattedTime} · {formattedDate}</span>
-              </div>
-            </div>
+          {/* Name */}
+          {showName && !isOwn && (
+            <p className="text-xs font-medium text-muted-foreground mb-1 ml-3">
+              {message.user_name}
+            </p>
+          )}
 
-            {/* Actions Menu */}
-            <div className="flex items-center gap-1">
-              {/* Reply Button */}
-              {onReply && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className={cn(
-                    "h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
-                    isOwn ? "hover:bg-primary-foreground/20" : "hover:bg-muted"
-                  )}
-                  onClick={() => onReply(message)}
-                >
-                  <Reply className="w-3.5 h-3.5" />
-                </Button>
-              )}
-              
-              {/* Delete Menu (only for own messages) */}
-              {isOwn && onDelete && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className={cn(
-                        "h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity",
-                        "hover:bg-primary-foreground/20"
-                      )}
-                    >
-                      <MoreHorizontal className="w-3.5 h-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40 bg-popover">
-                    <DropdownMenuItem 
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                      onClick={() => setShowDeleteDialog(true)}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Xóa tin nhắn
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+          {/* Action buttons - show on hover */}
+          <div className={cn(
+            'absolute top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover/bubble:opacity-100 transition-opacity z-10',
+            isOwn ? '-left-20' : '-right-20'
+          )}>
+            {onReply && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 rounded-full hover:bg-muted"
+                onClick={() => onReply(message)}
+              >
+                <Reply className="w-3.5 h-3.5 text-muted-foreground" />
+              </Button>
+            )}
+            {isOwn && onDelete && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full hover:bg-muted">
+                    <MoreHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align={isOwn ? 'start' : 'end'} className="w-40 bg-popover">
+                  <DropdownMenuItem 
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                    onClick={() => setShowDeleteDialog(true)}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Xóa tin nhắn
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
-          {/* Reply Reference */}
-          {message.reply_to && message.reply_to_content && (
-            <div className={cn(
-              "px-3 py-2 border-b flex items-start gap-2",
-              isOwn 
-                ? "bg-primary-foreground/5 border-primary-foreground/10" 
-                : "bg-muted/50 border-border/50"
-            )}>
-              <CornerDownRight className={cn(
-                "w-3.5 h-3.5 mt-0.5 shrink-0",
-                isOwn ? "text-primary-foreground/50" : "text-muted-foreground"
-              )} />
-              <div className="min-w-0 flex-1">
+          <div className={cn(
+            'rounded-2xl px-3.5 py-2 shadow-sm',
+            isOwn 
+              ? 'bg-primary text-primary-foreground rounded-br-md' 
+              : 'bg-muted/80 text-foreground rounded-bl-md',
+          )}>
+            {/* Reply Reference */}
+            {message.reply_to && message.reply_to_content && (
+              <div className={cn(
+                "mb-2 pl-2.5 border-l-2 py-1",
+                isOwn 
+                  ? "border-primary-foreground/40" 
+                  : "border-primary/40"
+              )}>
                 <p className={cn(
-                  "text-[11px] font-medium mb-0.5",
-                  isOwn ? "text-primary-foreground/70" : "text-muted-foreground"
+                  "text-[11px] font-semibold",
+                  isOwn ? "text-primary-foreground/80" : "text-primary"
                 )}>
-                  Trả lời {message.reply_to_user_name || 'tin nhắn'}
+                  {message.reply_to_user_name || 'Tin nhắn'}
                 </p>
                 <p className={cn(
-                  "text-xs line-clamp-2",
-                  isOwn ? "text-primary-foreground/60" : "text-muted-foreground/80"
+                  "text-[11px] line-clamp-2",
+                  isOwn ? "text-primary-foreground/60" : "text-muted-foreground"
                 )}>
                   {message.reply_to_content}
                 </p>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Source label for messages from tasks */}
-          {message.source_type === 'from_task' && message.source_task_title && (
-            <div className={cn(
-              "px-3 py-1.5 border-b flex items-center gap-1.5",
-              isOwn 
-                ? "bg-primary-foreground/5 border-primary-foreground/10" 
-                : "bg-accent/5 border-accent/10"
-            )}>
-              <MessageSquare className={cn(
-                "w-3 h-3",
+            {/* Task source label */}
+            {message.source_type === 'from_task' && message.source_task_title && (
+              <div className={cn(
+                "mb-1.5 flex items-center gap-1 text-[11px] font-medium",
                 isOwn ? "text-primary-foreground/70" : "text-accent"
-              )} />
-              <span className={cn(
-                "text-[11px] font-medium",
-                isOwn ? "text-primary-foreground/80" : "text-accent"
               )}>
-                Từ Task: {message.source_task_title}
-              </span>
-            </div>
-          )}
+                <CornerDownRight className="w-3 h-3" />
+                Task: {message.source_task_title}
+              </div>
+            )}
 
-          {/* Message Content */}
-          <div className="px-3 py-2.5">
+            {/* Content */}
             <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
               {segments.map((segment, idx) => {
                 if (segment.type === 'user-mention' || segment.type === 'assignee-mention') {
@@ -242,10 +189,8 @@ export default function MessageItem({ message, isOwn, onTaskClick, onDelete, onR
                     <span 
                       key={idx} 
                       className={cn(
-                        'font-semibold px-1.5 py-0.5 rounded-md mx-0.5 inline-block',
-                        isOwn 
-                          ? 'text-primary-foreground bg-primary-foreground/20' 
-                          : 'text-primary bg-primary/10'
+                        'font-semibold',
+                        isOwn ? 'text-primary-foreground underline underline-offset-2' : 'text-primary'
                       )}
                     >
                       {segment.content}
@@ -257,10 +202,8 @@ export default function MessageItem({ message, isOwn, onTaskClick, onDelete, onR
                     <span
                       key={idx}
                       className={cn(
-                        'font-medium cursor-pointer underline underline-offset-2 decoration-dotted transition-colors mx-0.5',
-                        isOwn 
-                          ? 'text-primary-foreground/90 hover:text-primary-foreground decoration-primary-foreground/50' 
-                          : 'text-accent hover:text-accent/80 decoration-accent/50'
+                        'font-medium cursor-pointer underline underline-offset-2 decoration-dotted',
+                        isOwn ? 'text-primary-foreground/90' : 'text-accent hover:text-accent/80'
                       )}
                       onClick={() => segment.taskId && onTaskClick?.(segment.taskId)}
                     >
@@ -271,41 +214,53 @@ export default function MessageItem({ message, isOwn, onTaskClick, onDelete, onR
                 return <span key={idx}>{segment.content}</span>;
               })}
             </p>
+
+            {/* Time + status */}
+            <div className={cn(
+              'flex items-center gap-1 mt-1',
+              isOwn ? 'justify-end' : 'justify-start'
+            )}>
+              <span className={cn(
+                "text-[10px]",
+                isOwn ? "text-primary-foreground/50" : "text-muted-foreground/70"
+              )} title={formattedDateTime}>
+                {formattedTime}
+              </span>
+              {isOwn && (
+                <CheckCheck className={cn(
+                  "w-3 h-3",
+                  "text-primary-foreground/50"
+                )} />
+              )}
+            </div>
           </div>
 
-          {/* Footer: Quick action to task */}
+          {/* Quick task link */}
           {message.source_type === 'from_task' && message.source_task_id && (
-            <div className={cn(
-              "px-3 py-2 border-t",
-              isOwn ? "border-primary-foreground/10" : "border-border/50 bg-muted/20"
-            )}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-7 px-2.5 text-xs gap-1.5 rounded-md w-full justify-center",
-                  isOwn 
-                    ? "text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10" 
-                    : "text-accent hover:text-accent hover:bg-accent/10"
-                )}
-                onClick={() => onTaskClick?.(message.source_task_id!)}
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Mở Task
-                <ArrowRight className="w-3 h-3" />
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-6 px-2 text-[10px] gap-1 mt-1 rounded-full",
+                isOwn ? "ml-auto" : "",
+                isOwn ? "text-primary-foreground/60 hover:text-primary-foreground hover:bg-primary/10" : "text-accent hover:bg-accent/10"
+              )}
+              onClick={() => onTaskClick?.(message.source_task_id!)}
+            >
+              <ExternalLink className="w-3 h-3" />
+              Mở Task
+            </Button>
           )}
-        </Card>
+        </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xóa tin nhắn?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tin nhắn này sẽ bị xóa vĩnh viễn và không thể khôi phục. Bạn có chắc chắn muốn xóa?
+              Tin nhắn này sẽ bị xóa vĩnh viễn. Bạn có chắc chắn?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -315,7 +270,7 @@ export default function MessageItem({ message, isOwn, onTaskClick, onDelete, onR
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'Đang xóa...' : 'Xóa tin nhắn'}
+              {isDeleting ? 'Đang xóa...' : 'Xóa'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

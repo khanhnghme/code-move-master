@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UserAvatar from '@/components/UserAvatar';
-import { Separator } from '@/components/ui/separator';
+
 import {
   MessageSquare,
   ChevronLeft,
@@ -831,35 +831,32 @@ export default function Communication() {
     <DashboardLayout>
       <div className="h-[calc(100vh-7rem)] flex flex-col animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 pb-4 border-b">
+        <div className="flex items-center justify-between px-2 pb-3 border-b shrink-0">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSelectedProject(null)}
-              className="rounded-xl hover:bg-muted"
+              className="rounded-full hover:bg-muted"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
             {selectedProject.image_url ? (
-              <img src={selectedProject.image_url} alt={selectedProject.name} className="w-10 h-10 rounded-xl object-cover shadow-lg" />
+              <img src={selectedProject.image_url} alt={selectedProject.name} className="w-10 h-10 rounded-full object-cover ring-2 ring-background shadow-md" />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground font-bold shadow-lg shadow-primary/20">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground font-bold shadow-md">
                 {selectedProject.name.charAt(0).toUpperCase()}
               </div>
             )}
             <div>
-              <h1 className="text-lg font-bold font-heading">{selectedProject.name}</h1>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Users className="w-3 h-3" />
+              <h1 className="text-base font-bold">{selectedProject.name}</h1>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 <span>{projectMembers.length} thành viên</span>
-                <span>•</span>
-                <span>{messages.length} tin nhắn</span>
               </div>
             </div>
           </div>
 
-          {/* Members Preview */}
           <div className="flex items-center gap-2">
             <div className="flex -space-x-2">
               {projectMembers.slice(0, 4).map((member) => (
@@ -881,103 +878,109 @@ export default function Communication() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'all' | 'mentions')} className="flex-1 flex flex-col">
-          <TabsList className="w-fit bg-muted/50 p-1 rounded-xl">
-            <TabsTrigger value="all" className="gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              <MessageSquare className="w-4 h-4" />
-              Tất cả
-              <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">
-                {messages.length}
-              </Badge>
-            </TabsTrigger>
-            <TabsTrigger value="mentions" className="gap-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              <AtSign className="w-4 h-4" />
-              @Tôi
-              {unreadMentionsCount > 0 && (
-                <Badge variant="destructive" className="ml-1 px-1.5 py-0 text-[10px] animate-pulse">
-                  {unreadMentionsCount}
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'all' | 'mentions')} className="flex-1 flex flex-col min-h-0">
+          <div className="shrink-0 px-2 pt-2">
+            <TabsList className="w-fit bg-muted/50 p-1 rounded-full">
+              <TabsTrigger value="all" className="gap-1.5 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs px-4">
+                <MessageSquare className="w-3.5 h-3.5" />
+                Chat
+                <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0 rounded-full">
+                  {messages.length}
                 </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+              </TabsTrigger>
+              <TabsTrigger value="mentions" className="gap-1.5 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs px-4">
+                <AtSign className="w-3.5 h-3.5" />
+                @Tôi
+                {unreadMentionsCount > 0 && (
+                  <Badge variant="destructive" className="ml-1 px-1.5 py-0 text-[10px] rounded-full animate-pulse">
+                    {unreadMentionsCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* All Messages Tab */}
-          <TabsContent value="all" className="flex-1 flex flex-col mt-4 min-h-0 overflow-hidden">
-            <Card className="flex-1 flex flex-col overflow-hidden border-muted/50 min-h-0">
-              <div className="flex-1 min-h-0 overflow-hidden relative" ref={scrollRef}>
-                <ScrollArea className="h-full">
-                  <div className="p-4 flex flex-col justify-end min-h-full">
-                    {groupMessagesByDate(messages).map((group, groupIdx) => (
-                      <div key={groupIdx}>
-                        <div className="flex items-center justify-center my-4">
-                          <Separator className="flex-1" />
-                          <span className="px-4 py-1 rounded-full bg-muted/80 text-xs font-medium text-muted-foreground">
-                            {group.date}
-                          </span>
-                          <Separator className="flex-1" />
-                        </div>
-                        {group.messages.map((msg) => (
+          <TabsContent value="all" className="flex-1 flex flex-col mt-0 min-h-0 overflow-hidden">
+            {/* Messages area */}
+            <div className="flex-1 min-h-0 overflow-hidden relative" ref={scrollRef}>
+              <ScrollArea className="h-full">
+                <div className="px-4 py-3 flex flex-col justify-end min-h-full">
+                  {messages.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
+                        <Sparkles className="w-10 h-10 text-primary/60" />
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2">Bắt đầu trò chuyện</h3>
+                      <p className="text-muted-foreground text-sm text-center max-w-xs">
+                        Gửi tin nhắn đầu tiên để trao đổi với các thành viên
+                      </p>
+                    </div>
+                  )}
+                  {groupMessagesByDate(messages).map((group, groupIdx) => (
+                    <div key={groupIdx}>
+                      <div className="flex items-center justify-center my-4">
+                        <span className="px-3 py-1 rounded-full bg-muted/80 text-[11px] font-medium text-muted-foreground shadow-sm">
+                          {group.date}
+                        </span>
+                      </div>
+                      {group.messages.map((msg, msgIdx) => {
+                        const prevMsg = msgIdx > 0 ? group.messages[msgIdx - 1] : null;
+                        const isSameUser = prevMsg?.user_id === msg.user_id;
+                        const timeDiff = prevMsg 
+                          ? (new Date(msg.created_at).getTime() - new Date(prevMsg.created_at).getTime()) / 60000 
+                          : Infinity;
+                        const isConsecutive = isSameUser && timeDiff < 3;
+                        
+                        return (
                           <MessageItem
                             key={msg.id}
                             message={msg}
                             isOwn={msg.user_id === user?.id}
+                            showAvatar={!isConsecutive}
+                            showName={!isConsecutive}
                             onTaskClick={handleNavigateToTask}
                             onDelete={handleDeleteMessage}
                             onReply={(message) => setReplyingTo(message)}
                           />
-                        ))}
-                      </div>
-                    ))}
-                    {messages.length === 0 && (
-                      <div className="flex flex-col items-center justify-center py-16">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
-                          <Sparkles className="w-10 h-10 text-primary/60" />
-                        </div>
-                        <h3 className="font-semibold text-lg mb-2">Bắt đầu cuộc trò chuyện</h3>
-                        <p className="text-muted-foreground text-sm text-center max-w-xs">
-                          Hãy gửi tin nhắn đầu tiên để bắt đầu trao đổi với các thành viên trong dự án
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </div>
-
-              {/* Message Input */}
-              <div className="p-4 border-t bg-muted/30">
-                {/* Reply Preview */}
-                {replyingTo && (
-                  <div className="mb-3 p-3 bg-muted/50 rounded-lg border flex items-start gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-muted-foreground mb-1">
-                        Trả lời {replyingTo.user_name}
-                      </p>
-                      <p className="text-sm line-clamp-2 text-foreground/80">
-                        {replyingTo.content}
-                      </p>
+                        );
+                      })}
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-6 w-6 shrink-0"
-                      onClick={() => setReplyingTo(null)}
-                    >
-                      <span className="sr-only">Hủy trả lời</span>
-                      ×
-                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* Sticky bottom input */}
+            <div className="shrink-0 px-3 py-2 border-t bg-background/95 backdrop-blur-sm">
+              {/* Reply Preview */}
+              {replyingTo && (
+                <div className="mb-2 flex items-center gap-2 px-3 py-2 bg-primary/5 border border-primary/20 rounded-xl">
+                  <div className="w-1 h-8 rounded-full bg-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-primary">{replyingTo.user_name}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-1">{replyingTo.content}</p>
                   </div>
-                )}
-                <MentionInput
-                  value={messageInput}
-                  onChange={setMessageInput}
-                  onSend={handleSendMessage}
-                  members={projectMembers}
-                  tasks={projectTasks}
-                  placeholder={replyingTo ? `Trả lời ${replyingTo.user_name}...` : "Nhập tin nhắn... Dùng @ để tag, # để tham chiếu task"}
-                  isSending={isSending}
-                />
-              </div>
-            </Card>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 shrink-0 rounded-full hover:bg-muted"
+                    onClick={() => setReplyingTo(null)}
+                  >
+                    <span className="text-lg leading-none">×</span>
+                  </Button>
+                </div>
+              )}
+              <MentionInput
+                value={messageInput}
+                onChange={setMessageInput}
+                onSend={handleSendMessage}
+                members={projectMembers}
+                tasks={projectTasks}
+                placeholder={replyingTo ? `Trả lời ${replyingTo.user_name}...` : "Nhập tin nhắn... @ tag, # task"}
+                isSending={isSending}
+              />
+            </div>
           </TabsContent>
 
           {/* Mentions Tab */}
