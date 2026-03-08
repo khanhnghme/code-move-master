@@ -17,10 +17,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import ProfileViewDialog from '@/components/ProfileViewDialog';
 import { renderMessageContent } from '@/lib/messageParser';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import type { Profile } from '@/types/database';
 import { 
   ExternalLink, 
   MoreHorizontal, 
@@ -45,21 +48,70 @@ export interface Message {
   reply_to_user_name?: string;
 }
 
+interface MemberInfo {
+  id: string;
+  name: string;
+  avatar_url?: string;
+}
+
 interface MessageItemProps {
   message: Message;
   isOwn: boolean;
   showAvatar?: boolean;
   showName?: boolean;
+  members?: MemberInfo[];
+  groupId?: string;
   onTaskClick?: (taskId: string) => void;
   onDelete?: (messageId: string) => void;
   onReply?: (message: Message) => void;
 }
 
-export default function MessageItem({ message, isOwn, showAvatar = true, showName = true, onTaskClick, onDelete, onReply }: MessageItemProps) {
+export default function MessageItem({ message, isOwn, showAvatar = true, showName = true, members = [], groupId, onTaskClick, onDelete, onReply }: MessageItemProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [profileToView, setProfileToView] = useState<Profile | null>(null);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [memberRole, setMemberRole] = useState<'admin' | 'leader' | 'member'>('member');
 
   const segments = renderMessageContent(message.content);
+
+  const handleMentionClick = async (mentionName: string) => {
+    // Remove @ prefix
+    const name = mentionName.startsWith('@') ? mentionName.slice(1) : mentionName;
+    
+    // Find member by name
+    const member = members.find(m => 
+      m.name.toLowerCase() === name.toLowerCase() ||
+      m.name.toLowerCase().includes(name.toLowerCase()) ||
+      name.toLowerCase().includes(m.name.toLowerCase())
+    );
+    
+    if (!member) return;
+
+    // Fetch full profile
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', member.id)
+      .single();
+
+    if (profileData) {
+      setProfileToView(profileData as unknown as Profile);
+      
+      // Get role if groupId available
+      if (groupId) {
+        const { data: memberData } = await supabase
+          .from('group_members')
+          .select('role')
+          .eq('user_id', member.id)
+          .eq('group_id', groupId)
+          .single();
+        setMemberRole((memberData?.role as 'admin' | 'leader' | 'member') || 'member');
+      }
+      
+      setProfileDialogOpen(true);
+    }
+  };
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -189,9 +241,11 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
                     <span 
                       key={idx} 
                       className={cn(
-                        'font-semibold',
+                        'font-semibold cursor-pointer hover:underline',
                         isOwn ? 'text-primary-foreground underline underline-offset-2' : 'text-primary'
                       )}
+                      onClick={() => handleMentionClick(segment.content)}
+                      title={`Xem thông tin ${segment.content}`}
                     >
                       {segment.content}
                     </span>
@@ -275,6 +329,14 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ProfileViewDialog
+        open={profileDialogOpen}
+        onOpenChange={setProfileDialogOpen}
+        profile={profileToView}
+        role={memberRole}
+        groupId={groupId}
+      />
     </>
   );
 }
