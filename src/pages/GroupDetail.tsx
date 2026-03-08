@@ -86,7 +86,7 @@ export default function GroupDetail() {
     'resources',
     'scores',
     ...(isLeaderInGroup && (group?.created_by === user?.id || isAdmin) ? ['logs'] : []),
-    ...(isLeaderInGroup && group?.created_by === user?.id ? ['settings'] : [])
+    ...(isLeaderInGroup && (group?.created_by === user?.id || isAdmin) ? ['settings'] : [])
   ];
   
   // Sync local tab state with navigation context
