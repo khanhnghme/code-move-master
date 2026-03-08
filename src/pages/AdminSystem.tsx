@@ -59,6 +59,7 @@ export default function AdminSystem() {
   const [videoBgOpacity, setVideoBgOpacity] = useState(20);
   const [videoBgUrl, setVideoBgUrl] = useState('');
   const [savingVideo, setSavingVideo] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAdmin) {
