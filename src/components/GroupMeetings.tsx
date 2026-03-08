@@ -178,60 +178,29 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
 
   return (
     <div className="space-y-5">
-      {/* Hero header with UEH styling */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-primary-foreground">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full translate-y-1/2 -translate-x-1/4 blur-2xl" />
-        
-        <div className="relative flex items-start justify-between gap-4">
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-xl bg-primary-foreground/15 backdrop-blur-sm border border-primary-foreground/10">
-              <Video className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold tracking-tight">Họp Nhóm</h2>
-              <p className="text-sm text-primary-foreground/70 mt-0.5">Video call, điểm danh tự động & ghi chú cuộc họp</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {isLeader && filteredMeetings.length > 0 && (
-              <Button
-                variant="ghost" size="sm"
-                onClick={() => isMultiSelectMode ? clearSelection() : setIsMultiSelectMode(true)}
-                className="gap-1.5 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 border border-primary-foreground/20"
-              >
-                {isMultiSelectMode ? <X className="w-4 h-4" /> : <CheckSquare className="w-4 h-4" />}
-                {isMultiSelectMode ? 'Hủy' : 'Chọn nhiều'}
-              </Button>
-            )}
-            {isLeader && (
-              <Button onClick={() => setIsCreateOpen(true)} className="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/25">
-                <Plus className="w-4 h-4" /> Tạo cuộc họp
-              </Button>
-            )}
-          </div>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Video className="w-5 h-5 text-primary" /> Họp Nhóm
+          </h2>
+          <p className="text-sm text-muted-foreground">Video call, điểm danh tự động & ghi chú cuộc họp</p>
         </div>
-
-        {/* Stats row */}
-        <div className="relative flex gap-4 mt-5">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary-foreground/10 backdrop-blur-sm">
-            <MonitorPlay className="w-3.5 h-3.5 text-primary-foreground/70" />
-            <span className="text-xs font-medium">{meetings.length} cuộc họp</span>
-          </div>
-          {liveCount > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-destructive/20 backdrop-blur-sm border border-destructive/30">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive" />
-              </span>
-              <span className="text-xs font-bold">{liveCount} đang diễn ra</span>
-            </div>
+        <div className="flex items-center gap-2">
+          {isLeader && filteredMeetings.length > 0 && (
+            <Button
+              variant={isMultiSelectMode ? "secondary" : "outline"} size="sm"
+              onClick={() => isMultiSelectMode ? clearSelection() : setIsMultiSelectMode(true)}
+              className="gap-1.5"
+            >
+              {isMultiSelectMode ? <X className="w-4 h-4" /> : <CheckSquare className="w-4 h-4" />}
+              {isMultiSelectMode ? 'Hủy' : 'Chọn nhiều'}
+            </Button>
           )}
-          {scheduledCount > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary-foreground/10 backdrop-blur-sm">
-              <CalendarCheck className="w-3.5 h-3.5 text-primary-foreground/70" />
-              <span className="text-xs font-medium">{scheduledCount} sắp tới</span>
-            </div>
+          {isLeader && (
+            <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+              <Plus className="w-4 h-4" /> Tạo cuộc họp
+            </Button>
           )}
         </div>
       </div>
