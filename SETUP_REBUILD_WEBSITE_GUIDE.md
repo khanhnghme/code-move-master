@@ -1,8 +1,8 @@
 # 🚀 HƯỚNG DẪN SETUP VÀ TÁI TẠO WEBSITE TEAMWORKS UEH
-# COMPLETE REBUILD GUIDE - VERSION 5.0
+# COMPLETE REBUILD GUIDE - VERSION 6.0
 
-> **Phiên bản:** 5.0 (FULL RLS POLICIES + DETAILED COLUMNS)  
-> **Cập nhật lần cuối:** 02/03/2026  
+> **Phiên bản:** 6.0 (MEETINGS + MAINTENANCE + POLICY + AI SCORES)  
+> **Cập nhật lần cuối:** 08/03/2026  
 > **Tác giả:** Nguyễn Hoàng Khánh (khanhngh.ueh@gmail.com)  
 > **Đơn vị:** Trường Đại học Kinh tế TP. Hồ Chí Minh (UEH)  
 > **Backend:** Supabase (PostgreSQL + Auth + Storage + Edge Functions)
