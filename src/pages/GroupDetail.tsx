@@ -668,6 +668,7 @@ export default function GroupDetail() {
                   groupName={group.name} 
                   isLeader={isLeaderInGroup}
                   isAdmin={isAdmin}
+                  isGroupCreator={isGroupCreator}
                 />
               </TabsContent>
             )}
