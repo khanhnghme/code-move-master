@@ -387,6 +387,28 @@ export default function ResourceUploadDialog({
       }
 
       toast({ title: 'Hoàn tất', description: 'Đã xử lý tất cả tài nguyên' });
+
+      // Log uploaded files and links
+      const uploadedFiles = pendingFiles.filter(f => f.status === 'done');
+      const uploadedLinks = pendingLinks.filter(l => l.status === 'done');
+      const totalUploaded = uploadedFiles.length + uploadedLinks.length;
+      if (totalUploaded > 0 && userData.user) {
+        const descriptions: string[] = [];
+        if (uploadedFiles.length > 0) {
+          descriptions.push(`${uploadedFiles.length} file (${uploadedFiles.map(f => f.file.name).join(', ')})`);
+        }
+        if (uploadedLinks.length > 0) {
+          descriptions.push(`${uploadedLinks.length} link (${uploadedLinks.map(l => l.name).join(', ')})`);
+        }
+        await logActivity({
+          userId: userData.user.id,
+          userName: userData.user.user_metadata?.full_name || userData.user.email || 'Unknown',
+          action: 'UPLOAD_RESOURCES', actionType: 'resource',
+          description: `Tải lên ${descriptions.join(' và ')}`,
+          groupId,
+        });
+      }
+
       onSuccess(); // Refresh resource list without closing dialog
     } catch (err: any) {
       toast({ title: 'Lỗi', description: err.message, variant: 'destructive' });
