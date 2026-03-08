@@ -407,12 +407,14 @@ export function MemberAuthForm() {
       <Card className="w-full shadow-card-lg border-border/50">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-lg font-heading">
-            {activeTab === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}
+            {activeTab === 'login' ? 'Đăng nhập' : activeTab === 'register' ? 'Tạo tài khoản' : 'Quên mật khẩu'}
           </CardTitle>
           <CardDescription>
             {activeTab === 'login'
               ? 'Nhập MSSV và mật khẩu để đăng nhập'
-              : 'Điền thông tin để đăng ký tài khoản mới'}
+              : activeTab === 'register'
+              ? 'Điền thông tin để đăng ký tài khoản mới'
+              : 'Lấy lại mật khẩu qua email'}
           </CardDescription>
         </CardHeader>
         <CardContent>
