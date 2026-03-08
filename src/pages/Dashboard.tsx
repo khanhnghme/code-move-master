@@ -30,6 +30,7 @@ export default function Dashboard() {
   const { user, profile, mustChangePassword, refreshProfile, isLeader, isAdmin } = useAuth();
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showJoinDialog, setShowJoinDialog] = useState(false);
   const { isConnected } = useUserPresence('system-global');
 
   useEffect(() => {
