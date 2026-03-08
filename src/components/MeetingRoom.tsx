@@ -202,7 +202,7 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
             {meeting.status === 'scheduled' ? 'Đã lên lịch' : meeting.status === 'in_progress' ? '🔴 LIVE' : 'Xong'}
           </Badge>
           <span className="text-[11px] text-muted-foreground hidden sm:inline shrink-0">
-            {new Date(meeting.scheduled_at).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} • {meeting.duration_minutes}p
+            {formatDeadlineShortVN(meeting.scheduled_at)} • {meeting.duration_minutes}p
           </span>
         </div>
 
