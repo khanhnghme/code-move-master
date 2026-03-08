@@ -597,8 +597,21 @@ function TaskRow({
           </Badge>
         </div>
         
-        {/* Desktop actions: keep History + View File pinned in fixed sub-columns */}
-        <div className="hidden md:grid grid-cols-[64px_104px_92px_40px] items-center justify-end gap-1 flex-nowrap min-w-0">
+        {/* Desktop actions */}
+        <div className="hidden md:flex items-center justify-end gap-1 flex-nowrap min-w-0">
+          {/* Meeting join button - desktop */}
+          {isMeetingTask && (meetingIsLive || meetingIsScheduled) && onJoinMeeting ? (
+            <Button
+              size="sm"
+              variant={meetingIsLive ? "default" : "outline"}
+              className={`h-7 text-xs px-3 gap-1.5 ${meetingIsLive ? '' : ''}`}
+              onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
+            >
+              {meetingIsLive ? <Sparkles className="w-3 h-3" /> : <Video className="w-3 h-3" />}
+              {meetingIsLive ? 'Vào họp ngay' : 'Phòng họp'}
+            </Button>
+          ) : (
+            <div className="grid grid-cols-[64px_104px_92px_40px] items-center justify-end gap-1 flex-nowrap min-w-0">
           <div className="flex justify-end">
             <SubmissionHistoryPopup 
               taskId={task.id}
