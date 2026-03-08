@@ -510,13 +510,18 @@ export default function AIAssistantPanel({
                         <div className="whitespace-pre-wrap">{message.content}</div>
                       )
                     ) : (
-                      <div className="flex items-center gap-3 py-1">
-                        <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div className="flex items-center gap-3 py-1.5">
+                        <div className="flex gap-1.5 items-center">
+                          <span className="w-2.5 h-2.5 rounded-full ai-typing-dot bg-primary/60" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2.5 h-2.5 rounded-full ai-typing-dot bg-primary/60" style={{ animationDelay: '200ms' }} />
+                          <span className="w-2.5 h-2.5 rounded-full ai-typing-dot bg-primary/60" style={{ animationDelay: '400ms' }} />
                         </div>
-                        <span className="text-xs text-muted-foreground italic">Đang phân tích...</span>
+                        <span className="text-xs text-muted-foreground ai-thinking-text">
+                          <span className="inline-flex items-center gap-1">
+                            <Sparkles className="h-3 w-3 ai-sparkle-spin text-primary/50" />
+                            Đang suy nghĩ...
+                          </span>
+                        </span>
                       </div>
                     )}
                   </div>
