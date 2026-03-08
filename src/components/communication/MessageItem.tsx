@@ -241,9 +241,11 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
                     <span 
                       key={idx} 
                       className={cn(
-                        'font-semibold',
+                        'font-semibold cursor-pointer hover:underline',
                         isOwn ? 'text-primary-foreground underline underline-offset-2' : 'text-primary'
                       )}
+                      onClick={() => handleMentionClick(segment.content)}
+                      title={`Xem thông tin ${segment.content}`}
                     >
                       {segment.content}
                     </span>
