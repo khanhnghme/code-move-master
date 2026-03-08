@@ -492,96 +492,115 @@ export default function FeedbackPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {feedbacks.map(feedback => (
                   <Card
                     key={feedback.id}
-                    className={`transition-all ${
-                      feedback.is_hidden ? 'opacity-60 border-destructive/30' : ''
+                    className={`transition-all overflow-hidden hover:shadow-md ${
+                      feedback.is_hidden ? 'opacity-60 border-destructive/30' : 'border-border/60'
                     }`}
                   >
-                    <CardHeader className="pb-3">
+                    {/* Header bar with accent */}
+                    <div className="h-1 bg-gradient-to-r from-primary via-primary/60 to-transparent" />
+                    
+                    <CardHeader className="pb-3 pt-4">
                       <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-3 min-w-0 flex-1">
-                          <UserAvatar 
-                            src={feedback.user_avatar_url} 
-                            name={feedback.user_name}
-                            size="md"
-                            className="shrink-0"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-semibold">{feedback.user_name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                ({feedback.user_student_id})
+                        {/* Author info */}
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <UserAvatar 
+                              src={feedback.user_avatar_url} 
+                              name={feedback.user_name}
+                              size="md"
+                              className="ring-2 ring-background shadow-sm"
+                            />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground">{feedback.user_name}</span>
+                              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                {feedback.user_student_id}
                               </span>
-                              {feedback.is_hidden && (
-                                <Badge variant="destructive" className="text-xs">
-                                  <EyeOff className="w-3 h-3 mr-1" />
-                                  Đã ẩn
-                                </Badge>
-                              )}
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                              <Clock className="w-3 h-3" />
-                              {formatTime(feedback.created_at)}
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span>{formatTime(feedback.created_at)}</span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Actions */}
-                        {(feedback.user_id === user?.id || isAdmin) && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-popover">
-                              {isAdmin && (
-                                <DropdownMenuItem onClick={() => handleToggleHideFeedback(feedback)}>
-                                  {feedback.is_hidden ? (
-                                    <>
-                                      <Eye className="w-4 h-4 mr-2" />
-                                      Hiện góp ý
-                                    </>
-                                  ) : (
-                                    <>
-                                      <EyeOff className="w-4 h-4 mr-2" />
-                                      Ẩn góp ý
-                                    </>
-                                  )}
+                        {/* Status badges + Actions */}
+                        <div className="flex items-center gap-2">
+                          {feedback.is_hidden && (
+                            <Badge variant="destructive" className="text-xs gap-1">
+                              <EyeOff className="w-3 h-3" />
+                              Đã ẩn
+                            </Badge>
+                          )}
+                          {(feedback.user_id === user?.id || isAdmin) && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-popover">
+                                {isAdmin && (
+                                  <DropdownMenuItem onClick={() => handleToggleHideFeedback(feedback)}>
+                                    {feedback.is_hidden ? (
+                                      <>
+                                        <Eye className="w-4 h-4 mr-2" />
+                                        Hiện góp ý
+                                      </>
+                                    ) : (
+                                      <>
+                                        <EyeOff className="w-4 h-4 mr-2" />
+                                        Ẩn góp ý
+                                      </>
+                                    )}
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem
+                                  onClick={() => setFeedbackToDelete(feedback)}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Xóa góp ý
                                 </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem
-                                onClick={() => setFeedbackToDelete(feedback)}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Xóa góp ý
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </div>
                       </div>
-
-                      <CardTitle className="text-lg mt-2">{feedback.title}</CardTitle>
                     </CardHeader>
 
-                    <CardContent className="pt-0 space-y-4">
-                      <p className="text-muted-foreground whitespace-pre-wrap">
-                        {feedback.content}
-                      </p>
+                    <CardContent className="pt-0 pb-4 space-y-4">
+                      {/* Title */}
+                      <div className="space-y-2">
+                        <h3 className="text-lg font-semibold text-foreground leading-tight">
+                          {feedback.title}
+                        </h3>
+                        <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">
+                          {feedback.content}
+                        </p>
+                      </div>
+
+                      {/* Divider */}
+                      <div className="border-t border-border/50" />
 
                       {/* Comment toggle */}
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="gap-2 text-muted-foreground hover:text-foreground"
+                        className={`gap-2 w-full justify-center transition-colors ${
+                          expandedFeedback === feedback.id 
+                            ? 'bg-primary/10 text-primary hover:bg-primary/15' 
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        }`}
                         onClick={() => toggleExpand(feedback.id)}
                       >
                         <MessageCircle className="w-4 h-4" />
-                        {feedback.comment_count || 0} bình luận
+                        <span className="font-medium">{feedback.comment_count || 0} bình luận</span>
                         {expandedFeedback === feedback.id ? (
                           <ChevronUp className="w-4 h-4" />
                         ) : (
