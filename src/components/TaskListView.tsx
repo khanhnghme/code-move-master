@@ -456,6 +456,18 @@ function TaskRow({
               </div>
 
               <div className="flex items-center gap-1">
+                {/* Meeting join button - mobile */}
+                {isMeetingTask && (meetingIsLive || meetingIsScheduled) && onJoinMeeting && (
+                  <Button
+                    size="sm"
+                    variant={meetingIsLive ? "default" : "outline"}
+                    className={`h-7 text-xs px-2 gap-1 ${meetingIsLive ? 'animate-pulse' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
+                  >
+                    <Video className="w-3 h-3" />
+                    {meetingIsLive ? 'Vào họp' : 'Phòng họp'}
+                  </Button>
+                )}
                 <SubmissionHistoryPopup 
                   taskId={task.id}
                   groupId={groupId}
