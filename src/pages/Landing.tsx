@@ -774,8 +774,11 @@ export default function Landing() {
             }}
           />
           <div
-            className="fixed inset-0 bg-background/60 pointer-events-none"
-            style={{ zIndex: 1 }}
+            className="fixed inset-0 pointer-events-none"
+            style={{ 
+              zIndex: 1,
+              background: 'linear-gradient(to bottom, hsl(var(--background) / 0.4) 0%, hsl(var(--background) / 0.7) 50%, hsl(var(--background) / 0.5) 100%)'
+            }}
           />
         </>
       )}
