@@ -193,7 +193,7 @@ export default function MemberManagementCard({
     }
     setIsAddingMember(true);
 
-    const finalRole = isLeaderInGroup ? selectedRole : 'member';
+    const finalRole = isGroupCreator ? selectedRole : 'member';
 
     try {
       const memberInserts = Array.from(selectedUserIds).map(uid => ({
