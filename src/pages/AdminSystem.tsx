@@ -207,35 +207,52 @@ export default function AdminSystem() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="maintenance-start" className="text-xs flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Bắt đầu
-                  </Label>
-                  <Input
-                    id="maintenance-start"
-                    type="datetime-local"
-                    value={maintenanceStart}
-                    onChange={(e) => setMaintenanceStart(e.target.value)}
-                    className="h-8 text-xs"
-                  />
+              {/* Duration presets */}
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Thời lượng khóa
+                </Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: '1 ngày', days: 1 },
+                    { label: '3 ngày', days: 3 },
+                    { label: '5 ngày', days: 5 },
+                    { label: '7 ngày', days: 7 },
+                    { label: '14 ngày', days: 14 },
+                    { label: '30 ngày', days: 30 },
+                  ].map((opt) => (
+                    <Button
+                      key={opt.days}
+                      type="button"
+                      size="sm"
+                      variant={maintenanceDays === opt.days && !customDays ? 'default' : 'outline'}
+                      className="h-7 text-xs px-2.5"
+                      onClick={() => { setMaintenanceDays(opt.days); setCustomDays(''); }}
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="maintenance-end" className="text-xs flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Kết thúc (tự mở)
-                  </Label>
+                <div className="flex items-center gap-2 mt-1.5">
                   <Input
-                    id="maintenance-end"
-                    type="datetime-local"
-                    value={maintenanceEnd}
-                    onChange={(e) => setMaintenanceEnd(e.target.value)}
-                    className="h-8 text-xs"
+                    type="number"
+                    min={1}
+                    max={365}
+                    placeholder="Tùy chỉnh số ngày..."
+                    value={customDays}
+                    onChange={(e) => {
+                      setCustomDays(e.target.value);
+                      const n = parseInt(e.target.value);
+                      if (n > 0) setMaintenanceDays(n);
+                    }}
+                    className="h-7 text-xs flex-1"
                   />
+                  <span className="text-xs text-muted-foreground shrink-0">ngày</span>
                 </div>
               </div>
-              {maintenanceEnd && (
+              {maintenanceDays > 0 && (
                 <p className="text-[11px] text-muted-foreground bg-muted/50 rounded px-2 py-1.5">
-                  ⏱ Tự mở lại: <span className="font-semibold text-foreground">{format(new Date(maintenanceEnd), "HH:mm dd/MM/yyyy", { locale: vi })}</span>
+                  ⏱ Tự mở lại sau <span className="font-semibold text-foreground">{maintenanceDays} ngày</span> kể từ khi bật bảo trì
                 </p>
               )}
 
