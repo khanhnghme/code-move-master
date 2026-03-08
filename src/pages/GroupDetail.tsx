@@ -684,6 +684,7 @@ export default function GroupDetail() {
                   showResourcesPublic={(group as any).show_resources_public ?? true}
                   joinCode={(group as any).join_code || null}
                   allowJoinByCode={(group as any).allow_join_by_code || false}
+                  joinMemberLimit={(group as any).join_member_limit ?? null}
                   onUpdate={fetchGroupData}
                 />
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
