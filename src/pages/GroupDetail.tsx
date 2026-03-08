@@ -62,7 +62,7 @@ export default function GroupDetail() {
   const navigate = useNavigate();
   // Support all URL formats: /p/:projectSlug, /p/:projectId, /groups/:groupId
   const routeId = projectSlug || projectId || groupId;
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, profile } = useAuth();
   const { toast } = useToast();
   const { currentTab, setCurrentTab, goBack, goNext, canGoBack, canGoNext, isFirstTab, isLastTab } = useNavigation();
 
