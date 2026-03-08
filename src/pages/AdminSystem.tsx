@@ -103,9 +103,10 @@ export default function AdminSystem() {
       }
 
       if (videoRes.data?.value) {
-        const val = videoRes.data.value as { enabled?: boolean; opacity?: number; url?: string };
+        const val = videoRes.data.value as { enabled?: boolean; landing_opacity?: number; dashboard_opacity?: number; opacity?: number; url?: string };
         setVideoBgEnabled(val.enabled ?? false);
-        setVideoBgOpacity(Math.round((val.opacity ?? 0.2) * 100));
+        setVideoBgLandingOpacity(Math.round((val.landing_opacity ?? val.opacity ?? 0.2) * 100));
+        setVideoBgDashboardOpacity(Math.round((val.dashboard_opacity ?? val.opacity ?? 0.2) * 100));
         setVideoBgUrl(val.url ?? '');
       }
     } catch (err) {
