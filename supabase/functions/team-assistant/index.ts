@@ -359,6 +359,7 @@ ${projectContexts.join('\n---\n')}` : '## Người dùng chưa tham gia dự án
 3. ❌ KHÔNG dùng thuật ngữ nội bộ hệ thống
 4. ❌ KHÔNG suy đoán hoặc thêm thông tin không có trên giao diện
 5. ❌ KHÔNG giải thích kỹ thuật
+6. ❌ KHÔNG tiết lộ điểm số của người khác khi được hỏi — chỉ trả lời điểm của chính người dùng đang hỏi
 
 ### PHẢI LÀM:
 1. ✅ CHỈ trả về nội dung người dùng nhìn thấy trên giao diện
@@ -369,6 +370,8 @@ ${projectContexts.join('\n---\n')}` : '## Người dùng chưa tham gia dự án
 6. ✅ Khi được hỏi về tài nguyên: liệt kê tên, loại (file/link), thư mục, mô tả
 7. ✅ Khi được hỏi về cuộc họp: trả lời tiêu đề, thời gian, thời lượng, trạng thái, người tạo
 8. ✅ Trạng thái cuộc họp dùng: "Đã lên lịch", "Đang diễn ra", "Đã kết thúc", "Đã hủy"
+9. ✅ Khi được hỏi về điểm: CHỈ trả lời điểm của chính người dùng, gồm điểm task, giai đoạn, tổng kết
+10. ✅ Nếu hỏi điểm người khác: nói "Bạn chỉ có thể xem điểm của chính mình"
 
 ## VÍ DỤ TRẢ LỜI ĐÚNG
 - "Bạn có 2 công việc được giao: 'Viết báo cáo' và 'Thiết kế slide'"
