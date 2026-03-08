@@ -470,13 +470,14 @@ export default function MemberManagement() {
     setIsBulkProcessing(true);
     const ids = Array.from(selectedIds);
     const promoted: string[] = [];
+    const promotedIds: string[] = [];
     for (const id of ids) {
       const member = members.find(m => m.id === id);
       if (!member) continue;
       const roles = memberRoles[id] || [];
-      if (roles.includes('leader') || roles.includes('admin')) continue; // already promoted
+      if (roles.includes('leader') || roles.includes('admin')) continue;
       const { error } = await supabase.from('user_roles').insert({ user_id: id, role: 'leader' });
-      if (!error) promoted.push(member.full_name);
+      if (!error) { promoted.push(member.full_name); promotedIds.push(id); }
     }
     if (promoted.length > 0) {
       await supabase.from('activity_logs').insert({
@@ -484,6 +485,7 @@ export default function MemberManagement() {
         action: 'BULK_PROMOTE_MEMBERS', action_type: 'member',
         description: `Nâng cấp hàng loạt ${promoted.length} tài khoản lên Thành viên Nâng cao: ${promoted.join(', ')}`,
       });
+      await notifyRoleChanged({ userIds: promotedIds, adminName: currentProfile?.full_name || 'Admin', newRole: 'Thành viên Nâng cao', action: 'promote' });
       toast({ title: 'Đã nâng cấp hàng loạt', description: `${promoted.length} tài khoản đã được nâng lên Thành viên Nâng cao.` });
     } else {
       toast({ title: 'Không có thay đổi', description: 'Các tài khoản đã chọn đều đã là Thành viên Nâng cao hoặc Admin.', variant: 'destructive' });
