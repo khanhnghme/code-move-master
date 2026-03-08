@@ -15,6 +15,7 @@ import { getSystemRoleLabel } from '@/lib/roleLabels';
 import {
   FolderKanban,
   ArrowRight,
+  Plus,
   Loader2,
   Sparkles,
   Shield,
