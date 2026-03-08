@@ -80,20 +80,10 @@ interface FeedbackComment {
   content: string;
   is_hidden: boolean;
   created_at: string;
+  reply_to_id: string | null;
   user_name?: string;
   user_student_id?: string;
   user_avatar_url?: string;
-}
-
-interface FeedbackComment {
-  id: string;
-  feedback_id: string;
-  user_id: string;
-  content: string;
-  is_hidden: boolean;
-  created_at: string;
-  user_name?: string;
-  user_student_id?: string;
 }
 
 export default function FeedbackPage() {
