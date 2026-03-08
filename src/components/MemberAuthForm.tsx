@@ -727,10 +727,7 @@ export function MemberAuthForm() {
                     } else {
                       setForgotEmail(registeredEmail);
                       setForgotStep('otp');
-                      // Show dev code in toast for testing (remove in production)
-                      if (data?._dev_code) {
-                        toast({ title: 'Mã xác minh (Dev)', description: `Mã: ${data._dev_code}`, duration: 30000 });
-                      }
+                      setResendCountdown(60);
                     }
                   } catch {
                     setForgotLoading(false);
