@@ -256,7 +256,7 @@ export default function MemberManagementCard({
       const { data: createResult, error: createError } = await supabase.functions.invoke('manage-users', {
         body: {
           action: 'create_member',
-          email: newMemberEmail.trim(),
+          email: placeholderEmail,
           student_id: newMemberStudentId.trim(),
           full_name: newMemberFullName.trim(),
         }
