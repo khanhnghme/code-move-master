@@ -18,12 +18,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ProfileViewDialog from '@/components/ProfileViewDialog';
+import TaskSubmissionDialog from '@/components/TaskSubmissionDialog';
 import { renderMessageContent } from '@/lib/messageParser';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import type { Profile } from '@/types/database';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Profile, Task } from '@/types/database';
 import { 
   ExternalLink, 
   MoreHorizontal, 
@@ -67,11 +69,18 @@ interface MessageItemProps {
 }
 
 export default function MessageItem({ message, isOwn, showAvatar = true, showName = true, members = [], groupId, onTaskClick, onDelete, onReply }: MessageItemProps) {
+  const { user, isAdmin } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [profileToView, setProfileToView] = useState<Profile | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [memberRole, setMemberRole] = useState<'admin' | 'leader' | 'member'>('member');
+  
+  // Task submission dialog state
+  const [taskToView, setTaskToView] = useState<Task | null>(null);
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [isTaskAssignee, setIsTaskAssignee] = useState(false);
+  const [isLeaderInGroup, setIsLeaderInGroup] = useState(false);
 
   const segments = renderMessageContent(message.content);
 
@@ -111,6 +120,49 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
       
       setProfileDialogOpen(true);
     }
+  };
+
+  const handleTaskRefClick = async (taskId: string) => {
+    if (!taskId || !user) return;
+    
+    // Fetch task data
+    const { data: taskData } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('id', taskId)
+      .single();
+
+    if (!taskData) {
+      // Fallback to navigation
+      onTaskClick?.(taskId);
+      return;
+    }
+
+    const task = taskData as unknown as Task;
+
+    // Check if current user is assignee
+    const { data: assignmentData } = await supabase
+      .from('task_assignments')
+      .select('id')
+      .eq('task_id', taskId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    // Check if current user is leader in this group
+    const { data: memberData } = await supabase
+      .from('group_members')
+      .select('role')
+      .eq('group_id', task.group_id)
+      .eq('user_id', user.id)
+      .single();
+
+    const role = memberData?.role;
+    const isLeader = role === 'leader' || role === 'admin' || isAdmin;
+
+    setTaskToView(task);
+    setIsTaskAssignee(!!assignmentData);
+    setIsLeaderInGroup(isLeader);
+    setTaskDialogOpen(true);
   };
 
   const handleDelete = async () => {
@@ -259,7 +311,7 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
                         'font-medium cursor-pointer underline underline-offset-2 decoration-dotted',
                         isOwn ? 'text-primary-foreground/90' : 'text-accent hover:text-accent/80'
                       )}
-                      onClick={() => segment.taskId && onTaskClick?.(segment.taskId)}
+                      onClick={() => segment.taskId && handleTaskRefClick(segment.taskId)}
                     >
                       {segment.content}
                     </span>
@@ -336,6 +388,16 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
         profile={profileToView}
         role={memberRole}
         groupId={groupId}
+      />
+
+      <TaskSubmissionDialog
+        task={taskToView}
+        isOpen={taskDialogOpen}
+        onClose={() => { setTaskDialogOpen(false); setTaskToView(null); }}
+        onSave={() => { setTaskDialogOpen(false); setTaskToView(null); }}
+        isAssignee={isTaskAssignee}
+        isLeaderInGroup={isLeaderInGroup}
+        viewOnly={!isTaskAssignee && !isLeaderInGroup}
       />
     </>
   );
