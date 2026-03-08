@@ -356,6 +356,66 @@ export default function ShareSettingsCard({
                   </Button>
                 </div>
               </div>
+              {/* Member limit setting */}
+              <div className="p-3 rounded-lg border bg-muted/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" />
+                    Giới hạn thành viên
+                  </Label>
+                  <Switch
+                    checked={localMemberLimit !== null}
+                    onCheckedChange={async (checked) => {
+                      const newLimit = checked ? 10 : null;
+                      setLocalMemberLimit(newLimit);
+                      try {
+                        const { error } = await supabase
+                          .from('groups')
+                          .update({ join_member_limit: newLimit } as any)
+                          .eq('id', groupId);
+                        if (error) throw error;
+                        toast({ title: checked ? 'Đã bật giới hạn thành viên' : 'Đã tắt giới hạn' });
+                        onUpdate();
+                      } catch (e: any) {
+                        toast({ title: 'Lỗi', description: e.message, variant: 'destructive' });
+                      }
+                    }}
+                  />
+                </div>
+                {localMemberLimit !== null && (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      max={999}
+                      value={localMemberLimit}
+                      onChange={(e) => setLocalMemberLimit(parseInt(e.target.value) || 1)}
+                      className="h-8 w-20 text-center text-sm"
+                    />
+                    <span className="text-xs text-muted-foreground">người tối đa</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 ml-auto text-xs"
+                      onClick={async () => {
+                        try {
+                          const { error } = await supabase
+                            .from('groups')
+                            .update({ join_member_limit: localMemberLimit } as any)
+                            .eq('id', groupId);
+                          if (error) throw error;
+                          toast({ title: 'Đã lưu giới hạn', description: `Tối đa ${localMemberLimit} thành viên` });
+                          onUpdate();
+                        } catch (e: any) {
+                          toast({ title: 'Lỗi', description: e.message, variant: 'destructive' });
+                        }
+                      }}
+                    >
+                      Lưu
+                    </Button>
+                  </div>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
                 Chia sẻ mã 4 số này cho thành viên muốn tự tham gia project
               </p>
