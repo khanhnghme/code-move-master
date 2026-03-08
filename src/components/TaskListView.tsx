@@ -711,6 +711,7 @@ function TaskRow({
               </div>
             </div>
           )}
+        </div>
       </div>
     </div>
   );
