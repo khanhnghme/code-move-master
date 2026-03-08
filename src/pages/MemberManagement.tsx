@@ -84,7 +84,7 @@ export default function MemberManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
-  const [bulkAction, setBulkAction] = useState<'delete' | 'suspend' | 'unsuspend' | null>(null);
+  const [bulkAction, setBulkAction] = useState<'delete' | 'suspend' | 'unsuspend' | 'promote' | null>(null);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [isExcelImportOpen, setIsExcelImportOpen] = useState(false);
   
