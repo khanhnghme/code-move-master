@@ -140,9 +140,7 @@ export function MemberAuthForm() {
   // Register fields
   const [regStudentId, setRegStudentId] = useState('');
   const [regFullName, setRegFullName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [regPolicyAgreed, setRegPolicyAgreed] = useState(false);
 
   // Policy
