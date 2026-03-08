@@ -62,6 +62,8 @@ import {
   Award,
   CheckSquare,
   X,
+  Video,
+  Sparkles,
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/integrations/supabase/client';
