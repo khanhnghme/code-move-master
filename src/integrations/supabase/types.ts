@@ -338,12 +338,48 @@ export type Database = {
           },
         ]
       }
+      meeting_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          meeting_id: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          meeting_id: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          meeting_id?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_messages_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           created_at: string
           created_by: string
           description: string | null
           duration_minutes: number
+          external_link: string | null
           group_id: string
           id: string
           jitsi_room_name: string
@@ -359,6 +395,7 @@ export type Database = {
           created_by: string
           description?: string | null
           duration_minutes?: number
+          external_link?: string | null
           group_id: string
           id?: string
           jitsi_room_name: string
@@ -374,6 +411,7 @@ export type Database = {
           created_by?: string
           description?: string | null
           duration_minutes?: number
+          external_link?: string | null
           group_id?: string
           id?: string
           jitsi_room_name?: string
