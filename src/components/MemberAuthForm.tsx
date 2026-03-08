@@ -55,7 +55,7 @@ function PolicyCheckbox({
           onCheckedChange={(v) => onCheckedChange(v === true)}
           className="shrink-0"
         />
-        <label htmlFor="policy-agree" className="text-sm cursor-pointer leading-none flex items-center gap-1 flex-wrap">
+        <label htmlFor="policy-agree" className="text-xs cursor-pointer leading-none flex items-center gap-1 whitespace-nowrap">
           <span>Tôi đồng ý với</span>
           <Dialog>
             <DialogTrigger asChild>
@@ -97,7 +97,7 @@ function PolicyCheckbox({
             </DialogContent>
           </Dialog>
           {policyUpdatedAt && (
-            <span className="text-[11px] text-muted-foreground">(Cập nhật: {format(new Date(policyUpdatedAt), "HH:mm dd/MM/yyyy", { locale: vi })})</span>
+            <span className="text-[10px] text-muted-foreground">· {format(new Date(policyUpdatedAt), "dd/MM/yyyy", { locale: vi })}</span>
           )}
         </label>
       </div>
