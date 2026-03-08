@@ -284,9 +284,9 @@ function TaskRow({
 
   return (
     <div 
-      className={`group bg-card rounded-lg border transition-all cursor-pointer
-        hover:shadow-md hover:border-primary/40 hover:bg-accent/30
-        ${taskIsOverdue ? 'border-destructive/40 bg-destructive/5 hover:bg-destructive/10' : 'border-border'}
+      className={`group flex items-center gap-3 p-3 rounded-lg border bg-card transition-all cursor-pointer
+        hover:bg-muted/50 hover:shadow-sm
+        ${taskIsOverdue ? 'border-destructive/30 bg-destructive/5' : 'border-border'}
         ${isDragging ? 'shadow-lg ring-2 ring-primary/30' : ''}
         ${task.is_hidden ? 'opacity-50 border-dashed bg-muted/20' : ''}
         ${isSelected ? 'ring-2 ring-primary/50 bg-primary/5' : ''}`}
@@ -306,457 +306,178 @@ function TaskRow({
         }
       }}
     >
-      <div className={`grid ${isMultiSelectMode ? 'grid-cols-[28px_32px_1fr] md:grid-cols-[28px_32px_minmax(240px,1fr)_150px_96px_320px]' : 'grid-cols-[32px_1fr] md:grid-cols-[32px_minmax(240px,1fr)_150px_96px_320px]'} gap-2 p-3 items-start md:items-center`}>
-        {/* Multi-select checkbox */}
-        {isMultiSelectMode && (
-          <div className="flex items-center justify-center pt-0.5 md:pt-0" data-no-drill>
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={() => onToggleSelect?.(task.id)}
-              onClick={(e) => e.stopPropagation()}
-              className="h-4.5 w-4.5"
-            />
-          </div>
-        )}
-        {/* Column 1: Drag handle + Status bar */}
-        <div className="flex flex-col items-center gap-1 pt-0.5 md:pt-0">
-          {isLeaderInGroup && dragHandleProps && !isMultiSelectMode && (
-            <div 
-              {...dragHandleProps}
-              className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-muted rounded touch-none"
-              aria-label="Kéo để đổi thứ tự"
-            >
-              <GripVertical className="w-4 h-4 text-muted-foreground" />
-            </div>
-          )}
-          <div
-            className={`w-1 ${isLeaderInGroup && dragHandleProps ? 'h-6' : 'h-8'} rounded-full ${
-              taskIsOverdue ? 'bg-destructive' : 
-              task.status === 'VERIFIED' ? 'bg-success' :
-              task.status === 'DONE' ? 'bg-primary' :
-              task.status === 'IN_PROGRESS' ? 'bg-warning' : 'bg-muted-foreground/30'
-            }`}
+      {/* Multi-select checkbox */}
+      {isMultiSelectMode && (
+        <div className="shrink-0" data-no-drill>
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={() => onToggleSelect?.(task.id)}
+            onClick={(e) => e.stopPropagation()}
+            className="h-4 w-4"
           />
         </div>
-        
-        {/* Column 2: Task code + Title + Assignees (flexible) */}
-        <div className="flex items-start gap-2 min-w-0 overflow-hidden">
-          {taskCode && (
-            <Badge variant="outline" className="shrink-0 text-[10px] px-1.5 py-0.5 font-mono font-semibold bg-primary/5 border-primary/20 text-primary">
-              {taskCode}
+      )}
+
+      {/* Drag handle */}
+      {isLeaderInGroup && dragHandleProps && !isMultiSelectMode && (
+        <div 
+          {...dragHandleProps}
+          className="cursor-grab active:cursor-grabbing p-0.5 hover:bg-muted rounded touch-none shrink-0"
+          aria-label="Kéo để đổi thứ tự"
+        >
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        </div>
+      )}
+
+      {/* Task code badge */}
+      {taskCode && (
+        <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0">
+          {taskCode}
+        </span>
+      )}
+
+      {/* Main content: title + subtitle */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          {isMeetingTask && <Video className="w-3.5 h-3.5 text-primary shrink-0" />}
+          {taskIsOverdue && !isMeetingTask && <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0" />}
+          <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{task.title}</p>
+          {task.is_hidden && <EyeOff className="w-3 h-3 text-muted-foreground shrink-0" />}
+          {/* Meeting badges */}
+          {meetingIsLive && (
+            <Badge className="bg-destructive/15 text-destructive border-destructive/30 text-[10px] px-1.5 py-0 shrink-0 animate-pulse gap-1">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive" />
+              </span>
+              LIVE
             </Badge>
           )}
-          
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start gap-1.5">
-              {isMeetingTask && (
-                <Video className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-              )}
-              {taskIsOverdue && !isMeetingTask && (
-                <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" />
-              )}
-              <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                {task.title}
-              </h4>
-              {/* Meeting status badges */}
-              {meetingIsLive && (
-                <Badge className="bg-destructive/15 text-destructive border-destructive/30 text-[10px] px-1.5 py-0 shrink-0 animate-pulse gap-1">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive" />
-                  </span>
-                  LIVE
-                </Badge>
-              )}
-              {meetingIsScheduled && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">Sắp họp</Badge>
-              )}
-              {meetingIsCompleted && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Đã họp</Badge>
-              )}
-              {/* Drill-down indicator - shows on hover */}
-              {!isMeetingTask && (
-                <Eye className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-              )}
-            </div>
-            
-            {/* Assignees */}
-            {assignments.length > 0 && (
-              <div className="flex items-center gap-1.5 mt-1">
-                {hasMultipleAssignees ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center gap-1">
-                          <div className="flex -space-x-1.5">
-                            {assignments.slice(0, 3).map((assignment) => (
-                              <UserAvatar 
-                                key={assignment.id}
-                                src={assignment.profiles?.avatar_url}
-                                name={assignment.profiles?.full_name}
-                                size="xs"
-                                className="border border-background"
-                              />
-                            ))}
-                          </div>
-                          <span className="text-[11px] text-muted-foreground">
-                            {assignments.length} thành viên
-                          </span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" className="max-w-xs">
-                        <div className="space-y-1">
-                          {assignments.map((a, idx) => (
-                            <div key={a.id} className="flex items-center gap-2 text-xs">
-                              <span className="font-medium">{idx + 1}.</span>
-                              <span>{a.profiles?.full_name || 'Unknown'}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <span className="text-[11px] text-muted-foreground truncate">
-                    {assignments[0]?.profiles?.full_name || 'Unknown'}
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Mobile-only: deadline + extension + status + actions in one row (prevents overlap) */}
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 md:hidden">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {/* Extension Badge for mobile */}
-                {hasExtension && (
-                  <Badge className="gap-0.5 px-1 py-0 text-[9px] bg-blue-500/15 text-blue-600 border-blue-500/30 shrink-0">
-                    <CalendarPlus className="w-2.5 h-2.5" />
-                    {getExtensionText()}
-                  </Badge>
-                )}
-                
-                {effectiveDeadline ? (
-                  <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md whitespace-nowrap ${
-                    taskIsOverdue 
-                      ? 'bg-destructive/10 text-destructive' 
-                      : hasExtension ? 'bg-blue-500/10 text-blue-700' : 'bg-muted text-muted-foreground'
-                  }`}>
-                    <Calendar className="w-3 h-3 shrink-0" />
-                    <span className="max-w-[140px] truncate">{formatDate(effectiveDeadline)}</span>
-                  </div>
-                ) : (
-                  <span className="text-xs text-muted-foreground/50">—</span>
-                )}
-
-                <Badge 
-                  className={`${getStatusColor(task.status, taskIsOverdue)} text-[10px] px-1.5 py-0.5 border whitespace-nowrap`}
-                >
-                  {getStatusLabel(task.status, taskIsOverdue)}
-                </Badge>
-              </div>
-
-              <div className="flex items-center gap-1">
-                {isMeetingTask ? (
-                  /* Meeting task: show join button instead of submit */
-                  onJoinMeeting && (
-                    <Button
-                      size="sm"
-                      variant={meetingIsLive ? "default" : meetingIsCompleted ? "secondary" : "outline"}
-                      className={`h-7 text-xs px-2 gap-1 ${meetingIsLive ? 'animate-pulse' : ''}`}
-                      onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
-                    >
-                      <Video className="w-3 h-3" />
-                      {meetingIsLive ? 'Vào họp' : meetingIsCompleted ? 'Xem lại' : 'Phòng họp'}
-                    </Button>
-                  )
-                ) : (
-                  /* Normal task: show submit buttons */
-                  <>
-                    <SubmissionHistoryPopup 
-                      taskId={task.id}
-                      groupId={groupId}
-                      taskDeadline={task.deadline}
-                      currentSubmissionLink={task.submission_link}
-                    />
-
-                    <SubmissionButton 
-                      submissionLink={task.submission_link} 
-                      variant="compact"
-                      onStopPropagation={true}
-                      taskId={task.id}
-                      groupId={groupId}
-                    />
-
-                    {(isAssignee || isLeaderInGroup) && (
-                      <Button
-                        variant={task.submission_link ? "outline" : "default"}
-                        size="sm"
-                        className="h-7 text-xs px-2 gap-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openSubmissionDialog(task);
-                        }}
-                      >
-                        {task.submission_link ? (
-                          <>
-                            <Edit className="w-3 h-3" />
-                            <span className="hidden sm:inline">Sửa</span>
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-3 h-3" />
-                            <span className="hidden sm:inline">Nộp</span>
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </>
-                )}
-
-                {isLeaderInGroup && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-7 w-7"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreVertical className="w-3.5 h-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
-                        <Edit className="w-3.5 h-3.5 mr-2" />
-                        Chỉnh sửa
-                      </DropdownMenuItem>
-                      {onScoreTask && (
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onScoreTask(task); }} className="text-xs">
-                          <Award className="w-3.5 h-3.5 mr-2" />
-                          Chấm điểm
-                        </DropdownMenuItem>
-                      )}
-                      {onToggleHidden && (
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggleHidden(task); }} className="text-xs">
-                          {task.is_hidden ? (
-                            <>
-                              <Eye className="w-3.5 h-3.5 mr-2" />
-                              Hiện task
-                            </>
-                          ) : (
-                            <>
-                              <EyeOff className="w-3.5 h-3.5 mr-2" />
-                              Ẩn task
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
-                        <Trash2 className="w-3.5 h-3.5 mr-2" />
-                        Xóa
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
-            </div>
-          </div>
+          {meetingIsScheduled && <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">Sắp họp</Badge>}
+          {meetingIsCompleted && <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Đã họp</Badge>}
         </div>
-        
-        {/* Desktop-only columns - Deadline with extension badge */}
-        <div className="hidden md:flex items-center justify-end gap-1.5">
-          {/* Extension Badge */}
-          {hasExtension && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge className="gap-0.5 px-1 py-0 text-[9px] bg-blue-500/15 text-blue-600 border-blue-500/30 cursor-default shrink-0">
-                  <CalendarPlus className="w-2.5 h-2.5" />
-                  {getExtensionText()}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent side="left" className="text-xs">
-                <div>Đã gia hạn thêm {getExtensionText()}</div>
-              </TooltipContent>
-            </Tooltip>
+        <div className="flex items-center gap-2 mt-0.5">
+          {/* Assignees */}
+          {assignments.length > 0 && (
+            <span className="text-[11px] text-muted-foreground">
+              {hasMultipleAssignees 
+                ? `${assignments.length} thành viên` 
+                : assignments[0]?.profiles?.full_name || 'Unknown'}
+            </span>
           )}
-          
-          {effectiveDeadline ? (
-            <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md whitespace-nowrap ${
-              taskIsOverdue 
-                ? 'bg-destructive/10 text-destructive' 
-                : hasExtension ? 'bg-blue-500/10 text-blue-700' : 'bg-muted text-muted-foreground'
+          {/* Deadline */}
+          {effectiveDeadline && (
+            <span className={`text-[11px] flex items-center gap-0.5 ${
+              taskIsOverdue ? 'text-destructive' : 'text-muted-foreground'
             }`}>
-              <Calendar className="w-3 h-3 shrink-0" />
-              <span className="truncate">{formatDate(effectiveDeadline)}</span>
-            </div>
-          ) : (
-            <span className="text-xs text-muted-foreground/50">—</span>
+              <Calendar className="w-3 h-3" />
+              {formatDate(effectiveDeadline)}
+            </span>
           )}
-        </div>
-        
-        <div className="hidden md:flex justify-center min-w-0">
-          <Badge 
-            className={`${getStatusColor(task.status, taskIsOverdue)} text-[10px] px-1.5 py-0.5 border whitespace-nowrap max-w-full`}
-          >
-            {getStatusLabel(task.status, taskIsOverdue)}
-          </Badge>
-        </div>
-        
-        {/* Desktop actions */}
-        <div className="hidden md:flex items-center justify-end gap-1 flex-nowrap min-w-0">
-          {/* Meeting join button - desktop */}
-          {isMeetingTask ? (
-            /* Meeting task: use same grid width as normal tasks for alignment */
-            <div className="grid grid-cols-[64px_104px_92px_40px] items-center justify-end gap-1 flex-nowrap min-w-0">
-              {/* Spacer for history column */}
-              <span className="h-7" aria-hidden />
-              {/* Spacer for submission button column */}
-              <span className="h-7" aria-hidden />
-              {/* Join meeting button - same width as submit button */}
-              <div className="flex justify-end">
-                {onJoinMeeting && (
-                  <Button
-                    size="sm"
-                    variant={meetingIsLive ? "default" : meetingIsCompleted ? "secondary" : "outline"}
-                    className={`h-7 w-[92px] text-xs px-2 gap-1 shrink-0 justify-center ${meetingIsLive ? 'animate-pulse' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
-                  >
-                    {meetingIsLive ? <Sparkles className="w-3 h-3" /> : <Video className="w-3 h-3" />}
-                    {meetingIsLive ? 'Vào họp' : meetingIsCompleted ? 'Xem lại' : 'Phòng họp'}
-                  </Button>
-                )}
-              </div>
-              {/* Menu button */}
-              <div className="flex justify-end">
-                {isLeaderInGroup ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <MoreVertical className="w-3.5 h-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
-                        <Edit className="w-3.5 h-3.5 mr-2" />
-                        Chỉnh sửa
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
-                        <Trash2 className="w-3.5 h-3.5 mr-2" />
-                        Xóa buổi họp
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <span className="h-7 w-7" aria-hidden />
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Normal task: show submit buttons + menu */
-            <div className="grid grid-cols-[64px_104px_92px_40px] items-center justify-end gap-1 flex-nowrap min-w-0">
-              <div className="flex justify-end">
-                <SubmissionHistoryPopup 
-                  taskId={task.id}
-                  groupId={groupId}
-                  taskDeadline={task.deadline}
-                  currentSubmissionLink={task.submission_link}
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <SubmissionButton 
-                  submissionLink={task.submission_link} 
-                  variant="compact"
-                  onStopPropagation={true}
-                  taskId={task.id}
-                  groupId={groupId}
-                />
-              </div>
-
-              <div className="flex justify-end">
-                {canSubmit ? (
-                  <Button
-                    variant={task.submission_link ? "outline" : "default"}
-                    size="sm"
-                    className="h-7 w-[92px] text-xs px-2 gap-1 shrink-0 justify-center"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openSubmissionDialog(task);
-                    }}
-                  >
-                    {task.submission_link ? (
-                      <>
-                        <Edit className="w-3 h-3" />
-                        <span className="hidden lg:inline">Sửa</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-3 h-3" />
-                        <span className="hidden lg:inline">Nộp</span>
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <span className="h-7 w-[92px]" aria-hidden />
-                )}
-              </div>
-
-              <div className="flex justify-end">
-                {isLeaderInGroup ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-7 w-7 shrink-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreVertical className="w-3.5 h-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
-                        <Edit className="w-3.5 h-3.5 mr-2" />
-                        Chỉnh sửa
-                      </DropdownMenuItem>
-                      {onScoreTask && (
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onScoreTask(task); }} className="text-xs">
-                          <Award className="w-3.5 h-3.5 mr-2" />
-                          Chấm điểm
-                        </DropdownMenuItem>
-                      )}
-                      {onToggleHidden && (
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggleHidden(task); }} className="text-xs">
-                          {task.is_hidden ? (
-                            <>
-                              <Eye className="w-3.5 h-3.5 mr-2" />
-                              Hiện task
-                            </>
-                          ) : (
-                            <>
-                              <EyeOff className="w-3.5 h-3.5 mr-2" />
-                              Ẩn task
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
-                        <Trash2 className="w-3.5 h-3.5 mr-2" />
-                        Xóa
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <span className="h-7 w-7" aria-hidden />
-                )}
-              </div>
-            </div>
+          {hasExtension && (
+            <Badge className="gap-0.5 px-1 py-0 text-[9px] bg-blue-500/15 text-blue-600 border-blue-500/30 shrink-0">
+              <CalendarPlus className="w-2.5 h-2.5" />
+              {getExtensionText()}
+            </Badge>
           )}
         </div>
       </div>
+
+      {/* Status badge */}
+      <Badge 
+        className={`${getStatusColor(task.status, taskIsOverdue)} text-[10px] px-1.5 py-0.5 border whitespace-nowrap shrink-0`}
+      >
+        {getStatusLabel(task.status, taskIsOverdue)}
+      </Badge>
+
+      {/* Action buttons - compact */}
+      <div className="hidden sm:flex items-center gap-1 shrink-0">
+        {isMeetingTask ? (
+          onJoinMeeting && (
+            <Button
+              size="sm"
+              variant={meetingIsLive ? "default" : meetingIsCompleted ? "secondary" : "outline"}
+              className={`h-7 text-xs px-2 gap-1 ${meetingIsLive ? 'animate-pulse' : ''}`}
+              onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
+            >
+              <Video className="w-3 h-3" />
+              {meetingIsLive ? 'Vào họp' : meetingIsCompleted ? 'Xem lại' : 'Phòng họp'}
+            </Button>
+          )
+        ) : (
+          <>
+            <SubmissionHistoryPopup 
+              taskId={task.id}
+              groupId={groupId}
+              taskDeadline={task.deadline}
+              currentSubmissionLink={task.submission_link}
+            />
+            <SubmissionButton 
+              submissionLink={task.submission_link} 
+              variant="compact"
+              onStopPropagation={true}
+              taskId={task.id}
+              groupId={groupId}
+            />
+            {canSubmit && (
+              <Button
+                variant={task.submission_link ? "outline" : "default"}
+                size="sm"
+                className="h-7 text-xs px-2 gap-1"
+                onClick={(e) => { e.stopPropagation(); openSubmissionDialog(task); }}
+              >
+                {task.submission_link ? <><Edit className="w-3 h-3" /><span className="hidden lg:inline">Sửa</span></> : <><Send className="w-3 h-3" /><span className="hidden lg:inline">Nộp</span></>}
+              </Button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Mobile actions */}
+      <div className="flex sm:hidden items-center gap-1 shrink-0">
+        {isMeetingTask && onJoinMeeting ? (
+          <Button size="sm" variant={meetingIsLive ? "default" : "outline"} className="h-7 text-xs px-2" onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}>
+            <Video className="w-3 h-3" />
+          </Button>
+        ) : canSubmit ? (
+          <Button size="sm" variant={task.submission_link ? "outline" : "default"} className="h-7 text-xs px-2" onClick={(e) => { e.stopPropagation(); openSubmissionDialog(task); }}>
+            {task.submission_link ? <Edit className="w-3 h-3" /> : <Send className="w-3 h-3" />}
+          </Button>
+        ) : null}
+      </div>
+
+      {/* Menu */}
+      {isLeaderInGroup && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+              <MoreVertical className="w-3.5 h-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
+              <Edit className="w-3.5 h-3.5 mr-2" />Chỉnh sửa
+            </DropdownMenuItem>
+            {onScoreTask && (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onScoreTask(task); }} className="text-xs">
+                <Award className="w-3.5 h-3.5 mr-2" />Chấm điểm
+              </DropdownMenuItem>
+            )}
+            {onToggleHidden && (
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggleHidden(task); }} className="text-xs">
+                {task.is_hidden ? <><Eye className="w-3.5 h-3.5 mr-2" />Hiện task</> : <><EyeOff className="w-3.5 h-3.5 mr-2" />Ẩn task</>}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
+              <Trash2 className="w-3.5 h-3.5 mr-2" />Xóa
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      {/* Drill-down arrow */}
+      <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
     </div>
   );
 }
@@ -1540,15 +1261,18 @@ export default function TaskListView({
 
           {/* Unstaged Tasks with Drag & Drop */}
           {filterStage === 'all' && unstagedTasks.length > 0 && (
-            <Card className="overflow-hidden border-dashed border-l-4 border-l-muted-foreground/30">
-              <CardHeader className="py-2.5 px-4 bg-muted/20">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-muted-foreground/40" />
-                  Chưa phân giai đoạn
-                  <Badge variant="secondary" className="text-[10px] px-1.5 h-5">
-                    {unstagedTasks.length}
-                  </Badge>
-                </CardTitle>
+            <Card className="overflow-hidden">
+              <div className="h-1 bg-muted-foreground/30" />
+              <CardHeader className="py-2.5 px-4 cursor-pointer hover:bg-muted/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground shrink-0">
+                    ?
+                  </div>
+                  <div>
+                    <CardTitle className="text-sm font-bold">Chưa phân giai đoạn</CardTitle>
+                    <p className="text-[11px] text-muted-foreground">{unstagedTasks.length} task</p>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="p-3">
                 <Droppable droppableId="unstaged">
