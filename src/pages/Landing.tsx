@@ -26,6 +26,10 @@ import introP4Team from '@/assets/intro-p4-team.png';
 import introP4Stages from '@/assets/intro-p4-stages.png';
 import introP4Resources from '@/assets/intro-p4-resources.png';
 import introP4Sharing from '@/assets/intro-p4-sharing.png';
+import introP5Ai from '@/assets/intro-p5-ai.png';
+import introP5Notifications from '@/assets/intro-p5-notifications.png';
+import introP5Backup from '@/assets/intro-p5-backup.png';
+import introP5Meeting from '@/assets/intro-p5-meeting.png';
 
 /* ─── Intro Images ─── */
 type IntroImages = Record<string, string>;
