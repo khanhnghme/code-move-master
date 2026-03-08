@@ -154,7 +154,24 @@ export default function MemberManagementCard({
     return { canLeave, hoursLeft, isCreator: false };
   }, [currentUserMember, groupCreatorId]);
 
-  const getRoleBadge = (role: string, memberId?: string) => {
+  // Countdown timer for leave dialog
+  useEffect(() => {
+    if (!isLeaveDialogOpen) {
+      setLeaveCountdown(15);
+      setLeaveCountdownActive(false);
+      return;
+    }
+    setLeaveCountdown(15);
+    setLeaveCountdownActive(true);
+  }, [isLeaveDialogOpen]);
+
+  useEffect(() => {
+    if (!leaveCountdownActive || leaveCountdown <= 0) return;
+    const timer = setTimeout(() => setLeaveCountdown(prev => prev - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [leaveCountdownActive, leaveCountdown]);
+
+
     // Check if this member is the group creator (Trưởng nhóm)
     const isCreator = memberId ? memberId === groupCreatorId : false;
     
