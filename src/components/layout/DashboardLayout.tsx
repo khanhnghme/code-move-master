@@ -96,7 +96,7 @@ export default function DashboardLayout({ children, projectId, projectName, zalo
 
   const getRoleBadge = () => {
     if (isAdmin) return <Badge className="bg-destructive/20 text-destructive text-xs font-medium">Admin</Badge>;
-    if (isLeader) return <Badge className="bg-warning/20 text-warning text-xs font-medium">Leader</Badge>;
+    if (isLeader) return <Badge className="bg-warning/20 text-warning text-xs font-medium">Thành viên NC</Badge>;
     return <Badge variant="secondary" className="text-xs font-medium">Member</Badge>;
   };
 
