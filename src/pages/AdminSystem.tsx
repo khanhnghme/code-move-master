@@ -186,6 +186,42 @@ export default function AdminSystem() {
     }
   };
 
+  const handleToggleDrive = async (checked: boolean) => {
+    const hasCredentials = Boolean(driveApiKey.trim() && driveClientId.trim());
+    if (checked && !hasCredentials) {
+      toast({
+        title: 'Thiếu cấu hình Google Drive',
+        description: 'Chưa có API Key/Client ID trong cấu hình hệ thống.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSavingDrive(true);
+    try {
+      const { error } = await supabase
+        .from('system_settings')
+        .upsert({
+          key: 'google_drive_config',
+          value: {
+            enabled: checked,
+            api_key: driveApiKey.trim(),
+            client_id: driveClientId.trim(),
+          } as any,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'key' });
+
+      if (error) throw error;
+
+      setDriveEnabled(checked);
+      toast({ title: checked ? 'Đã bật Google Drive' : 'Đã tắt Google Drive' });
+    } catch {
+      toast({ title: 'Lỗi', description: 'Không thể cập nhật cài đặt Google Drive', variant: 'destructive' });
+    } finally {
+      setSavingDrive(false);
+    }
+  };
+
   if (isLoading || loading) {
     return (
       <DashboardLayout>
