@@ -482,7 +482,7 @@ export default function AdminSystem() {
               <div className="flex-1 p-6 overflow-y-auto">
                 <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-primary prose-h1:text-2xl prose-h1:border-b prose-h1:border-primary/20 prose-h1:pb-3 prose-h2:text-lg prose-h2:mt-6 prose-a:text-accent prose-strong:text-foreground">
                   {editPolicyContent ? (
-                    <ReactMarkdown>{editPolicyContent}</ReactMarkdown>
+                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>{editPolicyContent}</ReactMarkdown>
                   ) : (
                     <div className="text-center py-10">
                       <FileText className="w-10 h-10 mx-auto text-muted-foreground/30 mb-2" />
