@@ -311,13 +311,13 @@ export default function AIAssistantPanel({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent 
         side="right" 
-        className="w-full sm:max-w-2xl p-0 flex flex-col h-full border-l-0 shadow-2xl"
+        className="w-full sm:max-w-2xl p-0 flex flex-col h-full border-l-0 shadow-2xl data-[state=open]:animate-slide-in-right data-[state=closed]:animate-slide-out-right"
       >
         {/* Header */}
-        <SheetHeader className="px-5 py-4 border-b bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground relative overflow-hidden">
+        <SheetHeader className="px-5 py-4 border-b bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground relative overflow-hidden animate-fade-in">
           {/* Decorative shapes */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 ai-decor-spin" />
+          <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2 ai-decor-spin-reverse" />
           
           <div className="relative flex items-center justify-between">
             <SheetTitle className="flex items-center gap-3 text-primary-foreground">
@@ -402,9 +402,9 @@ export default function AIAssistantPanel({
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full py-4 px-2">
               {/* Hero section */}
-              <div className="relative mb-5">
-                <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150" />
-                <Avatar className="relative h-16 w-16 ring-4 ring-primary/10 shadow-xl">
+              <div className="relative mb-5 ai-hero-entrance">
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 ai-pulse-glow" />
+                <Avatar className="relative h-16 w-16 ring-4 ring-primary/10 shadow-xl ai-hero-bounce">
                   <AvatarImage src={aiLogo} alt="AI Assistant" />
                   <AvatarFallback className="bg-primary/10">
                     <Sparkles className="h-8 w-8 text-primary" />
@@ -437,8 +437,9 @@ export default function AIAssistantPanel({
                         "w-full text-left px-3.5 py-3 rounded-xl border bg-card",
                         "hover:bg-accent/5 hover:border-primary/30 hover:shadow-sm",
                         "transition-all duration-200 text-sm flex items-center gap-3",
-                        "group active:scale-[0.98]"
+                        "group active:scale-[0.98] ai-suggestion-card"
                       )}
+                      style={{ animationDelay: `${idx * 80}ms` }}
                     >
                       <div className={cn(
                         "flex items-center justify-center w-8 h-8 rounded-lg bg-muted/80 shrink-0",
@@ -509,13 +510,18 @@ export default function AIAssistantPanel({
                         <div className="whitespace-pre-wrap">{message.content}</div>
                       )
                     ) : (
-                      <div className="flex items-center gap-3 py-1">
-                        <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div className="flex items-center gap-3 py-1.5">
+                        <div className="flex gap-1.5 items-center">
+                          <span className="w-2.5 h-2.5 rounded-full ai-typing-dot bg-primary/60" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2.5 h-2.5 rounded-full ai-typing-dot bg-primary/60" style={{ animationDelay: '200ms' }} />
+                          <span className="w-2.5 h-2.5 rounded-full ai-typing-dot bg-primary/60" style={{ animationDelay: '400ms' }} />
                         </div>
-                        <span className="text-xs text-muted-foreground italic">Đang phân tích...</span>
+                        <span className="text-xs text-muted-foreground ai-thinking-text">
+                          <span className="inline-flex items-center gap-1">
+                            <Sparkles className="h-3 w-3 ai-sparkle-spin text-primary/50" />
+                            Đang suy nghĩ...
+                          </span>
+                        </span>
                       </div>
                     )}
                   </div>
@@ -594,6 +600,92 @@ export default function AIAssistantPanel({
           </p>
         </div>
       </SheetContent>
+
+      <style>{`
+        /* Typing indicator - wave effect */
+        @keyframes ai-typing-wave {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+          30% { transform: translateY(-8px); opacity: 1; }
+        }
+        .ai-typing-dot {
+          animation: ai-typing-wave 1.4s ease-in-out infinite;
+        }
+
+        /* Sparkle spin */
+        @keyframes ai-sparkle-spin {
+          0% { transform: rotate(0deg) scale(1); }
+          50% { transform: rotate(180deg) scale(1.2); }
+          100% { transform: rotate(360deg) scale(1); }
+        }
+        .ai-sparkle-spin {
+          animation: ai-sparkle-spin 2s linear infinite;
+        }
+
+        /* Thinking text shimmer */
+        @keyframes ai-shimmer {
+          0% { opacity: 0.5; }
+          50% { opacity: 1; }
+          100% { opacity: 0.5; }
+        }
+        .ai-thinking-text {
+          animation: ai-shimmer 2s ease-in-out infinite;
+        }
+
+        /* Hero entrance */
+        @keyframes ai-hero-enter {
+          0% { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+          60% { transform: scale(1.1) rotate(3deg); opacity: 1; }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .ai-hero-entrance {
+          animation: ai-hero-enter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* Hero gentle bounce */
+        @keyframes ai-gentle-bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        .ai-hero-bounce {
+          animation: ai-gentle-bounce 3s ease-in-out infinite;
+          animation-delay: 0.6s;
+        }
+
+        /* Pulse glow behind hero */
+        @keyframes ai-pulse-glow {
+          0%, 100% { opacity: 0.3; transform: scale(1.5); }
+          50% { opacity: 0.6; transform: scale(1.8); }
+        }
+        .ai-pulse-glow {
+          animation: ai-pulse-glow 3s ease-in-out infinite;
+        }
+
+        /* Suggestion cards staggered entrance */
+        @keyframes ai-card-enter {
+          0% { transform: translateX(20px); opacity: 0; }
+          100% { transform: translateX(0); opacity: 1; }
+        }
+        .ai-suggestion-card {
+          opacity: 0;
+          animation: ai-card-enter 0.4s ease-out forwards;
+        }
+
+        /* Decorative spin */
+        @keyframes ai-decor-rotate {
+          0% { transform: translate(50%, -50%) rotate(0deg); }
+          100% { transform: translate(50%, -50%) rotate(360deg); }
+        }
+        @keyframes ai-decor-rotate-reverse {
+          0% { transform: translate(-50%, 50%) rotate(0deg); }
+          100% { transform: translate(-50%, 50%) rotate(-360deg); }
+        }
+        .ai-decor-spin {
+          animation: ai-decor-rotate 20s linear infinite;
+        }
+        .ai-decor-spin-reverse {
+          animation: ai-decor-rotate-reverse 25s linear infinite;
+        }
+      `}</style>
     </Sheet>
   );
 }
