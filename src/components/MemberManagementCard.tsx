@@ -293,13 +293,13 @@ export default function MemberManagementCard({
         user_name: profile?.full_name || user?.email || 'Unknown',
         action: 'CREATE_AND_ADD_MEMBER',
         action_type: 'member',
-        description: `Tạo tài khoản và thêm ${newMemberFullName.trim()} vào project với vai trò Thành viên`,
+        description: `Tạo tài khoản và thêm ${newMemberFullName.trim()} vào project với vai trò ${roleToAssign === 'leader' ? 'Phó nhóm' : 'Thành viên'}`,
         group_id: groupId,
         metadata: { 
           created_user_id: newUserId, 
           created_user_name: newMemberFullName.trim(),
           created_user_email: newMemberEmail.trim(),
-          role: 'member'
+          role: roleToAssign
         }
       });
 
