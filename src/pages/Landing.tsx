@@ -18,6 +18,10 @@ import introP2Kanban from '@/assets/intro-p2-kanban.png';
 import introP2Deadline from '@/assets/intro-p2-deadline.png';
 import introP2Submission from '@/assets/intro-p2-submission.png';
 import introP2Notes from '@/assets/intro-p2-notes.png';
+import introP3Formula from '@/assets/intro-p3-formula.png';
+import introP3Weights from '@/assets/intro-p3-weights.png';
+import introP3Appeal from '@/assets/intro-p3-appeal.png';
+import introP3Leaderboard from '@/assets/intro-p3-leaderboard.png';
 
 /* ─── Intro Images ─── */
 type IntroImages = Record<string, string>;
@@ -168,122 +172,52 @@ function Page2Tasks({ images }: { images: IntroImages }) {
 
 function Page3Scoring({ images }: { images: IntroImages }) {
   return (
-    <div className="h-full flex flex-col gap-4">
-      <div className="h-[38%] min-h-[180px] flex-shrink-0" style={{ animation: 'fade-in 0.5s ease-out both' }}>
-        <IntroHeroImage
-          imageUrl={images.page3}
-          fallbackGradient="bg-gradient-to-br from-yellow-500/15 via-primary/10 to-accent/10"
-          alt="Hệ thống chấm điểm tự động"
-        />
-      </div>
-
-      <div className="space-y-1">
+    <div className="h-full flex flex-col gap-3">
+      {/* Title */}
+      <div className="text-center flex-shrink-0">
         <h3 className="text-2xl font-bold text-foreground">Hệ thống chấm điểm</h3>
-        <p className="text-sm text-muted-foreground">Tính điểm tự động, công bằng và minh bạch</p>
+        <p className="text-xs text-muted-foreground">Tính điểm tự động, công bằng và minh bạch</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
-        {/* Formula */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Công thức tính điểm Task</p>
-          <div className="bg-background rounded-lg border border-primary/20 p-2 mb-2">
-            <p className="text-center font-mono text-xs text-foreground">
-              <span className="text-primary font-bold">Final</span> = Base − Late − Review + Early + Bug
-            </p>
-          </div>
-          <div className="space-y-1">
-            {[
-              { label: 'Base', value: 100, color: 'bg-primary', pct: 100 },
-              { label: 'Late', value: -15, color: 'bg-destructive', pct: 15 },
-              { label: 'Early', value: +5, color: 'bg-green-500', pct: 5 },
-              { label: 'Bug', value: +3, color: 'bg-blue-500', pct: 3 },
-            ].map((s, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className="text-[9px] font-medium text-muted-foreground w-8 text-right">{s.label}</span>
-                <div className="flex-1 h-3 bg-muted/50 rounded overflow-hidden">
-                  <div className={`h-full ${s.color} rounded`} style={{ width: `${s.pct}%` }} />
-                </div>
-                <span className={`text-[10px] font-bold w-6 ${s.value >= 0 ? 'text-green-600' : 'text-destructive'}`}>
-                  {s.value > 0 ? '+' : ''}{s.value}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between">
-            <span className="text-[10px] font-semibold text-foreground">Điểm cuối:</span>
-            <span className="text-lg font-bold text-primary">88</span>
-          </div>
+      {/* Image grid */}
+      <div className="flex gap-3 flex-1 min-h-0">
+        {/* Left: Hero scoring image */}
+        <div className="w-[35%] flex-shrink-0 rounded-xl overflow-hidden" style={{ animation: 'fade-in 0.4s ease-out both' }}>
+          <img src={introPage3} alt="Hệ thống chấm điểm" className="w-full h-full object-cover rounded-xl" />
         </div>
 
-        {/* Stage weights + chart */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Trọng số giai đoạn</p>
-          <div className="flex items-center gap-4 mb-3">
-            <div className="relative w-20 h-20 flex-shrink-0">
-              <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                <circle cx="50" cy="50" r="40" fill="none" className="stroke-primary" strokeWidth="20" strokeDasharray="75.4 251.2" strokeDashoffset="0" />
-                <circle cx="50" cy="50" r="40" fill="none" className="stroke-accent" strokeWidth="20" strokeDasharray="50.27 251.2" strokeDashoffset="-75.4" />
-                <circle cx="50" cy="50" r="40" fill="none" stroke="hsl(var(--chart-3, 142 71% 45%))" strokeWidth="20" strokeDasharray="37.7 251.2" strokeDashoffset="-125.67" />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-foreground">100%</span>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              {[
-                { name: 'GĐ 1', weight: '30%', color: 'bg-primary' },
-                { name: 'GĐ 2', weight: '20%', color: 'bg-accent' },
-                { name: 'GĐ 3', weight: '15%', color: 'bg-green-500' },
-              ].map((s, i) => (
-                <div key={i} className="flex items-center gap-1.5">
-                  <div className={`w-2 h-2 rounded-sm ${s.color}`} />
-                  <span className="text-[10px] text-foreground">{s.name}</span>
-                  <span className="text-[10px] font-bold text-foreground">{s.weight}</span>
-                </div>
-              ))}
+        {/* Right: Grid of feature images */}
+        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0">
+          {/* Formula */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative" style={{ animation: 'fade-in 0.4s ease-out 100ms both' }}>
+            <img src={introP3Formula} alt="Công thức tính điểm" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Công thức tính điểm</p>
             </div>
           </div>
 
-          {/* Bar chart */}
-          <p className="text-[10px] font-semibold text-muted-foreground mb-1">So sánh điểm</p>
-          <div className="flex items-end gap-2 h-[60px]">
-            {[
-              { name: 'An', score: 92 },
-              { name: 'Bình', score: 85 },
-              { name: 'Châu', score: 78 },
-              { name: 'Dũng', score: 95 },
-            ].map((m, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
-                <span className="text-[8px] font-bold text-foreground">{m.score}</span>
-                <div className="w-full rounded-t bg-gradient-to-t from-primary to-primary/60" style={{ height: `${m.score * 0.55}%` }} />
-                <span className="text-[8px] text-muted-foreground">{m.name}</span>
-              </div>
-            ))}
+          {/* Weights */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
+            <img src={introP3Weights} alt="Trọng số & So sánh" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Trọng số & So sánh</p>
+            </div>
           </div>
-        </div>
 
-        {/* Appeal process */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3 md:col-span-2" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            <AlertTriangle className="w-3 h-3 inline mr-1" />Quy trình khiếu nại
-          </p>
-          <div className="flex items-center gap-2 justify-center">
-            {[
-              { step: '1', label: 'Gửi khiếu nại', color: 'bg-primary' },
-              { step: '2', label: 'Leader xem xét', color: 'bg-accent' },
-              { step: '3', label: 'Chấp nhận/Từ chối', color: 'bg-green-500' },
-              { step: '4', label: 'Ghi log', color: 'bg-muted-foreground' },
-            ].map((s, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="flex flex-col items-center gap-0.5">
-                  <div className={`w-5 h-5 rounded-full ${s.color} flex items-center justify-center`}>
-                    <span className="text-[8px] text-white font-bold">{s.step}</span>
-                  </div>
-                  <span className="text-[9px] text-foreground text-center max-w-[70px]">{s.label}</span>
-                </div>
-                {i < 3 && <ArrowRight className="w-3 h-3 text-border flex-shrink-0 mt-[-10px]" />}
-              </div>
-            ))}
+          {/* Appeal */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
+            <img src={introP3Appeal} alt="Khiếu nại điểm" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Khiếu nại điểm</p>
+            </div>
+          </div>
+
+          {/* Leaderboard */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
+            <img src={introP3Leaderboard} alt="Bảng xếp hạng" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Bảng xếp hạng</p>
+            </div>
           </div>
         </div>
       </div>
