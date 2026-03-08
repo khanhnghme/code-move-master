@@ -16,6 +16,7 @@ interface AuthContextType {
   isLeader: boolean;
   isApproved: boolean;
   mustChangePassword: boolean;
+  needsProfileCompletion: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, studentId: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
