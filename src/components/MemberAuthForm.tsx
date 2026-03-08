@@ -143,6 +143,7 @@ export function MemberAuthForm() {
   const [otpCode, setOtpCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [resendCountdown, setResendCountdown] = useState(0);
 
   // Login fields
   const [identifier, setIdentifier] = useState('');
