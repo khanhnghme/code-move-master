@@ -35,6 +35,24 @@ export default function Dashboard() {
   const [videoUrl, setVideoUrl] = useState('');
   const [videoEnabled, setVideoEnabled] = useState(false);
   const { isConnected } = useUserPresence('system-global');
+  // Fetch video background settings from system_settings
+  useEffect(() => {
+    const fetchVideoSettings = async () => {
+      const { data } = await supabase
+        .from('system_settings')
+        .select('value')
+        .eq('key', 'dashboard_video_bg')
+        .maybeSingle();
+      if (data?.value) {
+        const val = data.value as { enabled?: boolean; opacity?: number; url?: string };
+        setVideoEnabled(val.enabled ?? false);
+        setVideoOpacity(val.opacity ?? 0.2);
+        setVideoUrl(val.url ?? '');
+      }
+    };
+    fetchVideoSettings();
+  }, []);
+
   useEffect(() => {
     if (user) {
       fetchDashboardData();
