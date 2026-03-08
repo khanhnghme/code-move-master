@@ -45,6 +45,36 @@ interface MeetingData {
   isPast: boolean;
 }
 
+interface ScoreData {
+  taskTitle: string;
+  stageName: string | null;
+  baseScore: number;
+  latePenalty: number;
+  reviewPenalty: number;
+  earlyBonus: boolean;
+  bugHunterBonus: boolean;
+  adjustment: number | null;
+  adjustmentReason: string | null;
+  finalScore: number | null;
+}
+
+interface StageScoreData {
+  stageName: string;
+  averageScore: number | null;
+  lateTaskCount: number;
+  earlySubmissionBonus: boolean;
+  bugHunterBonus: boolean;
+  kCoefficient: number | null;
+  adjustedScore: number | null;
+  finalStageScore: number | null;
+}
+
+interface FinalScoreData {
+  weightedAverage: number | null;
+  adjustment: number | null;
+  finalScore: number | null;
+}
+
 interface ProjectContext {
   project: {
     id: string;
@@ -71,7 +101,57 @@ interface ProjectContext {
     name: string;
     role: string;
     assignedTasks: string[];
+    taskScores: ScoreData[];
+    stageScores: StageScoreData[];
+    finalScore: FinalScoreData | null;
   };
+}
+
+function buildUserScoresSection(currentUser: ProjectContext['currentUser']): string {
+  const lines: string[] = [];
+
+  if (currentUser.taskScores.length === 0 && currentUser.stageScores.length === 0 && !currentUser.finalScore) {
+    return '(Chưa có dữ liệu điểm)';
+  }
+
+  if (currentUser.taskScores.length > 0) {
+    lines.push('  [Điểm theo công việc]');
+    for (const s of currentUser.taskScores) {
+      const bonuses: string[] = [];
+      if (s.earlyBonus) bonuses.push('Nộp sớm');
+      if (s.bugHunterBonus) bonuses.push('Bug Hunter');
+      const bonusStr = bonuses.length > 0 ? ` | Bonus: ${bonuses.join(', ')}` : '';
+      const penaltyStr = (s.latePenalty > 0 || s.reviewPenalty > 0)
+        ? ` | Trừ: ${s.latePenalty > 0 ? `trễ -${s.latePenalty}` : ''}${s.reviewPenalty > 0 ? ` review -${s.reviewPenalty}` : ''}`
+        : '';
+      const adjStr = s.adjustment ? ` | Điều chỉnh: ${s.adjustment > 0 ? '+' : ''}${s.adjustment}${s.adjustmentReason ? ` (${s.adjustmentReason})` : ''}` : '';
+      const stage = s.stageName ? ` [${s.stageName}]` : '';
+      lines.push(`    - "${s.taskTitle}"${stage}: Điểm gốc ${s.baseScore}${penaltyStr}${bonusStr}${adjStr} → Điểm cuối: ${s.finalScore ?? 'Chưa tính'}`);
+    }
+  }
+
+  if (currentUser.stageScores.length > 0) {
+    lines.push('  [Điểm theo giai đoạn]');
+    for (const s of currentUser.stageScores) {
+      const bonuses: string[] = [];
+      if (s.earlySubmissionBonus) bonuses.push('Nộp sớm');
+      if (s.bugHunterBonus) bonuses.push('Bug Hunter');
+      const bonusStr = bonuses.length > 0 ? ` | Bonus: ${bonuses.join(', ')}` : '';
+      const kStr = s.kCoefficient !== null && s.kCoefficient !== 1 ? ` | Hệ số K: ${s.kCoefficient}` : '';
+      lines.push(`    - "${s.stageName}": TB ${s.averageScore ?? '?'}${bonusStr}${kStr} → Điểm giai đoạn: ${s.finalStageScore ?? 'Chưa tính'}`);
+      if (s.lateTaskCount > 0) lines.push(`      ⚠️ ${s.lateTaskCount} task nộp trễ`);
+    }
+  }
+
+  if (currentUser.finalScore) {
+    const adj = currentUser.finalScore.adjustment
+      ? ` | Điều chỉnh: ${currentUser.finalScore.adjustment > 0 ? '+' : ''}${currentUser.finalScore.adjustment}`
+      : '';
+    lines.push(`  [Điểm tổng kết]`);
+    lines.push(`    TB có trọng số: ${currentUser.finalScore.weightedAverage ?? '?'}${adj} → Điểm cuối: ${currentUser.finalScore.finalScore ?? 'Chưa tính'}`);
+  }
+
+  return lines.join('\n');
 }
 
 function getStatusLabel(status: string): string {
@@ -229,6 +309,9 @@ ${upcomingMeetings.length > 0
 Tên: ${context.currentUser.name}
 Vai trò: ${context.currentUser.role === 'leader' ? 'Trưởng nhóm' : 'Thành viên'}
 Công việc được giao: ${context.currentUser.assignedTasks.length > 0 ? context.currentUser.assignedTasks.join(', ') : 'Chưa có'}
+
+--- ĐIỂM QUÁ TRÌNH CỦA BẠN (CHỈ RIÊNG BẠN) ---
+${buildUserScoresSection(context.currentUser)}
 `;
 }
 
@@ -276,6 +359,7 @@ ${projectContexts.join('\n---\n')}` : '## Người dùng chưa tham gia dự án
 3. ❌ KHÔNG dùng thuật ngữ nội bộ hệ thống
 4. ❌ KHÔNG suy đoán hoặc thêm thông tin không có trên giao diện
 5. ❌ KHÔNG giải thích kỹ thuật
+6. ❌ KHÔNG tiết lộ điểm số của người khác khi được hỏi — chỉ trả lời điểm của chính người dùng đang hỏi
 
 ### PHẢI LÀM:
 1. ✅ CHỈ trả về nội dung người dùng nhìn thấy trên giao diện
@@ -286,6 +370,8 @@ ${projectContexts.join('\n---\n')}` : '## Người dùng chưa tham gia dự án
 6. ✅ Khi được hỏi về tài nguyên: liệt kê tên, loại (file/link), thư mục, mô tả
 7. ✅ Khi được hỏi về cuộc họp: trả lời tiêu đề, thời gian, thời lượng, trạng thái, người tạo
 8. ✅ Trạng thái cuộc họp dùng: "Đã lên lịch", "Đang diễn ra", "Đã kết thúc", "Đã hủy"
+9. ✅ Khi được hỏi về điểm: CHỈ trả lời điểm của chính người dùng, gồm điểm task, giai đoạn, tổng kết
+10. ✅ Nếu hỏi điểm người khác: nói "Bạn chỉ có thể xem điểm của chính mình"
 
 ## VÍ DỤ TRẢ LỜI ĐÚNG
 - "Bạn có 2 công việc được giao: 'Viết báo cáo' và 'Thiết kế slide'"
@@ -293,12 +379,15 @@ ${projectContexts.join('\n---\n')}` : '## Người dùng chưa tham gia dự án
 - "Dự án có 3 tài nguyên: 'Bảng phân công' (file), 'Tài liệu tham khảo' (link), 'Mẫu báo cáo' (file)"
 - "Cuộc họp 'Họp tiến độ tuần 3' diễn ra lúc 15/01/2026 – 14:00, thời lượng 60 phút"
 - "Có 2 cuộc họp sắp tới: 'Họp tiến độ' ngày 20/01 và 'Họp tổng kết' ngày 25/01"
+- "Điểm task 'Viết báo cáo' của bạn: điểm gốc 100, trừ trễ -10, điểm cuối 90"
+- "Điểm tổng kết của bạn: 85.5 điểm"
 
 ## VÍ DỤ TRẢ LỜI SAI (KHÔNG ĐƯỢC LÀM)
 - ❌ "Task [#abc123] có status IN_PROGRESS" → phải viết: "Công việc 'Tên task' đang thực hiện"
 - ❌ "ID: abc-def-123" → KHÔNG hiển thị ID
 - ❌ "TODO: 2, DONE: 1" → phải viết: "2 công việc chờ thực hiện, 1 công việc hoàn thành"
-- ❌ "Meeting status: scheduled" → phải viết: "Cuộc họp đã lên lịch"`;
+- ❌ "Meeting status: scheduled" → phải viết: "Cuộc họp đã lên lịch"
+- ❌ "Điểm của Nguyễn Văn A là 90" → phải viết: "Bạn chỉ có thể xem điểm của chính mình"`;
 }
 
 serve(async (req) => {
@@ -485,10 +574,20 @@ async function fetchProjectContext(
   const profilesMap = new Map(profiles?.map((p: any) => [p.id, p]) || []);
 
   const taskIds = tasks?.map((t: any) => t.id) || [];
-  const { data: assignments } = await supabase
-    .from('task_assignments')
-    .select('*')
-    .in('task_id', taskIds.length > 0 ? taskIds : ['none']);
+  const stageIds = stages?.map((s: any) => s.id) || [];
+
+  // Fetch assignments and user's scores in parallel
+  const [assignmentsRes, taskScoresRes, stageScoresRes, finalScoreRes] = await Promise.all([
+    supabase.from('task_assignments').select('*').in('task_id', taskIds.length > 0 ? taskIds : ['none']),
+    supabase.from('task_scores').select('*').in('task_id', taskIds.length > 0 ? taskIds : ['none']).eq('user_id', userId),
+    supabase.from('member_stage_scores').select('*').in('stage_id', stageIds.length > 0 ? stageIds : ['none']).eq('user_id', userId),
+    supabase.from('member_final_scores').select('*').eq('group_id', projectId).eq('user_id', userId).maybeSingle(),
+  ]);
+
+  const assignments = assignmentsRes.data;
+  const userTaskScores = taskScoresRes.data || [];
+  const userStageScores = stageScoresRes.data || [];
+  const userFinalScore = finalScoreRes.data;
 
   // Fetch folder names for resources
   const folderIds = [...new Set((resources || []).filter((r: any) => r.folder_id).map((r: any) => r.folder_id))];
@@ -610,6 +709,36 @@ async function fetchProjectContext(
       assignedTasks: (tasks || [])
         .filter((t: any) => assignments?.some((a: any) => a.task_id === t.id && a.user_id === userId))
         .map((t: any) => `"${t.title}"`),
+      taskScores: userTaskScores.map((s: any) => {
+        const task = tasks?.find((t: any) => t.id === s.task_id);
+        return {
+          taskTitle: task?.title || 'Không rõ',
+          stageName: task?.stage_id ? stageMap.get(task.stage_id) || null : null,
+          baseScore: s.base_score,
+          latePenalty: s.late_penalty,
+          reviewPenalty: s.review_penalty,
+          earlyBonus: s.early_bonus,
+          bugHunterBonus: s.bug_hunter_bonus,
+          adjustment: s.adjustment,
+          adjustmentReason: s.adjustment_reason,
+          finalScore: s.final_score,
+        };
+      }),
+      stageScores: userStageScores.map((s: any) => ({
+        stageName: stageMap.get(s.stage_id) || 'Không rõ',
+        averageScore: s.average_score,
+        lateTaskCount: s.late_task_count,
+        earlySubmissionBonus: s.early_submission_bonus,
+        bugHunterBonus: s.bug_hunter_bonus,
+        kCoefficient: s.k_coefficient,
+        adjustedScore: s.adjusted_score,
+        finalStageScore: s.final_stage_score,
+      })),
+      finalScore: userFinalScore ? {
+        weightedAverage: userFinalScore.weighted_average,
+        adjustment: userFinalScore.adjustment,
+        finalScore: userFinalScore.final_score,
+      } : null,
     },
   };
 }
