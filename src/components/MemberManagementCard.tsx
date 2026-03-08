@@ -539,7 +539,7 @@ export default function MemberManagementCard({
               {selectedMemberIds.size > 0 && (
                 <>
                   <div className="w-px h-5 bg-border mx-1" />
-                  {isGroupCreator && (
+                  {canManageProjectRoles && (
                     <>
                       <Select value={bulkRole} onValueChange={(v) => setBulkRole(v as 'member' | 'leader')}>
                         <SelectTrigger className="w-28 h-7 text-xs">
