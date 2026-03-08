@@ -1099,7 +1099,7 @@ export default function TaskSubmissionDialog({
                             </div>
                           )}
                         </div>
-                      </div>
+                      </div>}
                     </div>
 
                     {/* Bottom: Status & Note - More compact */}
