@@ -9,12 +9,13 @@ const corsHeaders = {
 const DEFAULT_PASSWORD = "123456";
 
 interface CreateMemberRequest {
-  action: "create_member" | "setup_system_accounts" | "update_password" | "clear_must_change_password" | "delete_user" | "update_email";
+  action: "create_member" | "setup_system_accounts" | "update_password" | "clear_must_change_password" | "delete_user" | "update_email" | "update_role";
   email?: string;
   password?: string;
   student_id?: string;
   full_name?: string;
   role?: "member" | "leader" | "admin";
+  new_role?: "member" | "leader" | "admin";
   user_id?: string;
   requester_id?: string;
 }
@@ -344,6 +345,60 @@ serve(async (req: Request) => {
       }).eq("id", user_id);
 
       console.log("Email updated successfully:", user_id, email);
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (body.action === "update_role") {
+      const { user_id, new_role, requester_id } = body;
+      
+      if (!user_id || !new_role || !requester_id) {
+        return new Response(JSON.stringify({ error: "Missing required fields" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Verify requester is admin
+      const { data: requesterIsAdmin } = await supabaseAdmin.rpc('is_admin', { _user_id: requester_id });
+      if (!requesterIsAdmin) {
+        return new Response(JSON.stringify({ error: "Chỉ Admin mới có quyền thay đổi vai trò" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Cannot change admin's role
+      const { data: targetIsAdmin } = await supabaseAdmin.rpc('is_admin', { _user_id: user_id });
+      if (targetIsAdmin) {
+        return new Response(JSON.stringify({ error: "Không thể thay đổi vai trò của Admin" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Cannot promote to admin
+      if (new_role === 'admin') {
+        return new Response(JSON.stringify({ error: "Không thể nâng quyền lên Admin" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Remove existing non-admin roles
+      await supabaseAdmin.from("user_roles")
+        .delete()
+        .eq("user_id", user_id)
+        .neq("role", "admin");
+
+      // Insert new role
+      await supabaseAdmin.from("user_roles").insert({
+        user_id,
+        role: new_role,
+      });
+
+      console.log(`Role updated for ${user_id}: ${new_role}`);
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

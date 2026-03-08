@@ -59,7 +59,7 @@ interface MemberToAdd {
 }
 
 export default function Groups() {
-  const { user, isLeader } = useAuth();
+  const { user, isLeader, isAdmin, profile } = useAuth();
   const { toast } = useToast();
   const [groups, setGroups] = useState<GroupWithMembers[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -225,6 +225,23 @@ export default function Groups() {
         variant: 'destructive',
       });
       return;
+    }
+
+    // Check project limit for non-admin users
+    if (!isAdmin && profile) {
+      const limit = profile.project_limit ?? 2;
+      const { count } = await supabase
+        .from('groups')
+        .select('id', { count: 'exact', head: true })
+        .eq('created_by', user!.id);
+      if (count !== null && count >= limit) {
+        toast({
+          title: 'Đã đạt giới hạn',
+          description: `Bạn chỉ được tạo tối đa ${limit} dự án. Liên hệ Admin để tăng giới hạn.`,
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     setIsCreating(true);

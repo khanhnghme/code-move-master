@@ -174,7 +174,7 @@ export default function MemberDetailDialog({
 
   // System role labels (for user_roles)
   const systemRoleLabel: Record<string, string> = {
-    'admin': 'Admin', 'leader': 'Leader', 'member': 'Thành viên'
+    'admin': 'Admin', 'leader': 'Thành viên Nâng cao', 'member': 'Thành viên'
   };
 
   // Project role labels (for group_members)

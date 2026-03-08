@@ -56,6 +56,7 @@ import {
 import type { Profile } from '@/types/database';
 import { exportMembersToExcel, getRoleDisplayName } from '@/lib/excelExport';
 import MemberDetailDialog from '@/components/MemberDetailDialog';
+import MemberRoleManagementDialog from '@/components/MemberRoleManagementDialog';
 import SuspendMemberDialog from '@/components/SuspendMemberDialog';
 import ExcelMemberImport, { type ParsedRow, type ExcelImportAction, type ImportValidation } from '@/components/ExcelMemberImport';
 import UserPresenceIndicator from '@/components/UserPresenceIndicator';
@@ -77,6 +78,7 @@ export default function MemberManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isRoleManagementOpen, setIsRoleManagementOpen] = useState(false);
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -531,6 +533,9 @@ export default function MemberManagement() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={() => { setSelectedMember(member); setIsRoleManagementOpen(true); }}>
+                <Shield className="w-4 h-4 mr-2" />Quản lý quyền
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => openEditDialog(member)}>
                 <Pencil className="w-4 h-4 mr-2" />Chỉnh sửa thông tin
               </DropdownMenuItem>
@@ -1049,6 +1054,15 @@ export default function MemberManagement() {
           fetchMembers();
           return { success, failed, errors };
         }}
+      />
+
+      {/* Role Management Dialog */}
+      <MemberRoleManagementDialog
+        open={isRoleManagementOpen}
+        onOpenChange={setIsRoleManagementOpen}
+        member={selectedMember}
+        systemRoles={selectedMember ? (memberRoles[selectedMember.id] || []) : []}
+        onRoleChanged={() => { fetchMembers(); }}
       />
     </DashboardLayout>
   );
