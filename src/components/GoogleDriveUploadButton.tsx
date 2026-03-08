@@ -53,17 +53,16 @@ export default function GoogleDriveUploadButton({
 
   const fetchConfig = async () => {
     try {
-      const { data } = await supabase
-        .from('system_settings')
-        .select('value')
-        .eq('key', 'google_drive_config')
-        .maybeSingle();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setConfigLoaded(true); return; }
 
-      if (data?.value) {
-        const val = data.value as unknown as GoogleDriveConfig;
-        if (val.enabled && val.api_key && val.client_id) {
-          setConfig(val);
-        }
+      const res = await supabase.functions.invoke('google-drive-config');
+      if (res.data?.enabled && res.data?.api_key && res.data?.client_id) {
+        setConfig({
+          enabled: true,
+          api_key: res.data.api_key,
+          client_id: res.data.client_id,
+        });
       }
     } catch (err) {
       console.error('Failed to load Google Drive config:', err);

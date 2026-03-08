@@ -54,8 +54,6 @@ export default function AdminSystem() {
 
   // Google Drive state
   const [driveEnabled, setDriveEnabled] = useState(false);
-  const [driveApiKey, setDriveApiKey] = useState('');
-  const [driveClientId, setDriveClientId] = useState('');
   const [savingDrive, setSavingDrive] = useState(false);
   useEffect(() => {
     if (!isLoading && !isAdmin) {
@@ -98,10 +96,8 @@ export default function AdminSystem() {
       }
 
       if (driveRes.data?.value) {
-        const val = driveRes.data.value as { enabled?: boolean; api_key?: string; client_id?: string };
+        const val = driveRes.data.value as { enabled?: boolean };
         setDriveEnabled(val.enabled ?? false);
-        setDriveApiKey(val.api_key ?? '');
-        setDriveClientId(val.client_id ?? '');
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
@@ -187,16 +183,6 @@ export default function AdminSystem() {
   };
 
   const handleToggleDrive = async (checked: boolean) => {
-    const hasCredentials = Boolean(driveApiKey.trim() && driveClientId.trim());
-    if (checked && !hasCredentials) {
-      toast({
-        title: 'Thiếu cấu hình Google Drive',
-        description: 'Chưa có API Key/Client ID trong cấu hình hệ thống.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setSavingDrive(true);
     try {
       const { error } = await supabase
@@ -205,8 +191,6 @@ export default function AdminSystem() {
           key: 'google_drive_config',
           value: {
             enabled: checked,
-            api_key: driveApiKey.trim(),
-            client_id: driveClientId.trim(),
           } as any,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'key' });
@@ -447,7 +431,7 @@ export default function AdminSystem() {
                   </div>
                   <Switch
                     checked={driveEnabled}
-                    disabled={savingDrive || (!driveEnabled && !(driveApiKey.trim() && driveClientId.trim()))}
+                    disabled={savingDrive}
                     onCheckedChange={handleToggleDrive}
                   />
                 </div>
@@ -457,13 +441,8 @@ export default function AdminSystem() {
                   Cho phép thành viên upload file lên Google Drive cá nhân thay vì dùng dung lượng hệ thống.
                 </p>
                 <p className="text-[11px] text-muted-foreground">
-                  API Key và OAuth Client ID đã chuyển sang cấu hình nội bộ, không còn nhập ở trang Quản trị.
+                  API Key và OAuth Client ID được quản lý nội bộ qua hệ thống bảo mật.
                 </p>
-                {!driveApiKey.trim() || !driveClientId.trim() ? (
-                  <p className="text-xs text-destructive">
-                    Chưa có cấu hình khóa Google Drive trong hệ thống nên chưa thể bật.
-                  </p>
-                ) : null}
               </CardContent>
             </Card>
           </div>
