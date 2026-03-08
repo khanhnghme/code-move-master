@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { logActivity } from '@/lib/activityLogger';
-import { Loader2, KeyRound, FolderKanban, Users, Calendar, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Loader2, KeyRound, FolderKanban, Users, Calendar, ArrowLeft, CheckCircle2, Crown, ListTodo } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
