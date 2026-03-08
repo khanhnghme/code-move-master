@@ -392,6 +392,121 @@ export default function AdminSystem() {
                 </p>
               </CardContent>
             </Card>
+            {/* Google Drive */}
+            <Card className="border border-border">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-lg bg-blue-500/10">
+                      <HardDrive className="w-4 h-4 text-blue-500" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        Google Drive
+                        <Badge variant={driveEnabled ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
+                          {driveEnabled ? 'BẬT' : 'TẮT'}
+                        </Badge>
+                      </CardTitle>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={driveEnabled}
+                    disabled={savingDrive}
+                    onCheckedChange={(checked) => setDriveEnabled(checked)}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Cho phép thành viên upload file lên Google Drive cá nhân thay vì dùng dung lượng hệ thống.
+                </p>
+                {driveEnabled && (
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">API Key</Label>
+                      <Input
+                        value={driveApiKey}
+                        onChange={(e) => setDriveApiKey(e.target.value)}
+                        placeholder="AIza..."
+                        className="text-xs h-8"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">OAuth Client ID</Label>
+                      <Input
+                        value={driveClientId}
+                        onChange={(e) => setDriveClientId(e.target.value)}
+                        placeholder="xxxx.apps.googleusercontent.com"
+                        className="text-xs h-8"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        className="gap-1.5 text-xs h-7"
+                        disabled={savingDrive || !driveApiKey.trim() || !driveClientId.trim()}
+                        onClick={async () => {
+                          setSavingDrive(true);
+                          try {
+                            const { error } = await supabase
+                              .from('system_settings')
+                              .upsert({
+                                key: 'google_drive_config',
+                                value: { enabled: driveEnabled, api_key: driveApiKey.trim(), client_id: driveClientId.trim() } as any,
+                                updated_at: new Date().toISOString(),
+                              }, { onConflict: 'key' });
+                            if (error) throw error;
+                            toast({ title: 'Đã lưu cài đặt Google Drive' });
+                          } catch {
+                            toast({ title: 'Lỗi', description: 'Không thể lưu', variant: 'destructive' });
+                          } finally {
+                            setSavingDrive(false);
+                          }
+                        }}
+                      >
+                        <Save className="w-3 h-3" /> Lưu
+                      </Button>
+                      <a
+                        href="https://console.cloud.google.com/apis/credentials"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-primary hover:underline flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" /> Google Cloud Console
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {!driveEnabled && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7"
+                    disabled={savingDrive}
+                    onClick={async () => {
+                      setSavingDrive(true);
+                      try {
+                        const { error } = await supabase
+                          .from('system_settings')
+                          .upsert({
+                            key: 'google_drive_config',
+                            value: { enabled: false, api_key: '', client_id: '' } as any,
+                            updated_at: new Date().toISOString(),
+                          }, { onConflict: 'key' });
+                        if (error) throw error;
+                        toast({ title: 'Đã tắt Google Drive' });
+                      } catch {
+                        toast({ title: 'Lỗi', variant: 'destructive' });
+                      } finally {
+                        setSavingDrive(false);
+                      }
+                    }}
+                  >
+                    Cập nhật
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
