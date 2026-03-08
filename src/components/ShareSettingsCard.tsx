@@ -151,7 +151,20 @@ export default function ShareSettingsCard({
         setLocalShowResources(value);
       }
       
+      const fieldLabels: Record<string, string> = {
+        show_members_public: 'Hiển thị thành viên công khai',
+        show_activity_public: 'Hiển thị nhật ký công khai',
+        show_resources_public: 'Hiển thị tài nguyên công khai',
+      };
       toast({ title: 'Đã cập nhật', description: 'Cài đặt hiển thị đã được lưu' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'UPDATE_SHARE_VISIBILITY', actionType: 'setting',
+          description: `${value ? 'Bật' : 'Tắt'} ${fieldLabels[field] || field}`,
+          groupId,
+        });
+      }
       onUpdate();
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
