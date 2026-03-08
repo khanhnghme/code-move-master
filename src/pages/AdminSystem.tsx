@@ -215,7 +215,7 @@ export default function AdminSystem() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Card 1: Maintenance Mode - spans 2 cols */}
-          <Card className="border border-border lg:col-span-2">
+          <Card className="border border-border lg:col-span-2 h-fit">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
