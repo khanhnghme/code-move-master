@@ -238,7 +238,7 @@ export default function Dashboard() {
             </div>
             <Link to="/groups">
               <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
-                Xem tất cả Project và đi đến tạo project
+                Quản lý Project
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
