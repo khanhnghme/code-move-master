@@ -80,6 +80,7 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
         ...group,
         memberCount: memberRes.count || 0,
         leaderName: leaderRes.data?.full_name || null,
+        joinMemberLimit: (group as any).join_member_limit ?? null,
       });
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
