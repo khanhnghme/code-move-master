@@ -165,30 +165,25 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
           <div className="space-y-4">
             <Card className="border-2 border-primary/20 overflow-hidden">
               {groupPreview.image_url && (
-                <div className="h-32 w-full overflow-hidden">
+                <div className="w-full flex justify-center bg-muted/30 py-4">
                   <img
                     src={groupPreview.image_url}
                     alt={groupPreview.name}
-                    className="w-full h-full object-cover"
+                    className="w-24 h-24 rounded-xl object-cover border-2 border-primary/20 shadow-md"
                   />
                 </div>
               )}
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                    <FolderKanban className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-bold text-lg leading-tight">{groupPreview.name}</h3>
-                    {groupPreview.description && (
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {groupPreview.description}
-                      </p>
-                    )}
-                  </div>
+              <CardContent className="p-5 space-y-4">
+                <div className="text-center">
+                  <h3 className="font-bold text-xl leading-tight">{groupPreview.name}</h3>
+                  {groupPreview.description && (
+                    <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
+                      {groupPreview.description}
+                    </p>
+                  )}
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap justify-center gap-2">
                   {groupPreview.class_code && (
                     <Badge variant="secondary" className="gap-1">
                       Lớp: {groupPreview.class_code}
@@ -201,12 +196,12 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
                   )}
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
+                <div className="flex items-center justify-center gap-5 text-sm text-muted-foreground pt-1">
+                  <span className="flex items-center gap-1.5">
                     <Users className="w-4 h-4" />
                     {groupPreview.memberCount} thành viên
                   </span>
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1.5">
                     <Calendar className="w-4 h-4" />
                     {format(new Date(groupPreview.created_at), 'dd/MM/yyyy', { locale: vi })}
                   </span>
