@@ -101,6 +101,14 @@ export default function StageManagement({ stage, taskCount, onUpdate }: StageMan
         await supabase.from('tasks').update({ stage_id: null }).eq('stage_id', stage.id);
         const { error } = await supabase.from('stages').delete().eq('id', stage.id);
         if (error) throw error;
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'DELETE_STAGE', actionType: 'stage',
+            description: `Xóa giai đoạn "${stage.name}"${taskCount > 0 ? ` (${taskCount} task chuyển về chưa phân giai đoạn)` : ''}`,
+            groupId: stage.group_id,
+          });
+        }
         onUpdate();
       },
       onUndo: () => {
