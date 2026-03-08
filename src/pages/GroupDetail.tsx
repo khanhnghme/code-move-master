@@ -400,7 +400,7 @@ export default function GroupDetail() {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           isLeaderInGroup={isLeaderInGroup}
-          isGroupCreator={group.created_by === user?.id}
+          isGroupCreator={group.created_by === user?.id || isAdmin}
           membersCount={members.length}
         />
 
