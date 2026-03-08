@@ -494,6 +494,55 @@ export default function MemberManagementCard({
     }
   };
 
+  // Handle leave project
+  const handleLeaveProject = async () => {
+    if (!currentUserMember || !leaveInfo.canLeave) return;
+    setIsLeaving(true);
+    
+    try {
+      // Delete task assignments first
+      const { data: tasksData } = await supabase.from('tasks').select('id').eq('group_id', groupId);
+      if (tasksData && tasksData.length > 0) {
+        await supabase.from('task_assignments').delete()
+          .eq('user_id', currentUserId)
+          .in('task_id', tasksData.map(t => t.id));
+      }
+      
+      // Delete group membership
+      const { error } = await supabase.from('group_members').delete().eq('id', currentUserMember.id);
+      if (error) throw error;
+      
+      // Log activity
+      await logActivity({
+        userId: user!.id,
+        userName: profile?.full_name || user?.email || 'Unknown',
+        action: 'LEAVE_PROJECT',
+        actionType: 'member',
+        description: `${profile?.full_name || 'Thành viên'} đã rời khỏi project`,
+        groupId,
+        metadata: { left_user_id: currentUserId }
+      });
+      
+      toast({ title: 'Đã rời project', description: 'Bạn đã rời khỏi project thành công' });
+      setIsLeaveDialogOpen(false);
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsLeaving(false);
+    }
+  };
+
+  // Format hours left for display
+  const formatHoursLeft = (hours: number) => {
+    if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      const remainingHours = Math.floor(hours % 24);
+      return `${days} ngày ${remainingHours} giờ`;
+    }
+    return `${Math.floor(hours)} giờ`;
+  };
+
   return (
     <>
       <Card>
