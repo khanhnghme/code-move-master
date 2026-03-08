@@ -133,9 +133,12 @@ export default function TaskSubmissionDialog({
   // Storage usage check
   const storageUsage = useStorageUsage(user?.id, profile?.storage_limit_mb);
 
-  // Get max file size from task (cast since not in types yet)
+  // Get max file size and submission method from task
   const taskWithSize = task as (Task & { max_file_size?: number }) | null;
   const maxFileSize = taskWithSize?.max_file_size || DEFAULT_MAX_FILE_SIZE;
+  const submissionMethod: string = (task as any)?.submission_method || 'both';
+  const allowFileUpload = submissionMethod === 'both' || submissionMethod === 'file_only';
+  const allowLinkSubmission = submissionMethod === 'both' || submissionMethod === 'link_only';
 
   // Handle extended deadline
   const taskWithExtended = task as (Task & { extended_deadline?: string; extended_at?: string }) | null;
