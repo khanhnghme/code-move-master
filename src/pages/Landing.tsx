@@ -808,7 +808,7 @@ export default function Landing() {
       </header>
 
       {/* Sub-header */}
-      <div className="bg-primary/90 text-primary-foreground border-b border-primary/40">
+      <div className="bg-primary/70 backdrop-blur-md text-primary-foreground border-b border-primary/40">
         <div className="container mx-auto px-4 py-2 flex flex-col md:flex-row items-center justify-between gap-2 text-xs md:text-sm">
           <span className="font-medium">Liên hệ Leader phụ trách hệ thống:</span>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
