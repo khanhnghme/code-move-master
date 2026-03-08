@@ -118,6 +118,9 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
             joinMemberLimit: stats.joinMemberLimit,
           } : prev);
           toast({ title: 'Không thể tham gia', description: 'Project đã đạt giới hạn thành viên', variant: 'destructive' });
+        } else if (joinError.message?.includes('duplicate') || joinError.code === '23505') {
+          setAlreadyMember(true);
+          toast({ title: 'Đã là thành viên', description: 'Bạn đã tham gia project này rồi', variant: 'destructive' });
         } else {
           throw joinError;
         }
