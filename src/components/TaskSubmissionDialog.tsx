@@ -58,7 +58,9 @@ import {
   ChevronDown,
   Award,
   HardDrive,
-  Globe
+  Globe,
+  ShieldAlert,
+  Database
 } from 'lucide-react';
 import type { Task, TaskStatus } from '@/types/database';
 import type { TaskScore } from '@/types/processScores';
