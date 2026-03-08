@@ -49,18 +49,16 @@ export default function ProjectNavigation({
 
   return (
     <div className="w-full border-b border-border/40 sticky top-16 z-40 bg-gradient-to-b from-muted/80 to-background backdrop-blur-sm shadow-sm">
-      <div className="max-w-[1600px] mx-auto px-4 md:px-8">
-        {/* Navigation tabs - use same layout structure as header */}
-        <nav className="flex items-center py-2.5">
+      <div className="max-w-[1600px] mx-auto px-2 sm:px-4 md:px-8">
+        <nav className="flex items-center py-2">
           {/* Left spacer - matches header logo width */}
-          <div className="w-[160px] shrink-0 hidden md:block" />
+          <div className="w-[160px] shrink-0 hidden lg:block" />
           
-          {/* Center: tabs */}
-          <div className="flex-1 flex items-center justify-center overflow-x-auto scrollbar-hide">
-            <div className="inline-flex items-center bg-background/80 border border-border/50 rounded-full px-2 py-1.5 shadow-sm">
+          {/* Center: tabs - scrollable on mobile */}
+          <div className="flex-1 overflow-x-auto scrollbar-hide -mx-2 px-2">
+            <div className="inline-flex items-center bg-background/80 border border-border/50 rounded-full px-1.5 py-1 shadow-sm min-w-max">
               <TooltipProvider delayDuration={300}>
-                {/* Main tabs group */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                   {visibleTabs.filter(t => t.id !== 'settings').map((tab) => (
                     <NavTabButton
                       key={tab.id}
@@ -72,10 +70,9 @@ export default function ProjectNavigation({
                   ))}
                 </div>
                 
-                {/* Settings tab - separated with divider for leaders */}
                 {showSettings && (
                   <>
-                    <div className="w-px h-7 bg-border/50 mx-2" />
+                    <div className="w-px h-6 bg-border/50 mx-1.5" />
                     <NavTabButton
                       tab={tabs.find(t => t.id === 'settings')!}
                       isActive={activeTab === 'settings'}
@@ -88,8 +85,8 @@ export default function ProjectNavigation({
             </div>
           </div>
           
-          {/* Right spacer - matches header user area width */}
-          <div className="w-[160px] shrink-0 hidden md:block" />
+          {/* Right spacer */}
+          <div className="w-[160px] shrink-0 hidden lg:block" />
         </nav>
       </div>
     </div>
@@ -113,7 +110,7 @@ function NavTabButton({ tab, isActive, onClick, membersCount, isSettings }: NavT
         <button
           onClick={onClick}
           className={cn(
-            "flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-150",
+            "flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-150",
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
             "whitespace-nowrap",
             isActive 
