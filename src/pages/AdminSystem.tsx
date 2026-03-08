@@ -246,6 +246,7 @@ export default function AdminSystem() {
                         setMaintenanceDays(parseInt(e.target.value) || 0);
                       }}
                       className="h-7 w-20 text-xs"
+                    />
                   </div>
                   {maintenanceStart && maintenanceEnd ? (
                     <p className="text-[11px] text-muted-foreground">
