@@ -140,7 +140,7 @@ export default function ExcelMemberImport({
     };
   }).filter(r => r.fullName || r.studentId || r.email);
 
-  const isMappingValid = nameCol && studentIdCol && emailCol && nameCol !== studentIdCol && nameCol !== emailCol && studentIdCol !== emailCol;
+  const isMappingValid = nameCol && studentIdCol && nameCol !== studentIdCol && (!emailCol || (emailCol !== nameCol && emailCol !== studentIdCol));
 
   const handleProceedToAction = () => setStep('action');
 
