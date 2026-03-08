@@ -28,6 +28,7 @@ export default function AdminSystem() {
 
   // Maintenance state
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
+  const [showGuidePopover, setShowGuidePopover] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState('Hệ thống đang bảo trì, vui lòng quay lại sau.');
   const [maintenanceStart, setMaintenanceStart] = useState('');
   const [maintenanceEnd, setMaintenanceEnd] = useState('');
