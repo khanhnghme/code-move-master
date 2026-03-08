@@ -365,6 +365,13 @@ export default function GroupDetail() {
         await supabase.from('tasks').update({ stage_id: null }).eq('stage_id', stageRef.id);
         await supabase.from('member_stage_scores').delete().eq('stage_id', stageRef.id);
         await supabase.from('stages').delete().eq('id', stageRef.id);
+        await logActivity({
+          userId: user!.id,
+          userName: profile?.full_name || user?.email || 'Unknown',
+          action: 'DELETE_STAGE', actionType: 'stage',
+          description: `Xóa giai đoạn "${stageRef.name}"`,
+          groupId: group!.id,
+        });
         fetchGroupData();
       },
       onUndo: () => {
