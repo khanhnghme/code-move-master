@@ -14,6 +14,7 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const body = await req.json();
@@ -23,6 +24,10 @@ Deno.serve(async (req) => {
     if (action === "send_code") {
       if (!email) {
         return jsonResponse({ error: "Email is required" }, 400);
+      }
+
+      if (!resendApiKey) {
+        return jsonResponse({ error: "Email service not configured" }, 500);
       }
 
       // Generate 6-digit code
@@ -43,31 +48,83 @@ Deno.serve(async (req) => {
         expires_at: expiresAt,
       });
 
-      // Send OTP email using GoTrue admin API
-      // We generate a recovery link to trigger email sending
-      // but we override the email template by using the OTP approach
-      try {
-        // Use admin API to send a custom OTP-like email
-        // We'll use the nonce/token approach
-        const { data: linkData } = await supabase.auth.admin.generateLink({
-          type: "recovery",
-          email: email,
-        });
-        // The link is generated but we don't use it - we use our OTP code instead
-        // The recovery email IS sent by Supabase with a link
-        // We need to supplement with our own OTP
-      } catch (_e) {
-        // Ignore link generation errors
+      // Send OTP email via Resend
+      const emailResponse = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${resendApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "TeamWorks UEH <no-reply@resend.dev>",
+          to: [email.toLowerCase()],
+          subject: `Mã xác minh đặt lại mật khẩu: ${otpCode}`,
+          html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+          <!-- Header -->
+          <tr>
+            <td style="background-color:#18181b;padding:24px 32px;text-align:center;">
+              <h1 style="margin:0;color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.5px;">TeamWorks UEH</h1>
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td style="padding:32px;">
+              <h2 style="margin:0 0 8px;color:#18181b;font-size:18px;font-weight:600;">Đặt lại mật khẩu</h2>
+              <p style="margin:0 0 24px;color:#71717a;font-size:14px;line-height:1.6;">
+                Bạn đã yêu cầu đặt lại mật khẩu. Sử dụng mã xác minh bên dưới để tiếp tục. Mã có hiệu lực trong <strong>10 phút</strong>.
+              </p>
+              <!-- OTP Code -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding:16px 0;">
+                    <div style="display:inline-block;background-color:#f4f4f5;border:2px dashed #d4d4d8;border-radius:12px;padding:20px 40px;">
+                      <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#18181b;font-family:'Courier New',monospace;">${otpCode}</span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:24px 0 0;color:#a1a1aa;font-size:12px;line-height:1.5;text-align:center;">
+                Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này. Tài khoản của bạn vẫn an toàn.
+              </p>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="padding:16px 32px;background-color:#fafafa;border-top:1px solid #f4f4f5;text-align:center;">
+              <p style="margin:0;color:#a1a1aa;font-size:11px;">© ${new Date().getFullYear()} TeamWorks UEH. All rights reserved.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+        }),
+      });
+
+      if (!emailResponse.ok) {
+        const errData = await emailResponse.text();
+        console.error("Resend error:", errData);
+        return jsonResponse({ error: "Không thể gửi email. Vui lòng thử lại sau." }, 500);
       }
 
-      // Return success - the OTP is stored in DB
-      // In production, integrate a proper email service
-      // For now, return the code in response for development
+      await emailResponse.json();
+
       return jsonResponse({
         success: true,
-        message: "Mã xác minh đã được gửi",
-        // Include code for development/testing - remove in production
-        _dev_code: otpCode,
+        message: "Mã xác minh đã được gửi đến email của bạn",
       });
     }
 
@@ -92,7 +149,6 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "Mã xác minh không đúng hoặc đã hết hạn" }, 400);
       }
 
-      // Don't mark as used yet - we mark it when password is actually reset
       return jsonResponse({ success: true, verified: true });
     }
 
