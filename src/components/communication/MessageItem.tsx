@@ -69,11 +69,18 @@ interface MessageItemProps {
 }
 
 export default function MessageItem({ message, isOwn, showAvatar = true, showName = true, members = [], groupId, onTaskClick, onDelete, onReply }: MessageItemProps) {
+  const { user, isAdmin } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [profileToView, setProfileToView] = useState<Profile | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [memberRole, setMemberRole] = useState<'admin' | 'leader' | 'member'>('member');
+  
+  // Task submission dialog state
+  const [taskToView, setTaskToView] = useState<Task | null>(null);
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [isTaskAssignee, setIsTaskAssignee] = useState(false);
+  const [isLeaderInGroup, setIsLeaderInGroup] = useState(false);
 
   const segments = renderMessageContent(message.content);
 
