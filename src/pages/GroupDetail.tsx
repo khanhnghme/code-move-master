@@ -211,6 +211,13 @@ export default function GroupDetail() {
     try {
       await supabase.from('stages').insert({ group_id: group.id, name: newStageName.trim(), description: newStageDescription.trim() || null, order_index: stages.length });
       toast({ title: 'Thành công', description: 'Đã tạo giai đoạn mới' });
+      await logActivity({
+        userId: user!.id,
+        userName: profile?.full_name || user?.email || 'Unknown',
+        action: 'CREATE_STAGE', actionType: 'stage',
+        description: `Tạo giai đoạn "${newStageName.trim()}"`,
+        groupId: group!.id,
+      });
       setIsStageDialogOpen(false);
       setNewStageName('');
       setNewStageDescription('');
