@@ -697,10 +697,10 @@ export default function Groups() {
                 <Link key={group.id} to={`/p/${group.slug}`}>
                   <div className="group relative h-full rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/15 bg-card border border-border/40 hover:border-primary/40">
                     {/* Decorative top accent bar */}
-                    <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
+                    <div className={`h-1 bg-gradient-to-r ${gradient}`} />
 
-                    {/* Cover Section */}
-                    <div className="relative h-40 overflow-hidden">
+                    {/* Cover Section - taller */}
+                    <div className="relative h-52 overflow-hidden">
                       {group.image_url ? (
                         <img
                           src={group.image_url}
