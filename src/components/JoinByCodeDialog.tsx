@@ -201,7 +201,12 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Thành viên:</span>
-                    <span className="font-medium">{groupPreview.memberCount} người</span>
+                    <span className="font-medium">
+                      {groupPreview.memberCount} người
+                      {groupPreview.joinMemberLimit && (
+                        <span className="text-muted-foreground"> / {groupPreview.joinMemberLimit}</span>
+                      )}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Ngày tạo:</span>
