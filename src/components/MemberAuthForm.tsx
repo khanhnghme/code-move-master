@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 import { useToast } from '@/hooks/use-toast';
 import { UEHLogo } from '@/components/UEHLogo';
-import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn, FileText } from 'lucide-react';
+import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn } from 'lucide-react';
+import { UEHLogo } from '@/components/UEHLogo';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';

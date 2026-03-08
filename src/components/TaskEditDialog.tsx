@@ -659,8 +659,12 @@ export default function TaskEditDialog({
                                   <p className="text-xs font-medium truncate">{member.profiles?.full_name}</p>
                                   <p className="text-[10px] text-muted-foreground">{member.profiles?.student_id}</p>
                                 </div>
-                {member.role === 'leader' && (
+                {groupCreatorId && member.user_id === groupCreatorId ? (
                                   <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 bg-warning/10 text-warning border-warning/30 shrink-0">
+                                    Trưởng nhóm
+                                  </Badge>
+                                ) : member.role === 'leader' && (
+                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary border-primary/30 shrink-0">
                                     Phó nhóm
                                   </Badge>
                                 )}
