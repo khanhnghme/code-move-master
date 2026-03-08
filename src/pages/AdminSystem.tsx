@@ -321,7 +321,7 @@ export default function AdminSystem() {
           </Card>
 
           {/* Card 2: System Policy + Error Logging stacked */}
-          <div className="space-y-4">
+          <div className="space-y-4 h-fit">
             {/* Policy */}
             <Card className="border border-border">
               <CardHeader className="pb-3">
