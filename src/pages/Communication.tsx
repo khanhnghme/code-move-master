@@ -130,12 +130,11 @@ export default function Communication() {
   // Scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current && activeTab === 'all') {
-      // ScrollArea wraps content in a viewport div
       const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (viewport) {
-        setTimeout(() => {
+        requestAnimationFrame(() => {
           viewport.scrollTop = viewport.scrollHeight;
-        }, 50);
+        });
       }
     }
   }, [messages, activeTab]);
@@ -903,42 +902,46 @@ export default function Communication() {
           </TabsList>
 
           {/* All Messages Tab */}
-          <TabsContent value="all" className="flex-1 flex flex-col mt-4 min-h-0">
-            <Card className="flex-1 flex flex-col overflow-hidden border-muted/50">
-              <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-                {groupMessagesByDate(messages).map((group, groupIdx) => (
-                  <div key={groupIdx}>
-                    <div className="flex items-center justify-center my-6">
-                      <Separator className="flex-1" />
-                      <span className="px-4 py-1.5 rounded-full bg-muted/80 text-xs font-medium text-muted-foreground">
-                        {group.date}
-                      </span>
-                      <Separator className="flex-1" />
-                    </div>
-                    {group.messages.map((msg) => (
-                      <MessageItem
-                        key={msg.id}
-                        message={msg}
-                        isOwn={msg.user_id === user?.id}
-                        onTaskClick={handleNavigateToTask}
-                        onDelete={handleDeleteMessage}
-                        onReply={(message) => setReplyingTo(message)}
-                      />
+          <TabsContent value="all" className="flex-1 flex flex-col mt-4 min-h-0 overflow-hidden">
+            <Card className="flex-1 flex flex-col overflow-hidden border-muted/50 min-h-0">
+              <div className="flex-1 min-h-0 overflow-hidden relative" ref={scrollRef}>
+                <ScrollArea className="h-full">
+                  <div className="p-4 flex flex-col justify-end min-h-full">
+                    {groupMessagesByDate(messages).map((group, groupIdx) => (
+                      <div key={groupIdx}>
+                        <div className="flex items-center justify-center my-4">
+                          <Separator className="flex-1" />
+                          <span className="px-4 py-1 rounded-full bg-muted/80 text-xs font-medium text-muted-foreground">
+                            {group.date}
+                          </span>
+                          <Separator className="flex-1" />
+                        </div>
+                        {group.messages.map((msg) => (
+                          <MessageItem
+                            key={msg.id}
+                            message={msg}
+                            isOwn={msg.user_id === user?.id}
+                            onTaskClick={handleNavigateToTask}
+                            onDelete={handleDeleteMessage}
+                            onReply={(message) => setReplyingTo(message)}
+                          />
+                        ))}
+                      </div>
                     ))}
+                    {messages.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-16">
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
+                          <Sparkles className="w-10 h-10 text-primary/60" />
+                        </div>
+                        <h3 className="font-semibold text-lg mb-2">Bắt đầu cuộc trò chuyện</h3>
+                        <p className="text-muted-foreground text-sm text-center max-w-xs">
+                          Hãy gửi tin nhắn đầu tiên để bắt đầu trao đổi với các thành viên trong dự án
+                        </p>
+                      </div>
+                    )}
                   </div>
-                ))}
-                {messages.length === 0 && (
-                  <div className="flex flex-col items-center justify-center h-full py-16">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-4">
-                      <Sparkles className="w-10 h-10 text-primary/60" />
-                    </div>
-                    <h3 className="font-semibold text-lg mb-2">Bắt đầu cuộc trò chuyện</h3>
-                    <p className="text-muted-foreground text-sm text-center max-w-xs">
-                      Hãy gửi tin nhắn đầu tiên để bắt đầu trao đổi với các thành viên trong dự án
-                    </p>
-                  </div>
-                )}
-              </ScrollArea>
+                </ScrollArea>
+              </div>
 
               {/* Message Input */}
               <div className="p-4 border-t bg-muted/30">
