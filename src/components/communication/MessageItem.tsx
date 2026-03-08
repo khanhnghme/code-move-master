@@ -311,7 +311,7 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
                         'font-medium cursor-pointer underline underline-offset-2 decoration-dotted',
                         isOwn ? 'text-primary-foreground/90' : 'text-accent hover:text-accent/80'
                       )}
-                      onClick={() => segment.taskId && onTaskClick?.(segment.taskId)}
+                      onClick={() => segment.taskId && handleTaskRefClick(segment.taskId)}
                     >
                       {segment.content}
                     </span>
