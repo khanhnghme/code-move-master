@@ -771,6 +771,47 @@ export default function ResourceUploadDialog({
                   </div>
                 )}
               </TabsContent>
+
+              {/* === GOOGLE DRIVE TAB === */}
+              <TabsContent value="drive" className="flex-1 mt-0 flex flex-col overflow-hidden data-[state=inactive]:hidden">
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/5 border border-blue-200/50 mb-3 shrink-0">
+                  <Info className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p className="font-medium text-foreground">Upload qua Google Drive</p>
+                    <p>• File được lưu trên <strong>Google Drive cá nhân</strong> của bạn (15GB miễn phí).</p>
+                    <p>• Hệ thống chỉ lưu link chia sẻ — <strong>không tốn dung lượng hệ thống</strong>.</p>
+                    <p>• Lần đầu cần đăng nhập Google và cấp quyền cho ứng dụng.</p>
+                  </div>
+                </div>
+
+                <div className="flex-1 flex flex-col items-center justify-center gap-4">
+                  <GoogleDriveUploadButton
+                    variant="outline"
+                    size="lg"
+                    className="gap-3 px-8 py-6 text-base"
+                    onFilesSelected={async (driveFiles) => {
+                      const { data: userData } = await supabase.auth.getUser();
+                      if (!userData.user) return;
+
+                      for (const df of driveFiles) {
+                        setPendingLinks(prev => [...prev, {
+                          id: genId(),
+                          name: df.name,
+                          url: df.url,
+                          category: globalCategory,
+                          status: 'pending',
+                        }]);
+                      }
+                      toast({ title: 'Google Drive', description: `Đã thêm ${driveFiles.length} file từ Drive` });
+                    }}
+                  >
+                    Chọn file từ Google Drive
+                  </GoogleDriveUploadButton>
+                  <p className="text-xs text-muted-foreground text-center max-w-md">
+                    Nhấn nút trên để mở Google Picker. Bạn có thể chọn file có sẵn hoặc tải file mới lên Drive.
+                  </p>
+                </div>
+              </TabsContent>
             </div>
           </Tabs>
         </div>
