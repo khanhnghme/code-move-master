@@ -92,11 +92,16 @@ export default function MemberManagementCard({
 }: MemberManagementCardProps) {
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const { getPresenceStatus } = useUserPresence('system-global');
   const [memberToDelete, setMemberToDelete] = useState<GroupMember | null>(null);
   const [memberToChangeRole, setMemberToChangeRole] = useState<GroupMember | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isChangingRole, setIsChangingRole] = useState(false);
+  
+  // Leave project state
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   
   // Add member dialog - Multi-select from system members
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -128,6 +133,24 @@ export default function MemberManagementCard({
   const [bulkRole, setBulkRole] = useState<'member' | 'leader'>('member');
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [isExcelImportOpen, setIsExcelImportOpen] = useState(false);
+
+  // Calculate if current user can leave project (within 48h of joining)
+  const currentUserMember = useMemo(() => members.find(m => m.user_id === currentUserId), [members, currentUserId]);
+  
+  const leaveInfo = useMemo(() => {
+    if (!currentUserMember) return { canLeave: false, hoursLeft: 0, isCreator: false };
+    
+    const isCreator = currentUserMember.user_id === groupCreatorId;
+    if (isCreator) return { canLeave: false, hoursLeft: 0, isCreator: true };
+    
+    const joinedAt = new Date(currentUserMember.joined_at);
+    const now = new Date();
+    const hoursElapsed = (now.getTime() - joinedAt.getTime()) / (1000 * 60 * 60);
+    const hoursLeft = Math.max(0, 48 - hoursElapsed);
+    const canLeave = hoursLeft > 0;
+    
+    return { canLeave, hoursLeft, isCreator: false };
+  }, [currentUserMember, groupCreatorId]);
 
   const getRoleBadge = (role: string, memberId?: string) => {
     // Check if this member is the group creator (Trưởng nhóm)
