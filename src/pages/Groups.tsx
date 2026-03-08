@@ -664,7 +664,6 @@ export default function Groups() {
                 </div>
               </DialogContent>
             </Dialog>
-          )}
         </div>
 
         {/* Groups List */}
