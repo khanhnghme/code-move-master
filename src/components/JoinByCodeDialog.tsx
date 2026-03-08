@@ -192,25 +192,32 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground pt-1">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4" />
-                    {groupPreview.memberCount} thành viên
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <ListTodo className="w-4 h-4" />
-                    {groupPreview.taskCount} nhiệm vụ
-                  </span>
-                  {groupPreview.leaderName && (
-                    <span className="flex items-center gap-1.5">
-                      <Crown className="w-4 h-4 text-warning" />
-                      {groupPreview.leaderName}
-                    </span>
+                <div className="space-y-2 text-sm pt-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Trưởng nhóm:</span>
+                    <span className="font-medium">{groupPreview.leaderName || 'Không rõ'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Thành viên:</span>
+                    <span className="font-medium">{groupPreview.memberCount} người</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Ngày tạo:</span>
+                    <span className="font-medium">{format(new Date(groupPreview.created_at), 'dd/MM/yyyy', { locale: vi })}</span>
+                  </div>
+                  {groupPreview.zalo_link && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Nhóm Zalo:</span>
+                      <a
+                        href={groupPreview.zalo_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-primary hover:underline"
+                      >
+                        Tham gia Zalo
+                      </a>
+                    </div>
                   )}
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4" />
-                    {format(new Date(groupPreview.created_at), 'dd/MM/yyyy', { locale: vi })}
-                  </span>
                 </div>
               </CardContent>
             </Card>
