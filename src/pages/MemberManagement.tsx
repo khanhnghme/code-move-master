@@ -78,6 +78,7 @@ export default function MemberManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isRoleManagementOpen, setIsRoleManagementOpen] = useState(false);
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
