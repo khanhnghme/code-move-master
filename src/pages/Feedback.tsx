@@ -153,12 +153,35 @@ export default function FeedbackPage() {
           countMap.set(c.feedback_id, (countMap.get(c.feedback_id) || 0) + 1);
         });
 
+        // Get reactions
+        const { data: reactionsData } = await supabase
+          .from('feedback_reactions')
+          .select('feedback_id, reaction, user_id')
+          .in('feedback_id', feedbackIds);
+
+        const usefulMap = new Map<string, number>();
+        const notUsefulMap = new Map<string, number>();
+        const myReactionMap = new Map<string, 'useful' | 'not_useful'>();
+        reactionsData?.forEach(r => {
+          if (r.reaction === 'useful') {
+            usefulMap.set(r.feedback_id, (usefulMap.get(r.feedback_id) || 0) + 1);
+          } else {
+            notUsefulMap.set(r.feedback_id, (notUsefulMap.get(r.feedback_id) || 0) + 1);
+          }
+          if (r.user_id === user?.id) {
+            myReactionMap.set(r.feedback_id, r.reaction as 'useful' | 'not_useful');
+          }
+        });
+
         setFeedbacks(feedbacksData.map(f => ({
           ...f,
           user_name: profileMap.get(f.user_id)?.full_name || 'Unknown',
           user_student_id: profileMap.get(f.user_id)?.student_id || '',
           user_avatar_url: profileMap.get(f.user_id)?.avatar_url || null,
           comment_count: countMap.get(f.id) || 0,
+          useful_count: usefulMap.get(f.id) || 0,
+          not_useful_count: notUsefulMap.get(f.id) || 0,
+          my_reaction: myReactionMap.get(f.id) || null,
         })));
       } else {
         setFeedbacks([]);
