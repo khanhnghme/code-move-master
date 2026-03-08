@@ -64,6 +64,7 @@ import {
   X,
   Video,
   Sparkles,
+  FolderCheck,
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/integrations/supabase/client';
@@ -519,6 +520,41 @@ export default function TaskListView({
   const [filterStage, setFilterStage] = useState<string>('all');
   const [showHidden, setShowHidden] = useState(false);
   const [taskFilters, setTaskFilters] = useState<TaskFiltersType>(defaultTaskFilters);
+
+  // Auto-collapse completed stages - per user preference in localStorage
+  const autoCollapseKey = `autoCollapseCompleted_${user?.id || 'anon'}_${groupId}`;
+  const [autoCollapseCompleted, setAutoCollapseCompleted] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem(autoCollapseKey);
+      return stored === 'true';
+    } catch { return false; }
+  });
+
+  const toggleAutoCollapse = useCallback(() => {
+    setAutoCollapseCompleted(prev => {
+      const next = !prev;
+      try { localStorage.setItem(autoCollapseKey, String(next)); } catch {}
+      return next;
+    });
+  }, [autoCollapseKey]);
+
+  // Effect: auto-collapse stages that are 100% completed
+  useEffect(() => {
+    if (!autoCollapseCompleted) return;
+    const completedStageIds = stages.filter(stage => {
+      const stageTasks = tasks.filter(t => t.stage_id === stage.id && (!t.is_hidden || showHidden || isLeaderInGroup));
+      if (stageTasks.length === 0) return false;
+      return stageTasks.every(t => t.status === 'DONE' || t.status === 'VERIFIED');
+    }).map(s => s.id);
+    
+    if (completedStageIds.length > 0) {
+      setExpandedStages(prev => {
+        const next = new Set(prev);
+        completedStageIds.forEach(id => next.delete(id));
+        return next;
+      });
+    }
+  }, [autoCollapseCompleted, stages, tasks, showHidden, isLeaderInGroup]);
   const [meetingsByTaskId, setMeetingsByTaskId] = useState<Record<string, any>>({});
   
   // Fetch meetings for this group to show on meeting tasks
@@ -994,6 +1030,26 @@ export default function TaskListView({
               {showHidden ? 'Đang hiện ẩn' : `${hiddenTasksCount + hiddenStagesCount} ẩn`}
             </Button>
           )}
+
+          {/* Auto-collapse completed stages toggle */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={autoCollapseCompleted ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 text-xs gap-1.5"
+                  onClick={toggleAutoCollapse}
+                >
+                  <FolderCheck className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{autoCollapseCompleted ? 'Đang gọn' : 'Gọn xong'}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Tự động thu gọn giai đoạn đã hoàn thành 100%</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
           <Select value={filterStage} onValueChange={setFilterStage}>
             <SelectTrigger className="w-44 h-8 text-xs bg-background">
@@ -1128,6 +1184,12 @@ export default function TaskListView({
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
+                        {progressPercent === 100 && stageTasks.length > 0 && (
+                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px] px-1.5 h-5 gap-0.5">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Xong
+                          </Badge>
+                        )}
                         {overdueCount > 0 && (
                           <Badge variant="destructive" className="text-[10px] px-1.5 h-5">
                             {overdueCount} trễ
