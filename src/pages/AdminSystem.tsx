@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogTitle, DialogFooter, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle, Bug, Video, Upload, Link, Loader2 } from 'lucide-react';
+import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle, Bug, Video, Upload, Link, Loader2, Image, RefreshCw } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import uehLogoWhite from '@/assets/ueh-logo-new.png';
@@ -55,6 +55,10 @@ export default function AdminSystem() {
   const [errorLoggingEnabled, setErrorLoggingEnabled] = useState(true);
   const [savingErrorLogging, setSavingErrorLogging] = useState(false);
 
+  // Intro images state
+  const [generatingIntroImages, setGeneratingIntroImages] = useState(false);
+  const [introImages, setIntroImages] = useState<Record<string, string> | null>(null);
+
   // Video background state
   const [videoBgEnabled, setVideoBgEnabled] = useState(false);
   const [videoBgLandingOpacity, setVideoBgLandingOpacity] = useState(20);
@@ -73,11 +77,12 @@ export default function AdminSystem() {
 
   const fetchSettings = async () => {
     try {
-      const [maintenanceRes, policyRes, errorLoggingRes, videoRes] = await Promise.all([
+      const [maintenanceRes, policyRes, errorLoggingRes, videoRes, introImagesRes] = await Promise.all([
         supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'dashboard_video_bg').maybeSingle(),
+        supabase.from('system_settings').select('*').eq('key', 'intro_images').maybeSingle(),
       ]);
 
       if (maintenanceRes.data?.value) {
@@ -109,6 +114,9 @@ export default function AdminSystem() {
         setVideoBgLandingOpacity(Math.round((val.landing_opacity ?? val.opacity ?? 0.2) * 100));
         setVideoBgDashboardOpacity(Math.round((val.dashboard_opacity ?? val.opacity ?? 0.2) * 100));
         setVideoBgUrl(val.url ?? '');
+      }
+      if (introImagesRes.data?.value) {
+        setIntroImages(introImagesRes.data.value as Record<string, string>);
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
@@ -540,6 +548,93 @@ export default function AdminSystem() {
                   <Save className="w-4 h-4" />
                   Lưu cài đặt video
                 </Button>
+              </CardContent>
+            </Card>
+
+            {/* Intro AI Images */}
+            <Card className="border border-border">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Image className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Hình minh họa AI — Popup Giới thiệu</CardTitle>
+                    <CardDescription className="text-xs">Tạo 5 hình minh họa AI cho popup "Giới thiệu Teamworks UEH"</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex gap-2">
+                  <Button
+                    className="gap-2"
+                    disabled={generatingIntroImages}
+                    onClick={async () => {
+                      setGeneratingIntroImages(true);
+                      try {
+                        const { data, error } = await supabase.functions.invoke('generate-intro-images', {
+                          body: { force: false }
+                        });
+                        if (error) throw error;
+                        if (data?.images) {
+                          setIntroImages(data.images);
+                          toast({ title: `Đã tạo ${data.generated ?? Object.keys(data.images).length} hình minh họa` });
+                        } else {
+                          toast({ title: 'Không tạo được hình', variant: 'destructive' });
+                        }
+                      } catch (err: any) {
+                        toast({ title: 'Lỗi', description: err.message, variant: 'destructive' });
+                      } finally {
+                        setGeneratingIntroImages(false);
+                      }
+                    }}
+                  >
+                    {generatingIntroImages ? <Loader2 className="w-4 h-4 animate-spin" /> : <Image className="w-4 h-4" />}
+                    {generatingIntroImages ? 'Đang tạo ảnh AI...' : 'Tạo ảnh minh họa'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    disabled={generatingIntroImages}
+                    onClick={async () => {
+                      setGeneratingIntroImages(true);
+                      try {
+                        const { data, error } = await supabase.functions.invoke('generate-intro-images', {
+                          body: { force: true }
+                        });
+                        if (error) throw error;
+                        if (data?.images) {
+                          setIntroImages(data.images);
+                          toast({ title: `Đã tạo lại ${data.generated ?? 0} hình minh họa` });
+                        }
+                      } catch (err: any) {
+                        toast({ title: 'Lỗi', description: err.message, variant: 'destructive' });
+                      } finally {
+                        setGeneratingIntroImages(false);
+                      }
+                    }}
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Tạo lại toàn bộ
+                  </Button>
+                </div>
+                {generatingIntroImages && (
+                  <p className="text-xs text-muted-foreground">⏳ Quá trình tạo 5 hình ảnh AI có thể mất 1-2 phút...</p>
+                )}
+                {introImages && Object.keys(introImages).length > 0 && (
+                  <div className="grid grid-cols-5 gap-2">
+                    {['page1', 'page2', 'page3', 'page4', 'page5'].map((key, i) => (
+                      <div key={key} className="space-y-1">
+                        <p className="text-[10px] text-muted-foreground text-center">Trang {i + 1}</p>
+                        {introImages[key] ? (
+                          <img src={introImages[key]} alt={`Intro page ${i + 1}`} className="w-full aspect-video object-cover rounded-md border" />
+                        ) : (
+                          <div className="w-full aspect-video bg-muted rounded-md flex items-center justify-center text-[10px] text-muted-foreground">Chưa có</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

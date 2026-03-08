@@ -5,201 +5,187 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import uehLogo from '@/assets/ueh-logo-new.png';
+import { Skeleton } from '@/components/ui/skeleton';
+
+/* ─── Intro Images Context ─── */
+type IntroImages = Record<string, string>;
+
+function IntroHeroImage({ imageUrl, fallbackGradient, alt }: { imageUrl?: string; fallbackGradient: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  if (!imageUrl || error) {
+    return (
+      <div className={`w-full h-full rounded-xl ${fallbackGradient} flex items-center justify-center`}>
+        <div className="text-center text-primary-foreground/60">
+          <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p className="text-xs opacity-50">AI Illustration</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full relative rounded-xl overflow-hidden">
+      {!loaded && <Skeleton className="absolute inset-0 rounded-xl" />}
+      <img
+        src={imageUrl}
+        alt={alt}
+        className={`w-full h-full object-cover rounded-xl transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+      />
+    </div>
+  );
+}
 
 /* ─── Visual Page Components ─── */
 
-function Page1Overview() {
+function Page1Overview({ images }: { images: IntroImages }) {
   return (
-    <div className="h-full flex flex-col gap-6">
-      <div className="space-y-1">
-        <h3 className="text-2xl font-bold text-foreground">Tổng quan hệ thống</h3>
-        <p className="text-muted-foreground">Teamworks UEH — Nền tảng quản lý công việc nhóm</p>
+    <div className="h-full flex flex-col gap-4">
+      {/* Hero Image */}
+      <div className="h-[38%] min-h-[180px] flex-shrink-0" style={{ animation: 'fade-in 0.5s ease-out both' }}>
+        <IntroHeroImage
+          imageUrl={images.page1}
+          fallbackGradient="bg-gradient-to-br from-primary/20 via-accent/10 to-primary/5"
+          alt="Tổng quan hệ thống Teamworks UEH"
+        />
       </div>
 
-      {/* System flow diagram */}
-      <div className="flex-1 flex flex-col gap-5">
-        {/* Flow diagram */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 100ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Quy trình hoạt động</p>
-          <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2">
+      <div className="space-y-1">
+        <h3 className="text-2xl font-bold text-foreground">Tổng quan hệ thống</h3>
+        <p className="text-sm text-muted-foreground">Teamworks UEH — Nền tảng quản lý công việc nhóm cho sinh viên</p>
+      </div>
+
+      {/* Compact flow */}
+      <div className="flex items-center justify-between gap-1 px-2 py-3 bg-muted/30 rounded-xl border border-border/60" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
+        {[
+          { icon: Users, label: 'Tạo nhóm' },
+          { icon: ListChecks, label: 'Phân công' },
+          { icon: Upload, label: 'Nộp bài' },
+          { icon: BarChart3, label: 'Chấm điểm' },
+          { icon: FileText, label: 'Báo cáo' },
+        ].map((step, i) => (
+          <div key={i} className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex flex-col items-center gap-1 min-w-[70px]">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <step.icon className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-[10px] font-semibold text-foreground">{step.label}</span>
+            </div>
+            {i < 4 && <ArrowRight className="w-3 h-3 text-primary/40 flex-shrink-0" />}
+          </div>
+        ))}
+      </div>
+
+      {/* Bottom cards */}
+      <div className="grid grid-cols-3 gap-3 flex-1" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Vai trò</p>
+          <div className="space-y-1.5">
             {[
-              { icon: Users, label: 'Tạo nhóm', sub: 'Leader tạo project' },
-              { icon: ListChecks, label: 'Phân công', sub: 'Gán task & deadline' },
-              { icon: Upload, label: 'Nộp bài', sub: 'Link / File upload' },
-              { icon: BarChart3, label: 'Chấm điểm', sub: 'Tự động tính điểm' },
-              { icon: FileText, label: 'Báo cáo', sub: 'Excel / PDF export' },
-            ].map((step, i) => (
-              <div key={i} className="flex items-center gap-2 flex-shrink-0">
-                <div className="flex flex-col items-center gap-1.5 min-w-[100px]">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <step.icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <span className="text-xs font-semibold text-foreground">{step.label}</span>
-                  <span className="text-[10px] text-muted-foreground">{step.sub}</span>
-                </div>
-                {i < 4 && <ArrowRight className="w-4 h-4 text-primary/40 flex-shrink-0 mt-[-16px]" />}
+              { role: 'Admin', color: 'text-destructive', desc: 'Quản trị hệ thống' },
+              { role: 'Leader', color: 'text-primary', desc: 'Quản lý nhóm' },
+              { role: 'Member', color: 'text-accent-foreground', desc: 'Thực hiện task' },
+            ].map((r, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className={`text-xs font-bold ${r.color}`}>{r.role}</span>
+                <span className="text-[10px] text-muted-foreground">— {r.desc}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
-          {/* User roles visual */}
-          <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Vai trò trong hệ thống</p>
-            <div className="space-y-3">
-              {[
-                { role: 'Admin', color: 'bg-destructive/15 text-destructive border-destructive/20', desc: 'Quản trị toàn hệ thống' },
-                { role: 'Leader', color: 'bg-primary/15 text-primary border-primary/20', desc: 'Quản lý nhóm & chấm điểm' },
-                { role: 'Member', color: 'bg-accent/15 text-accent-foreground border-accent/30', desc: 'Thực hiện & nộp task' },
-              ].map((r, i) => (
-                <div key={i} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border ${r.color}`}>
-                  <div className="w-8 h-8 rounded-full bg-background/80 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                    {r.role[0]}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{r.role}</p>
-                    <p className="text-[10px] opacity-70">{r.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Stats preview */}
-          <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Tính năng nổi bật</p>
-            <div className="space-y-2.5">
-              {[
-                { icon: CheckCircle2, label: 'Chấm điểm tự động', val: 'Realtime' },
-                { icon: Globe, label: 'Chia sẻ công khai', val: 'Public link' },
-                { icon: Zap, label: 'AI hỗ trợ', val: 'Gemini AI' },
-                { icon: Lock, label: 'Bảo mật RLS', val: 'Row-level' },
-                { icon: Bell, label: 'Thông báo', val: 'Realtime' },
-              ].map((f, i) => (
-                <div key={i} className="flex items-center justify-between py-1.5 border-b border-border/30 last:border-0">
-                  <div className="flex items-center gap-2">
-                    <f.icon className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-xs text-foreground">{f.label}</span>
-                  </div>
-                  <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">{f.val}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Device support visual */}
-          <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Đa nền tảng</p>
-            <div className="flex flex-col items-center gap-3 pt-2">
-              {/* Desktop mockup */}
-              <div className="w-full max-w-[180px]">
-                <div className="border-2 border-border rounded-lg overflow-hidden">
-                  <div className="bg-primary h-2" />
-                  <div className="p-2 space-y-1">
-                    <div className="h-1.5 bg-muted rounded w-3/4" />
-                    <div className="h-1.5 bg-muted rounded w-1/2" />
-                    <div className="grid grid-cols-3 gap-1 pt-1">
-                      <div className="h-6 bg-primary/10 rounded" />
-                      <div className="h-6 bg-accent/10 rounded" />
-                      <div className="h-6 bg-muted rounded" />
-                    </div>
-                  </div>
-                </div>
-                <div className="w-12 h-1 bg-border rounded-b mx-auto" />
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Tính năng</p>
+          <div className="space-y-1.5">
+            {[
+              { icon: CheckCircle2, label: 'Chấm điểm tự động' },
+              { icon: Globe, label: 'Chia sẻ công khai' },
+              { icon: Zap, label: 'AI hỗ trợ' },
+              { icon: Lock, label: 'Bảo mật RLS' },
+              { icon: Bell, label: 'Thông báo realtime' },
+            ].map((f, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <f.icon className="w-3 h-3 text-primary" />
+                <span className="text-[10px] text-foreground">{f.label}</span>
               </div>
-              <div className="flex gap-4 items-end">
-                {/* Tablet */}
-                <div className="w-14">
-                  <div className="border-2 border-border rounded-md overflow-hidden">
-                    <div className="bg-primary h-1" />
-                    <div className="p-1 space-y-0.5">
-                      <div className="h-1 bg-muted rounded w-3/4" />
-                      <div className="h-3 bg-primary/10 rounded" />
-                    </div>
-                  </div>
-                </div>
-                {/* Phone */}
-                <div className="w-8">
-                  <div className="border-2 border-border rounded-md overflow-hidden">
-                    <div className="bg-primary h-0.5" />
-                    <div className="p-0.5 space-y-0.5">
-                      <div className="h-0.5 bg-muted rounded" />
-                      <div className="h-2 bg-primary/10 rounded" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <p className="text-[10px] text-muted-foreground text-center">Desktop · Tablet · Mobile</p>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3 flex flex-col items-center justify-center">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Đa nền tảng</p>
+          <div className="flex gap-3 items-end">
+            <div className="w-14 border-2 border-border rounded-md overflow-hidden">
+              <div className="bg-primary h-1.5" />
+              <div className="p-1 space-y-0.5"><div className="h-1 bg-muted rounded w-3/4" /><div className="h-4 bg-primary/10 rounded" /></div>
+            </div>
+            <div className="w-8 border-2 border-border rounded-md overflow-hidden">
+              <div className="bg-primary h-1" />
+              <div className="p-0.5"><div className="h-3 bg-primary/10 rounded" /></div>
             </div>
           </div>
+          <p className="text-[9px] text-muted-foreground mt-2">Desktop · Mobile</p>
         </div>
       </div>
     </div>
   );
 }
 
-function Page2Tasks() {
-  const kanbanCols = [
-    { status: 'TODO', color: 'border-muted-foreground/30', bg: 'bg-muted/40', items: ['Viết báo cáo chương 1', 'Tìm tài liệu tham khảo'] },
-    { status: 'IN PROGRESS', color: 'border-primary/40', bg: 'bg-primary/5', items: ['Thiết kế mockup UI'] },
-    { status: 'DONE', color: 'border-green-500/40', bg: 'bg-green-500/5', items: ['Phân tích yêu cầu'] },
-    { status: 'VERIFIED', color: 'border-accent/40', bg: 'bg-accent/10', items: ['Lập kế hoạch dự án'] },
-  ];
-
+function Page2Tasks({ images }: { images: IntroImages }) {
   return (
-    <div className="h-full flex flex-col gap-5">
+    <div className="h-full flex flex-col gap-4">
+      <div className="h-[38%] min-h-[180px] flex-shrink-0" style={{ animation: 'fade-in 0.5s ease-out both' }}>
+        <IntroHeroImage
+          imageUrl={images.page2}
+          fallbackGradient="bg-gradient-to-br from-primary/15 via-blue-500/10 to-accent/10"
+          alt="Quản lý Task với Kanban Board"
+        />
+      </div>
+
       <div className="space-y-1">
         <h3 className="text-2xl font-bold text-foreground">Quản lý Task</h3>
-        <p className="text-muted-foreground">Phân công, theo dõi và hoàn thành công việc</p>
+        <p className="text-sm text-muted-foreground">Phân công, theo dõi và hoàn thành công việc hiệu quả</p>
       </div>
 
-      {/* Mini Kanban Board */}
-      <div className="bg-muted/20 border border-border/60 rounded-xl p-4 flex-shrink-0" style={{ animation: 'fade-in 0.4s ease-out 100ms both' }}>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Kanban Board — Kéo thả cập nhật trạng thái</p>
-        <div className="grid grid-cols-4 gap-3">
-          {kanbanCols.map((col, ci) => (
-            <div key={ci} className={`rounded-lg border-2 ${col.color} ${col.bg} p-2.5`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/70">{col.status}</span>
-                <span className="text-[10px] bg-background/80 px-1.5 py-0.5 rounded font-medium">{col.items.length}</span>
-              </div>
-              <div className="space-y-1.5">
-                {col.items.map((item, ii) => (
-                  <div key={ii} className="bg-background rounded-md p-2 shadow-sm border border-border/40 text-[11px] text-foreground/80 leading-tight">
-                    {item}
-                  </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
+        {/* Mini Kanban */}
+        <div className="bg-muted/20 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Kanban Board — Kéo thả trạng thái</p>
+          <div className="grid grid-cols-4 gap-1.5">
+            {[
+              { status: 'TODO', color: 'border-muted-foreground/30', items: 2 },
+              { status: 'DOING', color: 'border-primary/40', items: 1 },
+              { status: 'DONE', color: 'border-green-500/40', items: 1 },
+              { status: 'VERIFIED', color: 'border-accent/40', items: 1 },
+            ].map((col, ci) => (
+              <div key={ci} className={`rounded-lg border-2 ${col.color} bg-background/50 p-1.5`}>
+                <span className="text-[8px] font-bold uppercase text-foreground/60 block mb-1">{col.status}</span>
+                {Array.from({ length: col.items }).map((_, i) => (
+                  <div key={i} className="bg-muted/60 rounded h-4 mb-1" />
                 ))}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-        {/* Deadline timeline */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            <Clock className="w-3.5 h-3.5 inline mr-1.5" />
-            Timeline Deadline
+        {/* Deadline */}
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <Clock className="w-3 h-3 inline mr-1" />Timeline Deadline
           </p>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[
-              { task: 'Phân tích yêu cầu', date: '15/03', status: 'done', bar: 100 },
-              { task: 'Thiết kế mockup', date: '22/03', status: 'progress', bar: 65 },
-              { task: 'Viết báo cáo Ch.1', date: '30/03', status: 'upcoming', bar: 20 },
-              { task: 'Tìm tài liệu', date: '05/04', status: 'upcoming', bar: 0 },
+              { task: 'Phân tích yêu cầu', bar: 100, done: true },
+              { task: 'Thiết kế mockup', bar: 65, done: false },
+              { task: 'Viết báo cáo', bar: 20, done: false },
             ].map((t, i) => (
-              <div key={i} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-foreground">{t.task}</span>
-                  <span className={`text-[10px] font-medium ${t.status === 'done' ? 'text-green-600' : t.status === 'progress' ? 'text-primary' : 'text-muted-foreground'}`}>{t.date}</span>
-                </div>
+              <div key={i} className="space-y-0.5">
+                <span className="text-[10px] text-foreground">{t.task}</span>
                 <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${t.status === 'done' ? 'bg-green-500' : t.status === 'progress' ? 'bg-primary' : 'bg-muted-foreground/20'}`}
-                    style={{ width: `${t.bar}%` }}
-                  />
+                  <div className={`h-full rounded-full ${t.done ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${t.bar}%` }} />
                 </div>
               </div>
             ))}
@@ -207,41 +193,30 @@ function Page2Tasks() {
         </div>
 
         {/* Submission types */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            <Upload className="w-3.5 h-3.5 inline mr-1.5" />
-            Hình thức nộp bài
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3 md:col-span-2" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <Upload className="w-3 h-3 inline mr-1" />Hình thức nộp bài
           </p>
-          <div className="space-y-2.5">
-            {/* Link submission */}
-            <div className="bg-background rounded-lg border border-border/50 p-3">
-              <div className="flex items-center gap-2 mb-1.5">
-                <Globe className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-semibold text-foreground">Nộp bằng Link</span>
-              </div>
-              <div className="bg-muted/50 rounded px-2 py-1.5 text-[10px] text-muted-foreground font-mono truncate">
-                https://docs.google.com/document/d/1abc...
-              </div>
-            </div>
-            {/* File upload */}
-            <div className="bg-background rounded-lg border border-border/50 p-3">
-              <div className="flex items-center gap-2 mb-1.5">
-                <Upload className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-semibold text-foreground">Upload File</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-primary/10 rounded px-2 py-1 text-[10px] text-primary font-medium">.docx</div>
-                <div className="bg-primary/10 rounded px-2 py-1 text-[10px] text-primary font-medium">.pdf</div>
-                <div className="bg-primary/10 rounded px-2 py-1 text-[10px] text-primary font-medium">.zip</div>
-                <span className="text-[10px] text-muted-foreground">Max 10MB</span>
-              </div>
-            </div>
-            {/* History */}
-            <div className="bg-background rounded-lg border border-border/50 p-3 flex items-center gap-3">
-              <FileText className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+          <div className="flex gap-3">
+            <div className="flex-1 bg-background rounded-lg border border-border/50 p-2 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-primary flex-shrink-0" />
               <div>
-                <span className="text-xs font-semibold text-foreground">Lịch sử nộp bài</span>
-                <p className="text-[10px] text-muted-foreground">Lưu đầy đủ mọi lần nộp, so sánh phiên bản</p>
+                <p className="text-[10px] font-semibold text-foreground">Nộp bằng Link</p>
+                <p className="text-[9px] text-muted-foreground">Google Docs, Drive, GitHub...</p>
+              </div>
+            </div>
+            <div className="flex-1 bg-background rounded-lg border border-border/50 p-2 flex items-center gap-2">
+              <Upload className="w-4 h-4 text-primary flex-shrink-0" />
+              <div>
+                <p className="text-[10px] font-semibold text-foreground">Upload File</p>
+                <p className="text-[9px] text-muted-foreground">.docx .pdf .zip — Max 10MB</p>
+              </div>
+            </div>
+            <div className="flex-1 bg-background rounded-lg border border-border/50 p-2 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary flex-shrink-0" />
+              <div>
+                <p className="text-[10px] font-semibold text-foreground">Lịch sử nộp</p>
+                <p className="text-[9px] text-muted-foreground">Lưu mọi lần nộp, so sánh</p>
               </div>
             </div>
           </div>
@@ -251,149 +226,122 @@ function Page2Tasks() {
   );
 }
 
-function Page3Scoring() {
-  const scoreBreakdown = [
-    { label: 'Base', value: 100, color: 'bg-primary' },
-    { label: 'Late', value: -15, color: 'bg-destructive' },
-    { label: 'Review', value: -5, color: 'bg-orange-500' },
-    { label: 'Early', value: +5, color: 'bg-green-500' },
-    { label: 'Bug', value: +3, color: 'bg-blue-500' },
-  ];
-
+function Page3Scoring({ images }: { images: IntroImages }) {
   return (
-    <div className="h-full flex flex-col gap-5">
-      <div className="space-y-1">
-        <h3 className="text-2xl font-bold text-foreground">Hệ thống chấm điểm</h3>
-        <p className="text-muted-foreground">Tính điểm tự động, công bằng và minh bạch</p>
+    <div className="h-full flex flex-col gap-4">
+      <div className="h-[38%] min-h-[180px] flex-shrink-0" style={{ animation: 'fade-in 0.5s ease-out both' }}>
+        <IntroHeroImage
+          imageUrl={images.page3}
+          fallbackGradient="bg-gradient-to-br from-yellow-500/15 via-primary/10 to-accent/10"
+          alt="Hệ thống chấm điểm tự động"
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-        {/* Score formula visual */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 100ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Công thức tính điểm Task</p>
-          
-          {/* Formula */}
-          <div className="bg-background rounded-lg border border-primary/20 p-4 mb-4">
-            <p className="text-center font-mono text-sm text-foreground">
-              <span className="text-primary font-bold">Final</span> = Base − Late − Review + Early + Bug + Adjust
+      <div className="space-y-1">
+        <h3 className="text-2xl font-bold text-foreground">Hệ thống chấm điểm</h3>
+        <p className="text-sm text-muted-foreground">Tính điểm tự động, công bằng và minh bạch</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
+        {/* Formula */}
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Công thức tính điểm Task</p>
+          <div className="bg-background rounded-lg border border-primary/20 p-2 mb-2">
+            <p className="text-center font-mono text-xs text-foreground">
+              <span className="text-primary font-bold">Final</span> = Base − Late − Review + Early + Bug
             </p>
           </div>
-
-          {/* Bar breakdown */}
-          <div className="space-y-2">
-            {scoreBreakdown.map((s, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <span className="text-[10px] font-medium text-muted-foreground w-12 text-right">{s.label}</span>
-                <div className="flex-1 h-5 bg-muted/50 rounded overflow-hidden relative">
-                  <div
-                    className={`h-full ${s.color} rounded transition-all`}
-                    style={{ width: `${Math.abs(s.value)}%`, animation: `grow-width 0.6s ease-out ${i * 100 + 200}ms both` }}
-                  />
+          <div className="space-y-1">
+            {[
+              { label: 'Base', value: 100, color: 'bg-primary', pct: 100 },
+              { label: 'Late', value: -15, color: 'bg-destructive', pct: 15 },
+              { label: 'Early', value: +5, color: 'bg-green-500', pct: 5 },
+              { label: 'Bug', value: +3, color: 'bg-blue-500', pct: 3 },
+            ].map((s, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-[9px] font-medium text-muted-foreground w-8 text-right">{s.label}</span>
+                <div className="flex-1 h-3 bg-muted/50 rounded overflow-hidden">
+                  <div className={`h-full ${s.color} rounded`} style={{ width: `${s.pct}%` }} />
                 </div>
-                <span className={`text-xs font-bold w-8 ${s.value >= 0 ? 'text-green-600' : 'text-destructive'}`}>
+                <span className={`text-[10px] font-bold w-6 ${s.value >= 0 ? 'text-green-600' : 'text-destructive'}`}>
                   {s.value > 0 ? '+' : ''}{s.value}
                 </span>
               </div>
             ))}
           </div>
-
-          {/* Result */}
-          <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground">Điểm cuối cùng:</span>
-            <span className="text-2xl font-bold text-primary">88</span>
+          <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between">
+            <span className="text-[10px] font-semibold text-foreground">Điểm cuối:</span>
+            <span className="text-lg font-bold text-primary">88</span>
           </div>
         </div>
 
-        {/* Stage weights pie chart visual */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Trọng số giai đoạn</p>
-          
-          {/* Visual pie chart using CSS */}
-          <div className="flex items-center gap-6 mb-4">
-            <div className="relative w-28 h-28 flex-shrink-0">
+        {/* Stage weights + chart */}
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Trọng số giai đoạn</p>
+          <div className="flex items-center gap-4 mb-3">
+            <div className="relative w-20 h-20 flex-shrink-0">
               <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                 <circle cx="50" cy="50" r="40" fill="none" className="stroke-primary" strokeWidth="20" strokeDasharray="75.4 251.2" strokeDashoffset="0" />
                 <circle cx="50" cy="50" r="40" fill="none" className="stroke-accent" strokeWidth="20" strokeDasharray="50.27 251.2" strokeDashoffset="-75.4" />
                 <circle cx="50" cy="50" r="40" fill="none" stroke="hsl(var(--chart-3, 142 71% 45%))" strokeWidth="20" strokeDasharray="37.7 251.2" strokeDashoffset="-125.67" />
-                <circle cx="50" cy="50" r="40" fill="none" stroke="hsl(var(--chart-4, 280 65% 60%))" strokeWidth="20" strokeDasharray="25.13 251.2" strokeDashoffset="-163.37" />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xs font-bold text-foreground">100%</span>
+                <span className="text-[10px] font-bold text-foreground">100%</span>
               </div>
             </div>
-            <div className="space-y-2 flex-1">
+            <div className="space-y-1.5">
               {[
-                { name: 'Giai đoạn 1', weight: '30%', color: 'bg-primary' },
-                { name: 'Giai đoạn 2', weight: '20%', color: 'bg-accent' },
-                { name: 'Giai đoạn 3', weight: '15%', color: 'bg-green-500' },
-                { name: 'Giai đoạn 4', weight: '10%', color: 'bg-purple-500' },
+                { name: 'GĐ 1', weight: '30%', color: 'bg-primary' },
+                { name: 'GĐ 2', weight: '20%', color: 'bg-accent' },
+                { name: 'GĐ 3', weight: '15%', color: 'bg-green-500' },
               ].map((s, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className={`w-2.5 h-2.5 rounded-sm ${s.color} flex-shrink-0`} />
-                  <span className="text-[11px] text-foreground flex-1">{s.name}</span>
-                  <span className="text-[11px] font-bold text-foreground">{s.weight}</span>
+                <div key={i} className="flex items-center gap-1.5">
+                  <div className={`w-2 h-2 rounded-sm ${s.color}`} />
+                  <span className="text-[10px] text-foreground">{s.name}</span>
+                  <span className="text-[10px] font-bold text-foreground">{s.weight}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Final score formula */}
-          <div className="bg-background rounded-lg border border-border/50 p-3">
-            <p className="text-[10px] text-muted-foreground mb-1">Điểm tổng kết</p>
-            <p className="font-mono text-xs text-foreground">
-              Σ (Điểm_GĐ<sub>i</sub> × Trọng_số<sub>i</sub>) + Điều_chỉnh
-            </p>
-          </div>
-        </div>
-
-        {/* Score comparison chart */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            <TrendingUp className="w-3.5 h-3.5 inline mr-1.5" />
-            Biểu đồ so sánh điểm thành viên
-          </p>
-          <div className="flex items-end gap-3 h-[110px] pt-2">
+          {/* Bar chart */}
+          <p className="text-[10px] font-semibold text-muted-foreground mb-1">So sánh điểm</p>
+          <div className="flex items-end gap-2 h-[60px]">
             {[
               { name: 'An', score: 92 },
               { name: 'Bình', score: 85 },
               { name: 'Châu', score: 78 },
               { name: 'Dũng', score: 95 },
-              { name: 'Em', score: 70 },
             ].map((m, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <span className="text-[10px] font-bold text-foreground">{m.score}</span>
-                <div
-                  className="w-full rounded-t bg-gradient-to-t from-primary to-primary/60"
-                  style={{ height: `${m.score * 0.9}%`, animation: `grow-height 0.5s ease-out ${i * 80 + 200}ms both` }}
-                />
-                <span className="text-[10px] text-muted-foreground">{m.name}</span>
+              <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+                <span className="text-[8px] font-bold text-foreground">{m.score}</span>
+                <div className="w-full rounded-t bg-gradient-to-t from-primary to-primary/60" style={{ height: `${m.score * 0.55}%` }} />
+                <span className="text-[8px] text-muted-foreground">{m.name}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Appeal process */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            <AlertTriangle className="w-3.5 h-3.5 inline mr-1.5" />
-            Quy trình khiếu nại điểm
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3 md:col-span-2" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <AlertTriangle className="w-3 h-3 inline mr-1" />Quy trình khiếu nại
           </p>
-          <div className="relative pl-6">
-            <div className="absolute left-2 top-1 bottom-1 w-px bg-border" />
+          <div className="flex items-center gap-2 justify-center">
             {[
-              { step: '1', label: 'Gửi khiếu nại', desc: 'Kèm lý do & minh chứng', color: 'bg-primary' },
-              { step: '2', label: 'Leader xem xét', desc: 'Đánh giá & phản hồi', color: 'bg-accent' },
-              { step: '3', label: 'Chấp nhận / Từ chối', desc: 'Cập nhật điểm nếu hợp lệ', color: 'bg-green-500' },
-              { step: '4', label: 'Ghi log lịch sử', desc: 'Mọi thay đổi được lưu lại', color: 'bg-muted-foreground' },
+              { step: '1', label: 'Gửi khiếu nại', color: 'bg-primary' },
+              { step: '2', label: 'Leader xem xét', color: 'bg-accent' },
+              { step: '3', label: 'Chấp nhận/Từ chối', color: 'bg-green-500' },
+              { step: '4', label: 'Ghi log', color: 'bg-muted-foreground' },
             ].map((s, i) => (
-              <div key={i} className="flex items-start gap-3 mb-3 last:mb-0 relative">
-                <div className={`w-4 h-4 rounded-full ${s.color} flex items-center justify-center absolute -left-[22px] top-0.5`}>
-                  <span className="text-[8px] text-white font-bold">{s.step}</span>
+              <div key={i} className="flex items-center gap-2">
+                <div className="flex flex-col items-center gap-0.5">
+                  <div className={`w-5 h-5 rounded-full ${s.color} flex items-center justify-center`}>
+                    <span className="text-[8px] text-white font-bold">{s.step}</span>
+                  </div>
+                  <span className="text-[9px] text-foreground text-center max-w-[70px]">{s.label}</span>
                 </div>
-                <div>
-                  <p className="text-xs font-semibold text-foreground">{s.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{s.desc}</p>
-                </div>
+                {i < 3 && <ArrowRight className="w-3 h-3 text-border flex-shrink-0 mt-[-10px]" />}
               </div>
             ))}
           </div>
@@ -403,113 +351,92 @@ function Page3Scoring() {
   );
 }
 
-function Page4Project() {
+function Page4Project({ images }: { images: IntroImages }) {
   return (
-    <div className="h-full flex flex-col gap-5">
-      <div className="space-y-1">
-        <h3 className="text-2xl font-bold text-foreground">Quản lý dự án</h3>
-        <p className="text-muted-foreground">Tổ chức nhóm và tài nguyên hiệu quả</p>
+    <div className="h-full flex flex-col gap-4">
+      <div className="h-[38%] min-h-[180px] flex-shrink-0" style={{ animation: 'fade-in 0.5s ease-out both' }}>
+        <IntroHeroImage
+          imageUrl={images.page4}
+          fallbackGradient="bg-gradient-to-br from-primary/15 via-green-500/10 to-accent/10"
+          alt="Quản lý dự án và nhóm"
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-        {/* Team org chart */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 100ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-            <Users className="w-3.5 h-3.5 inline mr-1.5" />
-            Cấu trúc nhóm
+      <div className="space-y-1">
+        <h3 className="text-2xl font-bold text-foreground">Quản lý dự án</h3>
+        <p className="text-sm text-muted-foreground">Tổ chức nhóm và tài nguyên hiệu quả</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
+        {/* Team structure */}
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <Users className="w-3 h-3 inline mr-1" />Cấu trúc nhóm
           </p>
-          <div className="flex flex-col items-center gap-3">
-            {/* Leader */}
-            <div className="bg-primary/10 border-2 border-primary/30 rounded-lg px-4 py-2 flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-                <Star className="w-3.5 h-3.5 text-primary-foreground" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-foreground">Nguyễn Văn A</p>
-                <p className="text-[10px] text-primary font-medium">Leader</p>
-              </div>
+          <div className="flex flex-col items-center gap-2">
+            <div className="bg-primary/10 border border-primary/30 rounded-lg px-3 py-1.5 flex items-center gap-2">
+              <Star className="w-3 h-3 text-primary" />
+              <span className="text-[10px] font-bold text-foreground">Leader</span>
             </div>
-            {/* Connector lines */}
-            <div className="flex items-center gap-0">
-              <div className="w-px h-3 bg-border" />
-            </div>
-            <div className="flex items-start gap-1">
-              <div className="w-16 h-px bg-border mt-0" />
-              <div className="w-px h-3 bg-border -mt-px" />
-              <div className="w-16 h-px bg-border mt-0" />
-              <div className="w-px h-3 bg-border -mt-px" />
-              <div className="w-16 h-px bg-border mt-0" />
-            </div>
-            {/* Members */}
-            <div className="flex gap-3">
+            <div className="w-px h-3 bg-border" />
+            <div className="flex gap-2">
               {['Bình', 'Châu', 'Dũng'].map((name, i) => (
-                <div key={i} className="bg-background border border-border/60 rounded-lg px-3 py-2 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-foreground">
-                    {name[0]}
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-medium text-foreground">{name}</p>
-                    <p className="text-[9px] text-muted-foreground">Member</p>
-                  </div>
+                <div key={i} className="bg-background border border-border/60 rounded-lg px-2 py-1 text-center">
+                  <div className="w-5 h-5 rounded-full bg-muted mx-auto mb-0.5 flex items-center justify-center text-[8px] font-bold">{name[0]}</div>
+                  <p className="text-[9px] text-foreground">{name}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Stage timeline */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-            <GitBranch className="w-3.5 h-3.5 inline mr-1.5" />
-            Giai đoạn dự án
+        {/* Stages */}
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <GitBranch className="w-3 h-3 inline mr-1" />Giai đoạn dự án
           </p>
-          <div className="space-y-2.5">
+          <div className="space-y-1.5">
             {[
-              { name: 'Lập kế hoạch', range: '01/03 — 15/03', progress: 100, tasks: 4 },
-              { name: 'Phân tích & Thiết kế', range: '16/03 — 31/03', progress: 75, tasks: 6 },
-              { name: 'Triển khai', range: '01/04 — 20/04', progress: 30, tasks: 8 },
-              { name: 'Kiểm thử & Báo cáo', range: '21/04 — 30/04', progress: 0, tasks: 5 },
+              { name: 'Lập kế hoạch', progress: 100, tasks: 4 },
+              { name: 'Phân tích & Thiết kế', progress: 75, tasks: 6 },
+              { name: 'Triển khai', progress: 30, tasks: 8 },
+              { name: 'Kiểm thử', progress: 0, tasks: 5 },
             ].map((stage, i) => (
-              <div key={i} className="bg-background rounded-lg border border-border/50 p-3">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-semibold text-foreground">{stage.name}</span>
-                  <span className="text-[10px] text-muted-foreground">{stage.tasks} tasks</span>
+              <div key={i} className="bg-background rounded-lg border border-border/50 p-2">
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="text-[10px] font-semibold text-foreground">{stage.name}</span>
+                  <span className="text-[9px] text-muted-foreground">{stage.tasks} tasks</span>
                 </div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${stage.progress === 100 ? 'bg-green-500' : stage.progress > 0 ? 'bg-primary' : 'bg-muted-foreground/20'}`}
-                      style={{ width: `${stage.progress}%` }}
-                    />
+                <div className="flex items-center gap-1.5">
+                  <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${stage.progress === 100 ? 'bg-green-500' : stage.progress > 0 ? 'bg-primary' : 'bg-muted-foreground/20'}`} style={{ width: `${stage.progress}%` }} />
                   </div>
-                  <span className="text-[10px] font-medium text-muted-foreground">{stage.progress}%</span>
+                  <span className="text-[9px] font-medium text-muted-foreground">{stage.progress}%</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">{stage.range}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Resource manager */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5 md:col-span-2" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            <FolderOpen className="w-3.5 h-3.5 inline mr-1.5" />
-            Quản lý tài nguyên dự án
+        {/* Resources */}
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3 md:col-span-2" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <FolderOpen className="w-3 h-3 inline mr-1" />Tài nguyên dự án
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-4 gap-2">
             {[
-              { icon: FolderOpen, name: 'Tài liệu', count: '12 files', size: '45 MB' },
-              { icon: FileText, name: 'Báo cáo', count: '3 files', size: '8.2 MB' },
-              { icon: Globe, name: 'Links', count: '7 links', size: '—' },
-              { icon: Upload, name: 'Minh chứng', count: '24 files', size: '120 MB' },
+              { icon: FolderOpen, name: 'Tài liệu', count: '12 files' },
+              { icon: FileText, name: 'Báo cáo', count: '3 files' },
+              { icon: Globe, name: 'Links', count: '7 links' },
+              { icon: Upload, name: 'Minh chứng', count: '24 files' },
             ].map((folder, i) => (
-              <div key={i} className="bg-background rounded-lg border border-border/50 p-3 flex items-center gap-3 hover:shadow-sm transition-shadow">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <folder.icon className="w-4 h-4 text-primary" />
+              <div key={i} className="bg-background rounded-lg border border-border/50 p-2 flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <folder.icon className="w-3.5 h-3.5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-foreground">{folder.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{folder.count} · {folder.size}</p>
+                  <p className="text-[10px] font-semibold text-foreground">{folder.name}</p>
+                  <p className="text-[9px] text-muted-foreground">{folder.count}</p>
                 </div>
               </div>
             ))}
@@ -520,158 +447,118 @@ function Page4Project() {
   );
 }
 
-function Page5Advanced() {
+function Page5Advanced({ images }: { images: IntroImages }) {
   return (
-    <div className="h-full flex flex-col gap-5">
-      <div className="space-y-1">
-        <h3 className="text-2xl font-bold text-foreground">Tính năng nâng cao</h3>
-        <p className="text-muted-foreground">Công cụ hỗ trợ chuyên nghiệp</p>
+    <div className="h-full flex flex-col gap-4">
+      <div className="h-[38%] min-h-[180px] flex-shrink-0" style={{ animation: 'fade-in 0.5s ease-out both' }}>
+        <IntroHeroImage
+          imageUrl={images.page5}
+          fallbackGradient="bg-gradient-to-br from-accent/15 via-primary/10 to-purple-500/10"
+          alt="Tính năng nâng cao AI và bảo mật"
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-        {/* Chat / Communication mockup */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 100ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            <MessageSquare className="w-3.5 h-3.5 inline mr-1.5" />
-            Giao tiếp nhóm
+      <div className="space-y-1">
+        <h3 className="text-2xl font-bold text-foreground">Tính năng nâng cao</h3>
+        <p className="text-sm text-muted-foreground">Công cụ hỗ trợ chuyên nghiệp</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
+        {/* Chat */}
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <MessageSquare className="w-3 h-3 inline mr-1" />Giao tiếp nhóm
           </p>
-          <div className="bg-background rounded-lg border border-border/50 p-3 space-y-2.5 max-h-[140px]">
-            {/* Chat bubbles */}
-            <div className="flex gap-2 items-start">
-              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                <span className="text-[8px] text-primary-foreground font-bold">A</span>
+          <div className="bg-background rounded-lg border border-border/50 p-2 space-y-1.5">
+            <div className="flex gap-1.5 items-start">
+              <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                <span className="text-[7px] text-primary-foreground font-bold">A</span>
               </div>
-              <div className="bg-primary/10 rounded-lg rounded-tl-sm px-2.5 py-1.5 max-w-[75%]">
-                <p className="text-[10px] text-foreground">Mọi người cập nhật tiến độ task tuần này nhé!</p>
-              </div>
-            </div>
-            <div className="flex gap-2 items-start flex-row-reverse">
-              <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-                <span className="text-[8px] font-bold">B</span>
-              </div>
-              <div className="bg-muted rounded-lg rounded-tr-sm px-2.5 py-1.5 max-w-[75%]">
-                <p className="text-[10px] text-foreground">Em đã hoàn thành phần <span className="text-primary font-medium">@An</span> giao ạ ✅</p>
+              <div className="bg-primary/10 rounded-lg px-2 py-1">
+                <p className="text-[9px] text-foreground">Cập nhật tiến độ tuần này nhé!</p>
               </div>
             </div>
-            <div className="flex gap-2 items-start">
-              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                <span className="text-[8px] text-white font-bold">C</span>
+            <div className="flex gap-1.5 items-start flex-row-reverse">
+              <div className="w-4 h-4 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+                <span className="text-[7px] font-bold">B</span>
               </div>
-              <div className="bg-primary/10 rounded-lg rounded-tl-sm px-2.5 py-1.5 max-w-[75%]">
-                <p className="text-[10px] text-foreground">Em cần thêm thời gian cho task "Thiết kế UI" 🙏</p>
+              <div className="bg-muted rounded-lg px-2 py-1">
+                <p className="text-[9px] text-foreground">Em đã hoàn thành ✅</p>
               </div>
             </div>
           </div>
-          <div className="flex gap-2 mt-2">
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-              <Bell className="w-3 h-3" />
-              Thông báo realtime
-            </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-              <MessageSquare className="w-3 h-3" />
-              @mention thành viên
-            </div>
+          <div className="flex gap-3 mt-1.5">
+            <span className="text-[9px] text-muted-foreground flex items-center gap-1"><Bell className="w-2.5 h-2.5" />Thông báo realtime</span>
+            <span className="text-[9px] text-muted-foreground flex items-center gap-1"><MessageSquare className="w-2.5 h-2.5" />@mention</span>
           </div>
         </div>
 
-        {/* AI Assistant mockup */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            <Zap className="w-3.5 h-3.5 inline mr-1.5" />
-            AI Assistant
+        {/* AI */}
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <Zap className="w-3 h-3 inline mr-1" />AI Assistant
           </p>
-          <div className="bg-background rounded-lg border border-border/50 p-3 space-y-2.5">
-            {/* User question */}
-            <div className="flex gap-2 items-start flex-row-reverse">
-              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                <span className="text-[8px] text-primary-foreground font-bold">?</span>
+          <div className="bg-background rounded-lg border border-border/50 p-2 space-y-1.5">
+            <div className="flex gap-1.5 items-start flex-row-reverse">
+              <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                <span className="text-[7px] text-primary-foreground font-bold">?</span>
               </div>
-              <div className="bg-muted rounded-lg px-2.5 py-1.5">
-                <p className="text-[10px] text-foreground">Nhóm mình tiến độ thế nào?</p>
+              <div className="bg-muted rounded-lg px-2 py-1">
+                <p className="text-[9px] text-foreground">Nhóm mình tiến độ thế nào?</p>
               </div>
             </div>
-            {/* AI response */}
-            <div className="flex gap-2 items-start">
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
-                <Zap className="w-2.5 h-2.5 text-white" />
+            <div className="flex gap-1.5 items-start">
+              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+                <Zap className="w-2 h-2 text-white" />
               </div>
-              <div className="bg-primary/5 border border-primary/10 rounded-lg px-2.5 py-1.5 flex-1">
-                <p className="text-[10px] text-foreground leading-relaxed">
-                  📊 Nhóm đã hoàn thành <span className="font-bold text-primary">8/12 tasks</span> (67%).
-                  <br />⚠️ Có <span className="font-bold text-destructive">2 tasks trễ deadline</span>.
-                  <br />💡 Nên ưu tiên task "Viết báo cáo" — deadline còn 3 ngày.
+              <div className="bg-primary/5 border border-primary/10 rounded-lg px-2 py-1 flex-1">
+                <p className="text-[9px] text-foreground leading-relaxed">
+                  📊 Hoàn thành <span className="font-bold text-primary">8/12 tasks</span> (67%)
+                  <br />⚠️ <span className="text-destructive font-bold">2 tasks trễ</span>
                 </p>
               </div>
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-2">Powered by Gemini AI — phân tích & gợi ý thông minh</p>
+          <p className="text-[9px] text-muted-foreground mt-1.5">Powered by Gemini AI</p>
         </div>
 
-        {/* Export reports */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            <FileText className="w-3.5 h-3.5 inline mr-1.5" />
-            Xuất báo cáo
-          </p>
-          <div className="space-y-2">
-            {[
-              { type: 'PDF', icon: '📄', name: 'Nhật ký hoạt động', desc: 'Log toàn bộ hành động nhóm', color: 'border-red-200 bg-red-50 dark:border-red-900/30 dark:bg-red-950/20' },
-              { type: 'Excel', icon: '📊', name: 'Bảng điểm chi tiết', desc: 'Điểm từng task, giai đoạn, tổng kết', color: 'border-green-200 bg-green-50 dark:border-green-900/30 dark:bg-green-950/20' },
-              { type: 'ZIP', icon: '📦', name: 'Minh chứng dự án', desc: 'Tổng hợp file nộp & tài nguyên', color: 'border-blue-200 bg-blue-50 dark:border-blue-900/30 dark:bg-blue-950/20' },
-            ].map((r, i) => (
-              <div key={i} className={`rounded-lg border p-3 flex items-center gap-3 ${r.color}`}>
-                <span className="text-lg">{r.icon}</span>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-xs font-semibold text-foreground">{r.name}</p>
-                    <span className="text-[9px] font-bold bg-background/80 px-1.5 py-0.5 rounded">{r.type}</span>
+        {/* Export + Security */}
+        <div className="bg-muted/30 border border-border/60 rounded-xl p-3 md:col-span-2" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                <FileText className="w-3 h-3 inline mr-1" />Xuất báo cáo
+              </p>
+              <div className="space-y-1">
+                {[
+                  { type: 'PDF', icon: '📄', name: 'Nhật ký hoạt động' },
+                  { type: 'Excel', icon: '📊', name: 'Bảng điểm chi tiết' },
+                  { type: 'ZIP', icon: '📦', name: 'Minh chứng dự án' },
+                ].map((r, i) => (
+                  <div key={i} className="flex items-center gap-2 py-1">
+                    <span className="text-sm">{r.icon}</span>
+                    <span className="text-[10px] font-medium text-foreground flex-1">{r.name}</span>
+                    <span className="text-[8px] font-bold bg-muted px-1.5 py-0.5 rounded">{r.type}</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">{r.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Backup & Restore */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-5" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            <Lock className="w-3.5 h-3.5 inline mr-1.5" />
-            Sao lưu & Bảo mật
-          </p>
-          <div className="space-y-3">
-            {/* Backup visual */}
-            <div className="bg-background rounded-lg border border-border/50 p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center">
-                  <Upload className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-foreground">Backup toàn bộ</p>
-                  <p className="text-[10px] text-muted-foreground">Xuất file ZIP chứa mọi dữ liệu</p>
-                </div>
-              </div>
-              <div className="flex gap-1.5">
-                {['Tasks', 'Scores', 'Files', 'Logs'].map((item) => (
-                  <span key={item} className="text-[9px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">{item}</span>
                 ))}
               </div>
             </div>
-            {/* Security layers */}
-            <div className="space-y-1.5">
-              {[
-                { label: 'Row Level Security', desc: 'Bảo vệ dữ liệu ở cấp database' },
-                { label: 'Role-based Access', desc: 'Phân quyền Admin / Leader / Member' },
-                { label: 'Activity Logging', desc: 'Ghi log mọi thay đổi hệ thống' },
-              ].map((s, i) => (
-                <div key={i} className="flex items-center gap-2 py-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                  <div>
-                    <span className="text-[11px] font-medium text-foreground">{s.label}</span>
-                    <span className="text-[10px] text-muted-foreground ml-1.5">— {s.desc}</span>
+            <div>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                <Lock className="w-3 h-3 inline mr-1" />Bảo mật
+              </p>
+              <div className="space-y-1">
+                {[
+                  'Row Level Security',
+                  'Role-based Access',
+                  'Activity Logging',
+                ].map((s, i) => (
+                  <div key={i} className="flex items-center gap-1.5 py-0.5">
+                    <CheckCircle2 className="w-3 h-3 text-green-500 flex-shrink-0" />
+                    <span className="text-[10px] text-foreground">{s}</span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -684,6 +571,7 @@ const introPageComponents = [Page1Overview, Page2Tasks, Page3Scoring, Page4Proje
 
 export default function Landing() {
   const [isInitializing, setIsInitializing] = useState(false);
+  const [introImages, setIntroImages] = useState<IntroImages>({});
   const [showIntro, setShowIntro] = useState(false);
   const [introVisible, setIntroVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -692,22 +580,24 @@ export default function Landing() {
   const [videoOpacity, setVideoOpacity] = useState(0);
   const [videoUrl, setVideoUrl] = useState('');
 
-  // Fetch video background settings
+  // Fetch video background settings + intro images
   useEffect(() => {
-    const fetchVideoSettings = async () => {
-      const { data } = await supabase
-        .from('system_settings')
-        .select('value')
-        .eq('key', 'dashboard_video_bg')
-        .maybeSingle();
-      if (data?.value) {
-        const val = data.value as { enabled?: boolean; landing_opacity?: number; opacity?: number; url?: string };
+    const fetchSettings = async () => {
+      const [videoRes, imagesRes] = await Promise.all([
+        supabase.from('system_settings').select('value').eq('key', 'dashboard_video_bg').maybeSingle(),
+        supabase.from('system_settings').select('value').eq('key', 'intro_images').maybeSingle(),
+      ]);
+      if (videoRes.data?.value) {
+        const val = videoRes.data.value as { enabled?: boolean; landing_opacity?: number; opacity?: number; url?: string };
         setVideoEnabled(val.enabled ?? false);
         setVideoOpacity(val.landing_opacity ?? val.opacity ?? 0.2);
         setVideoUrl(val.url ?? '');
       }
+      if (imagesRes.data?.value) {
+        setIntroImages(imagesRes.data.value as IntroImages);
+      }
     };
-    fetchVideoSettings();
+    fetchSettings();
   }, []);
 
   const openIntro = () => {
@@ -946,7 +836,7 @@ export default function Landing() {
               <div key={currentPage} className="p-6 h-full" style={{
                 animation: pageDirection === 'next' ? 'slide-in-from-right 0.35s ease-out both' : 'slide-in-from-left 0.35s ease-out both',
               }}>
-                <PageComponent />
+                <PageComponent images={introImages} />
               </div>
             </div>
 
