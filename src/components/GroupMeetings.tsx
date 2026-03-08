@@ -27,6 +27,7 @@ interface GroupMeetingsProps {
   stages: Stage[];
   members: GroupMember[];
   isLeader: boolean;
+  onRefreshTasks?: () => void;
 }
 
 export default function GroupMeetings({ groupId, groupName, stages, members, isLeader }: GroupMeetingsProps) {
