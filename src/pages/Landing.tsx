@@ -755,7 +755,7 @@ export default function Landing() {
   const pageTitles = ['Tổng quan', 'Task', 'Chấm điểm', 'Dự án', 'Nâng cao'];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col relative">
+    <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
       {/* Video Background */}
       {videoEnabled && videoUrl && (
         <>
