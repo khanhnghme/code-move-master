@@ -30,7 +30,7 @@ interface GroupMeetingsProps {
   onRefreshTasks?: () => void;
 }
 
-export default function GroupMeetings({ groupId, groupName, stages, members, isLeader }: GroupMeetingsProps) {
+export default function GroupMeetings({ groupId, groupName, stages, members, isLeader, onRefreshTasks }: GroupMeetingsProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
