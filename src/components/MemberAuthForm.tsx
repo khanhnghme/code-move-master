@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn, FileText, Shield, KeyRound } from 'lucide-react';
@@ -19,6 +19,7 @@ import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Vui lòng nhập Mã số sinh viên'),
