@@ -580,22 +580,24 @@ export default function Landing() {
   const [videoOpacity, setVideoOpacity] = useState(0);
   const [videoUrl, setVideoUrl] = useState('');
 
-  // Fetch video background settings
+  // Fetch video background settings + intro images
   useEffect(() => {
-    const fetchVideoSettings = async () => {
-      const { data } = await supabase
-        .from('system_settings')
-        .select('value')
-        .eq('key', 'dashboard_video_bg')
-        .maybeSingle();
-      if (data?.value) {
-        const val = data.value as { enabled?: boolean; landing_opacity?: number; opacity?: number; url?: string };
+    const fetchSettings = async () => {
+      const [videoRes, imagesRes] = await Promise.all([
+        supabase.from('system_settings').select('value').eq('key', 'dashboard_video_bg').maybeSingle(),
+        supabase.from('system_settings').select('value').eq('key', 'intro_images').maybeSingle(),
+      ]);
+      if (videoRes.data?.value) {
+        const val = videoRes.data.value as { enabled?: boolean; landing_opacity?: number; opacity?: number; url?: string };
         setVideoEnabled(val.enabled ?? false);
         setVideoOpacity(val.landing_opacity ?? val.opacity ?? 0.2);
         setVideoUrl(val.url ?? '');
       }
+      if (imagesRes.data?.value) {
+        setIntroImages(imagesRes.data.value as IntroImages);
+      }
     };
-    fetchVideoSettings();
+    fetchSettings();
   }, []);
 
   const openIntro = () => {
