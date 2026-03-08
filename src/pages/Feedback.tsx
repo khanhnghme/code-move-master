@@ -655,12 +655,64 @@ export default function FeedbackPage() {
                     <CardContent className="pt-0 pb-4 space-y-4">
                       {/* Title */}
                       <div className="space-y-2">
-                        <h3 className="text-lg font-semibold text-foreground leading-tight">
-                          {feedback.title}
-                        </h3>
+                        <div className="flex items-start gap-2">
+                          <Badge variant="outline" className="shrink-0 mt-0.5 font-mono text-xs px-2 py-0.5 bg-primary/10 text-primary border-primary/20">
+                            #{feedbacks.length - index}
+                          </Badge>
+                          <h3 className="text-lg font-semibold text-foreground leading-tight">
+                            {feedback.title}
+                          </h3>
+                        </div>
                         <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">
                           {feedback.content}
                         </p>
+                      </div>
+
+                      {/* Reactions + Divider */}
+                      <div className="flex items-center gap-3 pt-1">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`gap-1.5 h-8 px-3 rounded-full transition-all ${
+                                  feedback.my_reaction === 'useful'
+                                    ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                                    : 'text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10'
+                                }`}
+                                onClick={() => handleReaction(feedback.id, 'useful')}
+                              >
+                                <ThumbsUp className={`w-4 h-4 ${feedback.my_reaction === 'useful' ? 'fill-current' : ''}`} />
+                                <span className="text-xs font-medium">{feedback.useful_count || 0}</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Bổ ích</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`gap-1.5 h-8 px-3 rounded-full transition-all ${
+                                  feedback.my_reaction === 'not_useful'
+                                    ? 'bg-destructive/15 text-destructive hover:bg-destructive/25'
+                                    : 'text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+                                }`}
+                                onClick={() => handleReaction(feedback.id, 'not_useful')}
+                              >
+                                <ThumbsDown className={`w-4 h-4 ${feedback.my_reaction === 'not_useful' ? 'fill-current' : ''}`} />
+                                <span className="text-xs font-medium">{feedback.not_useful_count || 0}</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Chưa hữu ích</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <div className="flex-1" />
                       </div>
 
                       {/* Divider */}
