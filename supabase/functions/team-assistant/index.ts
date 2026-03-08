@@ -709,6 +709,36 @@ async function fetchProjectContext(
       assignedTasks: (tasks || [])
         .filter((t: any) => assignments?.some((a: any) => a.task_id === t.id && a.user_id === userId))
         .map((t: any) => `"${t.title}"`),
+      taskScores: userTaskScores.map((s: any) => {
+        const task = tasks?.find((t: any) => t.id === s.task_id);
+        return {
+          taskTitle: task?.title || 'Không rõ',
+          stageName: task?.stage_id ? stageMap.get(task.stage_id) || null : null,
+          baseScore: s.base_score,
+          latePenalty: s.late_penalty,
+          reviewPenalty: s.review_penalty,
+          earlyBonus: s.early_bonus,
+          bugHunterBonus: s.bug_hunter_bonus,
+          adjustment: s.adjustment,
+          adjustmentReason: s.adjustment_reason,
+          finalScore: s.final_score,
+        };
+      }),
+      stageScores: userStageScores.map((s: any) => ({
+        stageName: stageMap.get(s.stage_id) || 'Không rõ',
+        averageScore: s.average_score,
+        lateTaskCount: s.late_task_count,
+        earlySubmissionBonus: s.early_submission_bonus,
+        bugHunterBonus: s.bug_hunter_bonus,
+        kCoefficient: s.k_coefficient,
+        adjustedScore: s.adjusted_score,
+        finalStageScore: s.final_stage_score,
+      })),
+      finalScore: userFinalScore ? {
+        weightedAverage: userFinalScore.weighted_average,
+        adjustment: userFinalScore.adjustment,
+        finalScore: userFinalScore.final_score,
+      } : null,
     },
   };
 }
