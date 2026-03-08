@@ -45,6 +45,36 @@ interface MeetingData {
   isPast: boolean;
 }
 
+interface ScoreData {
+  taskTitle: string;
+  stageName: string | null;
+  baseScore: number;
+  latePenalty: number;
+  reviewPenalty: number;
+  earlyBonus: boolean;
+  bugHunterBonus: boolean;
+  adjustment: number | null;
+  adjustmentReason: string | null;
+  finalScore: number | null;
+}
+
+interface StageScoreData {
+  stageName: string;
+  averageScore: number | null;
+  lateTaskCount: number;
+  earlySubmissionBonus: boolean;
+  bugHunterBonus: boolean;
+  kCoefficient: number | null;
+  adjustedScore: number | null;
+  finalStageScore: number | null;
+}
+
+interface FinalScoreData {
+  weightedAverage: number | null;
+  adjustment: number | null;
+  finalScore: number | null;
+}
+
 interface ProjectContext {
   project: {
     id: string;
@@ -71,6 +101,9 @@ interface ProjectContext {
     name: string;
     role: string;
     assignedTasks: string[];
+    taskScores: ScoreData[];
+    stageScores: StageScoreData[];
+    finalScore: FinalScoreData | null;
   };
 }
 
