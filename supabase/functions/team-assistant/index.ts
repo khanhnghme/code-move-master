@@ -107,6 +107,53 @@ interface ProjectContext {
   };
 }
 
+function buildUserScoresSection(currentUser: ProjectContext['currentUser']): string {
+  const lines: string[] = [];
+
+  if (currentUser.taskScores.length === 0 && currentUser.stageScores.length === 0 && !currentUser.finalScore) {
+    return '(Chưa có dữ liệu điểm)';
+  }
+
+  if (currentUser.taskScores.length > 0) {
+    lines.push('  [Điểm theo công việc]');
+    for (const s of currentUser.taskScores) {
+      const bonuses: string[] = [];
+      if (s.earlyBonus) bonuses.push('Nộp sớm');
+      if (s.bugHunterBonus) bonuses.push('Bug Hunter');
+      const bonusStr = bonuses.length > 0 ? ` | Bonus: ${bonuses.join(', ')}` : '';
+      const penaltyStr = (s.latePenalty > 0 || s.reviewPenalty > 0)
+        ? ` | Trừ: ${s.latePenalty > 0 ? `trễ -${s.latePenalty}` : ''}${s.reviewPenalty > 0 ? ` review -${s.reviewPenalty}` : ''}`
+        : '';
+      const adjStr = s.adjustment ? ` | Điều chỉnh: ${s.adjustment > 0 ? '+' : ''}${s.adjustment}${s.adjustmentReason ? ` (${s.adjustmentReason})` : ''}` : '';
+      const stage = s.stageName ? ` [${s.stageName}]` : '';
+      lines.push(`    - "${s.taskTitle}"${stage}: Điểm gốc ${s.baseScore}${penaltyStr}${bonusStr}${adjStr} → Điểm cuối: ${s.finalScore ?? 'Chưa tính'}`);
+    }
+  }
+
+  if (currentUser.stageScores.length > 0) {
+    lines.push('  [Điểm theo giai đoạn]');
+    for (const s of currentUser.stageScores) {
+      const bonuses: string[] = [];
+      if (s.earlySubmissionBonus) bonuses.push('Nộp sớm');
+      if (s.bugHunterBonus) bonuses.push('Bug Hunter');
+      const bonusStr = bonuses.length > 0 ? ` | Bonus: ${bonuses.join(', ')}` : '';
+      const kStr = s.kCoefficient !== null && s.kCoefficient !== 1 ? ` | Hệ số K: ${s.kCoefficient}` : '';
+      lines.push(`    - "${s.stageName}": TB ${s.averageScore ?? '?'}${bonusStr}${kStr} → Điểm giai đoạn: ${s.finalStageScore ?? 'Chưa tính'}`);
+      if (s.lateTaskCount > 0) lines.push(`      ⚠️ ${s.lateTaskCount} task nộp trễ`);
+    }
+  }
+
+  if (currentUser.finalScore) {
+    const adj = currentUser.finalScore.adjustment
+      ? ` | Điều chỉnh: ${currentUser.finalScore.adjustment > 0 ? '+' : ''}${currentUser.finalScore.adjustment}`
+      : '';
+    lines.push(`  [Điểm tổng kết]`);
+    lines.push(`    TB có trọng số: ${currentUser.finalScore.weightedAverage ?? '?'}${adj} → Điểm cuối: ${currentUser.finalScore.finalScore ?? 'Chưa tính'}`);
+  }
+
+  return lines.join('\n');
+}
+
 function getStatusLabel(status: string): string {
   const statusMap: Record<string, string> = {
     'TODO': 'Chờ thực hiện',
