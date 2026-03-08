@@ -48,6 +48,17 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
     setAlreadyMember(false);
   };
 
+  const fetchJoinStats = async (groupId: string) => {
+    const { data } = await (supabase as any)
+      .rpc('get_group_member_count_for_join', { _group_id: groupId })
+      .maybeSingle();
+
+    return {
+      memberCount: Number(data?.member_count ?? 0),
+      joinMemberLimit: data?.join_member_limit ?? null,
+    };
+  };
+
   const handleLookup = async () => {
     if (!user) return;
     if (code.length !== 4 || !/^\d{4}$/.test(code)) {
