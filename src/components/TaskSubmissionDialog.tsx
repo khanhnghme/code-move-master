@@ -117,7 +117,7 @@ export default function TaskSubmissionDialog({
   viewOnly = false,
 }: TaskSubmissionDialogProps) {
   const { toast } = useToast();
-  const { user, profile } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('requirements');
   
@@ -130,15 +130,16 @@ export default function TaskSubmissionDialog({
   const [taskScore, setTaskScore] = useState<TaskScore | null>(null);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
 
-  // Storage usage check
-  const storageUsage = useStorageUsage(user?.id, profile?.storage_limit_mb);
+  // Storage usage check - admin bypasses storage limit
+  const storageUsage = useStorageUsage(user?.id, isAdmin ? null : profile?.storage_limit_mb);
+  const isStorageBlocked = storageUsage.isOverLimit && !isAdmin;
 
   // Get max file size and submission method from task
   const taskWithSize = task as (Task & { max_file_size?: number }) | null;
   const maxFileSize = taskWithSize?.max_file_size || DEFAULT_MAX_FILE_SIZE;
   const submissionMethod: string = (task as any)?.submission_method || 'both';
-  const allowFileUpload = submissionMethod === 'both' || submissionMethod === 'file_only';
-  const allowLinkSubmission = submissionMethod === 'both' || submissionMethod === 'link_only';
+  const allowFileUpload = (submissionMethod === 'both' || submissionMethod === 'file_only') && !isStorageBlocked;
+  const allowLinkSubmission = submissionMethod === 'both' || submissionMethod === 'link_only' || isStorageBlocked;
 
   // Handle extended deadline
   const taskWithExtended = task as (Task & { extended_deadline?: string; extended_at?: string }) | null;
@@ -903,31 +904,30 @@ export default function TaskSubmissionDialog({
 
                     {/* Layout - File Upload & Links */}
                     <div className={`grid gap-4 ${allowFileUpload && allowLinkSubmission ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-                      {/* Method 1: File Upload */}
                       {allowFileUpload && <div className={`rounded-xl border-2 overflow-hidden flex flex-col ${
-                        storageUsage.isOverLimit 
+                        isStorageBlocked 
                           ? 'border-destructive/40 bg-gradient-to-br from-destructive/5 to-background opacity-80' 
                           : 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-background'
                       }`}>
                         {/* Method Header */}
                         <div className={`px-3 py-2 border-b shrink-0 ${
-                          storageUsage.isOverLimit 
+                          isStorageBlocked 
                             ? 'bg-destructive/10 border-destructive/20' 
                             : 'bg-emerald-500/10 border-emerald-500/20'
                         }`}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Badge className={`border-0 text-[10px] px-1.5 font-bold ${
-                                storageUsage.isOverLimit ? 'bg-destructive text-white' : 'bg-emerald-600 text-white'
+                                isStorageBlocked ? 'bg-destructive text-white' : 'bg-emerald-600 text-white'
                               }`}>
                                 Cách 1
                               </Badge>
                               <div className={`p-1.5 rounded-lg border ${
-                                storageUsage.isOverLimit 
+                                isStorageBlocked 
                                   ? 'bg-destructive/20 border-destructive/30' 
                                   : 'bg-emerald-500/20 border-emerald-500/30'
                               }`}>
-                                <HardDrive className={`w-3.5 h-3.5 ${storageUsage.isOverLimit ? 'text-destructive' : 'text-emerald-600'}`} />
+                                <HardDrive className={`w-3.5 h-3.5 ${isStorageBlocked ? 'text-destructive' : 'text-emerald-600'}`} />
                               </div>
                               <div>
                                 <h4 className="text-xs font-bold text-foreground">Tải file lên</h4>
@@ -935,7 +935,7 @@ export default function TaskSubmissionDialog({
                               </div>
                             </div>
                             <Badge className={`text-[9px] px-1.5 ${
-                              storageUsage.isOverLimit 
+                              isStorageBlocked 
                                 ? 'bg-destructive/15 text-destructive border-destructive/30' 
                                 : 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30'
                             }`}>
@@ -945,7 +945,7 @@ export default function TaskSubmissionDialog({
                         </div>
 
                         {/* Storage Usage Bar */}
-                        {!storageUsage.isLoading && (
+                        {!storageUsage.isLoading && !isAdmin && (
                           <div className="px-3 py-2 border-b border-border/30 bg-muted/20">
                             <div className="flex items-center gap-2 mb-1">
                               <Database className="w-3 h-3 text-muted-foreground" />
@@ -965,38 +965,38 @@ export default function TaskSubmissionDialog({
                           </div>
                         )}
 
-                        {/* Upload Area or Blocked Message */}
+                        {/* Upload Area */}
                         <div className="p-3 flex-1 min-h-[250px]">
-                          {storageUsage.isOverLimit ? (
-                            <div className="h-full flex flex-col items-center justify-center text-center px-4">
-                              <div className="p-3 rounded-full bg-destructive/10 mb-3">
-                                <ShieldAlert className="w-8 h-8 text-destructive" />
-                              </div>
-                              <h4 className="text-sm font-bold text-destructive mb-1">Đã đạt giới hạn dung lượng</h4>
-                              <p className="text-xs text-muted-foreground mb-3 max-w-[280px] leading-relaxed">
-                                Bạn đã sử dụng hết {storageUsage.limitMB}MB dung lượng lưu trữ. 
-                                Không thể tải thêm file lên hệ thống.
-                              </p>
-                              <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 px-4 py-2.5">
-                                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-2">
-                                  <Globe className="w-4 h-4 shrink-0" />
-                                  Vui lòng sử dụng <strong>Cách 2 - Dán liên kết</strong> để nộp bài
-                                </p>
-                              </div>
-                            </div>
-                          ) : (
-                            <MultiFileUploadSubmission
-                              onFilesChanged={setUploadedFiles}
-                              uploadedFiles={uploadedFiles}
-                              userId={user?.id || ''}
-                              taskId={task?.id || ''}
-                              disabled={!canSubmit}
-                              compact
-                              maxTotalSize={maxFileSize}
-                            />
-                          )}
+                          <MultiFileUploadSubmission
+                            onFilesChanged={setUploadedFiles}
+                            uploadedFiles={uploadedFiles}
+                            userId={user?.id || ''}
+                            taskId={task?.id || ''}
+                            disabled={!canSubmit}
+                            compact
+                            maxTotalSize={maxFileSize}
+                          />
                         </div>
                       </div>}
+
+                      {/* Storage Over Limit Notice - shown when file_only task but storage blocked */}
+                      {isStorageBlocked && submissionMethod === 'file_only' && (
+                        <div className="rounded-xl border-2 border-destructive/30 bg-destructive/5 p-4 flex flex-col items-center justify-center text-center">
+                          <div className="p-3 rounded-full bg-destructive/10 mb-3">
+                            <ShieldAlert className="w-8 h-8 text-destructive" />
+                          </div>
+                          <h4 className="text-sm font-bold text-destructive mb-1">Đã đạt giới hạn dung lượng</h4>
+                          <p className="text-xs text-muted-foreground mb-3 max-w-[280px] leading-relaxed">
+                            Bạn đã sử dụng hết {storageUsage.limitMB}MB. Task này chỉ cho phép tải file nhưng dung lượng đã hết.
+                          </p>
+                          <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 px-4 py-2.5">
+                            <p className="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-2">
+                              <Globe className="w-4 h-4 shrink-0" />
+                              Hệ thống đã mở <strong>Cách 2 - Dán liên kết</strong> để bạn tiếp tục nộp bài
+                            </p>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Method 2: External Links */}
                       {allowLinkSubmission && <div className="rounded-xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-background overflow-hidden flex flex-col">

@@ -503,6 +503,37 @@ export default function GroupDetail() {
                                   </Label>
                                   <DeadlineHourPicker value={newTaskDeadline} onChange={setNewTaskDeadline} placeholder="Chọn deadline..." />
                                 </div>
+                                <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/20">
+                                  <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+                                    <Send className="w-3.5 h-3.5" />
+                                    Cách nộp bài
+                                  </Label>
+                                  <Select value={newTaskSubmissionMethod} onValueChange={setNewTaskSubmissionMethod}>
+                                    <SelectTrigger className="h-9 bg-background/80 border-indigo-500/30">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="both">
+                                        <span className="flex items-center gap-2">
+                                          <span className="w-2 h-2 rounded-full bg-primary" />
+                                          Cả hai cách (mặc định)
+                                        </span>
+                                      </SelectItem>
+                                      <SelectItem value="file_only">
+                                        <span className="flex items-center gap-2">
+                                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                          Chỉ tải file lên
+                                        </span>
+                                      </SelectItem>
+                                      <SelectItem value="link_only">
+                                        <span className="flex items-center gap-2">
+                                          <span className="w-2 h-2 rounded-full bg-blue-500" />
+                                          Chỉ dán liên kết
+                                        </span>
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                                 <div className="p-3 rounded-lg bg-muted/50 border border-border">
                                   <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-muted-foreground">
                                     <FileText className="w-3.5 h-3.5" />
@@ -510,39 +541,6 @@ export default function GroupDetail() {
                                   </Label>
                                   <FileSizeLimitSelector value={newTaskMaxFileSize} onChange={setNewTaskMaxFileSize} />
                                 </div>
-                              </div>
-
-                              {/* Submission Method */}
-                              <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/20">
-                                <Label className="text-xs font-semibold mb-2 block flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
-                                  <Send className="w-3.5 h-3.5" />
-                                  Cách nộp bài cho phép
-                                </Label>
-                                <Select value={newTaskSubmissionMethod} onValueChange={setNewTaskSubmissionMethod}>
-                                  <SelectTrigger className="h-9 bg-background/80 border-indigo-500/30">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="both">
-                                      <span className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-primary" />
-                                        Cả hai cách (mặc định)
-                                      </span>
-                                    </SelectItem>
-                                    <SelectItem value="file_only">
-                                      <span className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                                        Chỉ tải file lên
-                                      </span>
-                                    </SelectItem>
-                                    <SelectItem value="link_only">
-                                      <span className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-blue-500" />
-                                        Chỉ dán liên kết
-                                      </span>
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
                               </div>
 
                               {/* Description - Fill remaining space */}

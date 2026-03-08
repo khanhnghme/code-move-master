@@ -19,8 +19,8 @@ export function useStorageUsage(userId: string | undefined, storageLimitMb?: num
   const [usedBytes, setUsedBytes] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const limitMB = storageLimitMb ?? DEFAULT_STORAGE_LIMIT_MB;
-  const limitBytes = limitMB * 1024 * 1024;
+  const limitMB = storageLimitMb === null ? Infinity : (storageLimitMb ?? DEFAULT_STORAGE_LIMIT_MB);
+  const limitBytes = limitMB === Infinity ? Infinity : limitMB * 1024 * 1024;
 
   useEffect(() => {
     if (!userId) {
