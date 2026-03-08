@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 import UserAvatar from '@/components/UserAvatar';
 import DashboardProjectCard from '@/components/dashboard/DashboardProjectCard';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,8 @@ import {
   Star,
   User,
   KeyRound,
+  Video,
+  Eye,
 } from 'lucide-react';
 import type { Group } from '@/types/database';
 
@@ -31,8 +34,9 @@ export default function Dashboard() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
+  const [videoOpacity, setVideoOpacity] = useState(0.2);
+  const [showVideoControls, setShowVideoControls] = useState(false);
   const { isConnected } = useUserPresence('system-global');
-
   useEffect(() => {
     if (user) {
       fetchDashboardData();
@@ -108,6 +112,50 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
+      {/* Video Background */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="fixed inset-0 w-full h-full object-cover pointer-events-none"
+        style={{ opacity: videoOpacity, zIndex: 0 }}
+        src=""
+      />
+      {/* Dark overlay on top of video */}
+      <div
+        className="fixed inset-0 bg-background/60 pointer-events-none"
+        style={{ zIndex: 1 }}
+      />
+
+      {/* Video opacity control - floating bottom right */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 rounded-full bg-card/80 backdrop-blur-sm border border-border shadow-lg"
+          onClick={() => setShowVideoControls(!showVideoControls)}
+        >
+          <Eye className="w-4 h-4" />
+        </Button>
+        {showVideoControls && (
+          <div className="absolute bottom-12 right-0 bg-card/90 backdrop-blur-md border border-border rounded-xl p-4 shadow-xl w-56 space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Video className="w-4 h-4" />
+              <span>Độ mờ video nền</span>
+            </div>
+            <Slider
+              value={[videoOpacity * 100]}
+              onValueChange={(v) => setVideoOpacity(v[0] / 100)}
+              min={0}
+              max={100}
+              step={5}
+            />
+            <p className="text-xs text-muted-foreground text-center">{Math.round(videoOpacity * 100)}%</p>
+          </div>
+        )}
+      </div>
+
       {/* First-time onboarding: Password change + Avatar upload */}
       {user && profile && mustChangePassword && (
         <FirstTimeOnboarding
@@ -120,7 +168,7 @@ export default function Dashboard() {
         />
       )}
 
-      <div className="space-y-8">
+      <div className="relative space-y-8" style={{ zIndex: 2 }}>
         {/* Welcome Section - More Prominent */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-8 text-primary-foreground">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -226,4 +274,3 @@ export default function Dashboard() {
     </DashboardLayout>
   );
 }
-
