@@ -6,10 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn } from 'lucide-react';
+import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn, FileText, Shield } from 'lucide-react';
 import { UEHLogo } from '@/components/UEHLogo';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
