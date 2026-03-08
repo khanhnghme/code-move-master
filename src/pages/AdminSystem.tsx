@@ -490,10 +490,21 @@ export default function AdminSystem() {
                 </Tabs>
 
                 <div>
-                  <Label className="text-xs text-muted-foreground">Độ hiển thị: {videoBgOpacity}%</Label>
+                  <Label className="text-xs text-muted-foreground">Độ hiển thị trang Sảnh chính: {videoBgLandingOpacity}%</Label>
                   <Slider
-                    value={[videoBgOpacity]}
-                    onValueChange={(v) => setVideoBgOpacity(v[0])}
+                    value={[videoBgLandingOpacity]}
+                    onValueChange={(v) => setVideoBgLandingOpacity(v[0])}
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Độ hiển thị trang Dashboard: {videoBgDashboardOpacity}%</Label>
+                  <Slider
+                    value={[videoBgDashboardOpacity]}
+                    onValueChange={(v) => setVideoBgDashboardOpacity(v[0])}
                     min={0}
                     max={100}
                     step={5}
@@ -506,7 +517,7 @@ export default function AdminSystem() {
                   onClick={async () => {
                     setSavingVideo(true);
                     try {
-                      const value = { enabled: videoBgEnabled, opacity: videoBgOpacity / 100, url: videoBgUrl };
+                      const value = { enabled: videoBgEnabled, landing_opacity: videoBgLandingOpacity / 100, dashboard_opacity: videoBgDashboardOpacity / 100, url: videoBgUrl };
                       const { data: existing } = await supabase
                         .from('system_settings')
                         .select('id')
