@@ -74,6 +74,9 @@ interface Feedback {
   user_student_id?: string;
   user_avatar_url?: string;
   comment_count?: number;
+  useful_count?: number;
+  not_useful_count?: number;
+  my_reaction?: 'useful' | 'not_useful' | null;
 }
 
 interface FeedbackComment {
