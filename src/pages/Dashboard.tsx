@@ -164,7 +164,30 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
+
+          <Card
+            className="bg-gradient-to-br from-accent/5 to-transparent border-accent/20 cursor-pointer hover:border-accent/40 transition-colors"
+            onClick={() => setShowJoinDialog(true)}
+          >
+            <CardContent className="p-5">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+                  <KeyRound className="w-6 h-6 text-accent" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-accent">Nhập mã</p>
+                  <p className="text-sm text-muted-foreground">Tham gia Project</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        <JoinByCodeDialog
+          open={showJoinDialog}
+          onOpenChange={setShowJoinDialog}
+          onJoined={fetchDashboardData}
+        />
 
         {/* My Projects - Simplified without members */}
         <Card>

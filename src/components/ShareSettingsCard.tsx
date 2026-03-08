@@ -29,6 +29,10 @@ function generateToken(): string {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
+function generateJoinCode(): string {
+  return Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+}
+
 export default function ShareSettingsCard({
   groupId,
   isPublic,
