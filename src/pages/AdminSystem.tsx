@@ -431,7 +431,7 @@ export default function AdminSystem() {
                   </div>
                   <Switch
                     checked={driveEnabled}
-                    disabled={savingDrive || (!driveEnabled && !(driveApiKey.trim() && driveClientId.trim()))}
+                    disabled={savingDrive}
                     onCheckedChange={handleToggleDrive}
                   />
                 </div>
@@ -441,13 +441,8 @@ export default function AdminSystem() {
                   Cho phép thành viên upload file lên Google Drive cá nhân thay vì dùng dung lượng hệ thống.
                 </p>
                 <p className="text-[11px] text-muted-foreground">
-                  API Key và OAuth Client ID đã chuyển sang cấu hình nội bộ, không còn nhập ở trang Quản trị.
+                  API Key và OAuth Client ID được quản lý nội bộ qua hệ thống bảo mật.
                 </p>
-                {!driveApiKey.trim() || !driveClientId.trim() ? (
-                  <p className="text-xs text-destructive">
-                    Chưa có cấu hình khóa Google Drive trong hệ thống nên chưa thể bật.
-                  </p>
-                ) : null}
               </CardContent>
             </Card>
           </div>
