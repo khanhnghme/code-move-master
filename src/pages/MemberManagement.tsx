@@ -184,6 +184,7 @@ export default function MemberManagement() {
     if (isAdmin) {
       fetchMembers();
       fetchPendingMembers();
+      fetchAutoApprove();
     }
   }, [authLoading, isAdmin, navigate]);
 
