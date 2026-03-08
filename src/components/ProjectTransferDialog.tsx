@@ -48,45 +48,93 @@ export default function ProjectTransferDialog({
   useEffect(() => {
     if (open && ownedGroups.length > 0 && member) {
       setLoading(true);
-      Promise.all(
-        ownedGroups.map(async (g) => {
-          // Fetch group members (excluding the member being demoted)
-          const { data: memberData } = await supabase
-            .from('group_members')
-            .select('user_id, role')
-            .eq('group_id', g.id)
-            .neq('user_id', member.id);
-          
-          if (!memberData || memberData.length === 0) {
-            return { groupId: g.id, members: [] };
-          }
-
-          // Fetch profiles separately
-          const userIds = memberData.map(m => m.user_id);
-          const { data: profilesData } = await supabase
+      
+      // Fetch admin users first
+      const fetchAdmins = async () => {
+        const { data: adminRoles } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'admin');
+        const adminIds = (adminRoles || []).map(r => r.user_id);
+        let adminProfiles: Record<string, { full_name: string; avatar_url: string | null }> = {};
+        if (adminIds.length > 0) {
+          const { data: profiles } = await supabase
             .from('profiles')
             .select('id, full_name, avatar_url')
-            .in('id', userIds);
-
-          const profilesMap: Record<string, { full_name: string; avatar_url: string | null }> = {};
-          (profilesData || []).forEach(p => {
-            profilesMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url };
+            .in('id', adminIds);
+          (profiles || []).forEach(p => {
+            adminProfiles[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url };
           });
+        }
+        return { adminIds, adminProfiles };
+      };
 
-          return {
-            groupId: g.id,
-            members: memberData.map(d => ({
+      fetchAdmins().then(async ({ adminIds, adminProfiles }) => {
+        const results = await Promise.all(
+          ownedGroups.map(async (g) => {
+            const { data: memberData } = await supabase
+              .from('group_members')
+              .select('user_id, role')
+              .eq('group_id', g.id)
+              .neq('user_id', member.id);
+
+            const groupUserIds = (memberData || []).map(m => m.user_id);
+            
+            // Fetch profiles for group members
+            let profilesMap: Record<string, { full_name: string; avatar_url: string | null }> = {};
+            if (groupUserIds.length > 0) {
+              const { data: profilesData } = await supabase
+                .from('profiles')
+                .select('id, full_name, avatar_url')
+                .in('id', groupUserIds);
+              (profilesData || []).forEach(p => {
+                profilesMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url };
+              });
+            }
+
+            // Build members list from group members
+            const members: GroupMemberInfo[] = (memberData || []).map(d => ({
               user_id: d.user_id,
               full_name: profilesMap[d.user_id]?.full_name || 'Unknown',
               avatar_url: profilesMap[d.user_id]?.avatar_url || null,
               role: d.role,
-            })),
-          };
-        })
-      ).then(results => {
+            }));
+
+            // Add admin(s) who are not already in the group and not the member being demoted
+            adminIds.forEach(adminId => {
+              if (adminId !== member.id && !groupUserIds.includes(adminId)) {
+                members.unshift({
+                  user_id: adminId,
+                  full_name: adminProfiles[adminId]?.full_name || 'Admin',
+                  avatar_url: adminProfiles[adminId]?.avatar_url || null,
+                  role: 'admin',
+                });
+              }
+            });
+
+            // Move admins to top of list
+            members.sort((a, b) => {
+              const aIsAdmin = adminIds.includes(a.user_id) ? 0 : 1;
+              const bIsAdmin = adminIds.includes(b.user_id) ? 0 : 1;
+              return aIsAdmin - bIsAdmin;
+            });
+
+            return { groupId: g.id, members };
+          })
+        );
+
         const map: Record<string, GroupMemberInfo[]> = {};
-        results.forEach(r => { map[r.groupId] = r.members; });
+        const defaultTransfers: Record<string, string> = {};
+        results.forEach(r => {
+          map[r.groupId] = r.members;
+          // Default select admin if available
+          const adminMember = r.members.find(m => adminIds.includes(m.user_id));
+          if (adminMember) {
+            defaultTransfers[r.groupId] = adminMember.user_id;
+          }
+        });
         setGroupMembers(map);
+        setTransfers(prev => ({ ...defaultTransfers, ...prev }));
         setLoading(false);
       });
     }
@@ -216,7 +264,9 @@ export default function ProjectTransferDialog({
                                 <div className="flex items-center gap-2">
                                   <UserAvatar src={m.avatar_url} name={m.full_name} size="sm" />
                                   <span>{m.full_name}</span>
-                                  <span className="text-xs text-muted-foreground">({m.role === 'leader' ? 'Phó nhóm' : 'Thành viên'})</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    ({m.role === 'admin' ? 'Admin' : m.role === 'leader' ? 'Phó nhóm' : 'Thành viên'})
+                                  </span>
                                 </div>
                               </SelectItem>
                             ))
