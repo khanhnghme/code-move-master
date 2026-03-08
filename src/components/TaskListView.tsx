@@ -1261,15 +1261,18 @@ export default function TaskListView({
 
           {/* Unstaged Tasks with Drag & Drop */}
           {filterStage === 'all' && unstagedTasks.length > 0 && (
-            <Card className="overflow-hidden border-dashed border-l-4 border-l-muted-foreground/30">
-              <CardHeader className="py-2.5 px-4 bg-muted/20">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-muted-foreground/40" />
-                  Chưa phân giai đoạn
-                  <Badge variant="secondary" className="text-[10px] px-1.5 h-5">
-                    {unstagedTasks.length}
-                  </Badge>
-                </CardTitle>
+            <Card className="overflow-hidden">
+              <div className="h-1 bg-muted-foreground/30" />
+              <CardHeader className="py-2.5 px-4 cursor-pointer hover:bg-muted/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-muted text-muted-foreground shrink-0">
+                    ?
+                  </div>
+                  <div>
+                    <CardTitle className="text-sm font-bold">Chưa phân giai đoạn</CardTitle>
+                    <p className="text-[11px] text-muted-foreground">{unstagedTasks.length} task</p>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="p-3">
                 <Droppable droppableId="unstaged">
