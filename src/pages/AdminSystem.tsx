@@ -52,6 +52,13 @@ export default function AdminSystem() {
   // Error logging state
   const [errorLoggingEnabled, setErrorLoggingEnabled] = useState(true);
   const [savingErrorLogging, setSavingErrorLogging] = useState(false);
+
+  // Video background state
+  const [videoBgEnabled, setVideoBgEnabled] = useState(false);
+  const [videoBgOpacity, setVideoBgOpacity] = useState(20);
+  const [videoBgUrl, setVideoBgUrl] = useState('');
+  const [savingVideo, setSavingVideo] = useState(false);
+
   useEffect(() => {
     if (!isLoading && !isAdmin) {
       navigate('/dashboard');
