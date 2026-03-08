@@ -45,9 +45,15 @@ import {
 import type { Group, GroupMember } from '@/types/database';
 import UserAvatar from '@/components/UserAvatar';
 
+interface MemberAvatar {
+  avatar_url: string | null;
+  full_name: string;
+}
+
 interface GroupWithMembers extends Group {
   memberCount: number;
   myRole: string;
+  memberAvatars: MemberAvatar[];
 }
 
 interface MemberToAdd {
