@@ -66,7 +66,7 @@ export default function TaskScoringDialog({
   taskScores,
   onScoreUpdated,
 }: TaskScoringDialogProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [memberEdits, setMemberEdits] = useState<MemberScoreEdit[]>([]);
