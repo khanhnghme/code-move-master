@@ -84,6 +84,11 @@ export default function AdminSystem() {
         setPolicyContent(val.content ?? '');
         setPolicyUpdatedAt(val.updated_at ?? null);
       }
+
+      if (errorLoggingRes.data?.value) {
+        const val = errorLoggingRes.data.value as { enabled?: boolean };
+        setErrorLoggingEnabled(val.enabled ?? true);
+      }
     } catch (err) {
       console.error('Error fetching settings:', err);
     } finally {
