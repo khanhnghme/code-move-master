@@ -216,6 +216,15 @@ export default function TaskScoringDialog({
       }
 
       toast({ title: 'Đã lưu điểm' });
+      const memberProfile = members.find(m => m.user_id === edit.userId)?.profiles;
+      if (user && profile && task) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'SCORE_TASK', actionType: 'score',
+          description: `Chấm điểm task "${task.title}" cho ${memberProfile?.full_name || 'Unknown'}: ${newScore} điểm${edit.adjustment !== 0 ? ` (điều chỉnh ${edit.adjustment > 0 ? '+' : ''}${edit.adjustment})` : ''}`,
+          groupId: task.group_id,
+        });
+      }
       toggleEditing(edit.userId);
       onScoreUpdated();
     } catch (error: any) {
