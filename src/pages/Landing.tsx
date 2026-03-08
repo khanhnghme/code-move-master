@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import uehLogo from '@/assets/ueh-logo-new.png';
-import VideoParticles from '@/components/VideoParticles';
 
 /* ─── Visual Page Components ─── */
 
@@ -774,20 +773,13 @@ export default function Landing() {
               requestAnimationFrame(() => { vid.style.opacity = String(videoOpacity); });
             }}
           />
-          {/* Multi-layer overlay: blur + gradient + vignette */}
           <div
-            className="fixed inset-0 pointer-events-none video-blur-overlay"
-            style={{ zIndex: 1 }}
+            className="fixed inset-0 pointer-events-none"
+            style={{ 
+              zIndex: 1,
+              background: 'linear-gradient(to bottom, hsl(var(--background) / 0.4) 0%, hsl(var(--background) / 0.7) 50%, hsl(var(--background) / 0.5) 100%)'
+            }}
           />
-          <div
-            className="fixed inset-0 pointer-events-none video-gradient-overlay"
-            style={{ zIndex: 2 }}
-          />
-          <div
-            className="fixed inset-0 pointer-events-none vignette-overlay"
-            style={{ zIndex: 2 }}
-          />
-          <VideoParticles />
         </>
       )}
       <div className="relative flex flex-col flex-1 min-h-screen" style={{ zIndex: 2 }}>
