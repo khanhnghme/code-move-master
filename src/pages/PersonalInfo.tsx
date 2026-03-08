@@ -295,88 +295,68 @@ export default function PersonalInfo() {
           </CardContent>
         </Card>
 
-        {/* Role & Permissions Card */}
-        <Card className={`border-2 ${roleInfo.borderColor} overflow-hidden`}>
-          <div className={`bg-gradient-to-r ${roleInfo.bgGradient} px-6 py-4`}>
-            <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl bg-gradient-to-r ${roleInfo.gradient} text-white shadow-lg`}>
-                <RoleIcon className="w-5 h-5" />
+        {/* Role & Stats Compact Bar */}
+        <Card className={`${roleInfo.borderColor} border`}>
+          <CardContent className="p-4">
+            {/* Role header inline */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`p-2 rounded-lg bg-gradient-to-r ${roleInfo.gradient} text-white shadow`}>
+                <RoleIcon className="w-4 h-4" />
               </div>
-              <div>
-                <h3 className="font-bold text-base">{roleInfo.label}</h3>
-                <p className="text-sm text-muted-foreground">{roleInfo.description}</p>
+              <div className="flex-1 min-w-0">
+                <span className="font-semibold text-sm">{roleInfo.label}</span>
+                <span className="text-muted-foreground text-xs ml-2">— {roleInfo.description}</span>
               </div>
-            </div>
-          </div>
-          <CardContent className="p-5">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {/* Projects joined */}
-              <div className="rounded-xl border bg-card p-3.5 text-center">
-                <FolderKanban className="w-5 h-5 mx-auto text-primary mb-1.5" />
-                <p className="text-2xl font-bold">{joinedProjectCount}</p>
-                <p className="text-xs text-muted-foreground">Dự án tham gia</p>
-              </div>
-
-              {/* Projects owned */}
-              <div className="rounded-xl border bg-card p-3.5 text-center">
-                <Crown className="w-5 h-5 mx-auto text-amber-500 mb-1.5" />
-                <p className="text-2xl font-bold">{ownedProjectCount}</p>
-                <p className="text-xs text-muted-foreground">Dự án sở hữu</p>
-              </div>
-
-              {/* Project limit */}
-              <div className="rounded-xl border bg-card p-3.5 text-center">
-                <Zap className="w-5 h-5 mx-auto text-orange-500 mb-1.5" />
-                {canCreateProject ? (
-                  <>
-                    <p className="text-2xl font-bold">
-                      {isAdmin ? '∞' : `${ownedProjectCount}/${projectLimit}`}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Giới hạn project</p>
-                    {!isAdmin && projectLimit > 0 && (
-                      <Progress value={(ownedProjectCount / projectLimit) * 100} className="h-1.5 mt-2" />
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <p className="text-2xl font-bold text-muted-foreground">—</p>
-                    <p className="text-xs text-muted-foreground">Không có quyền</p>
-                  </>
-                )}
-              </div>
-
-              {/* Storage */}
-              <div className="rounded-xl border bg-card p-3.5 text-center">
-                <HardDrive className="w-5 h-5 mx-auto text-blue-500 mb-1.5" />
-                {canCreateProject ? (
-                  <>
-                    <p className="text-2xl font-bold">
-                      {isAdmin ? `${storageUsedMb}` : `${storageUsedMb}`}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {isAdmin ? 'MB đã dùng' : `/ ${storageLimitMb} MB`}
-                    </p>
-                    {!isAdmin && storageLimitMb > 0 && (
-                      <Progress value={(storageUsedMb / storageLimitMb) * 100} className="h-1.5 mt-2" />
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <p className="text-2xl font-bold">{storageUsedMb}</p>
-                    <p className="text-xs text-muted-foreground">MB đã dùng</p>
-                  </>
-                )}
-              </div>
+              {canCreateProject ? (
+                <Badge variant="outline" className="text-emerald-600 border-emerald-300 dark:border-emerald-700 gap-1 text-xs shrink-0">
+                  <Unlock className="w-3 h-3" /> Tạo dự án
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-muted-foreground gap-1 text-xs shrink-0">
+                  <Lock className="w-3 h-3" /> Không tạo dự án
+                </Badge>
+              )}
             </div>
 
-            {/* Permission list */}
-            <div className="mt-4 pt-4 border-t">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Quyền hạn</p>
-              <div className="grid sm:grid-cols-2 gap-2">
-                <PermissionItem label="Tham gia dự án" allowed={true} />
-                <PermissionItem label="Tạo dự án mới" allowed={canCreateProject} />
-                <PermissionItem label="Quản lý thành viên dự án" allowed={canCreateProject} />
-                <PermissionItem label="Quản trị hệ thống" allowed={isAdmin} />
+            {/* Stats row */}
+            <div className="grid grid-cols-4 gap-3">
+              <div className="flex items-center gap-2.5 rounded-lg border bg-muted/30 px-3 py-2">
+                <FolderKanban className="w-4 h-4 text-primary shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-lg font-bold leading-none">{joinedProjectCount}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Tham gia</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-lg border bg-muted/30 px-3 py-2">
+                <Crown className="w-4 h-4 text-amber-500 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-lg font-bold leading-none">{ownedProjectCount}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Sở hữu</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-lg border bg-muted/30 px-3 py-2">
+                <Zap className="w-4 h-4 text-orange-500 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-bold leading-none">
+                    {isAdmin ? '∞' : canCreateProject ? `${ownedProjectCount}/${projectLimit}` : '—'}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Giới hạn</p>
+                  {!isAdmin && canCreateProject && projectLimit > 0 && (
+                    <Progress value={(ownedProjectCount / projectLimit) * 100} className="h-1 mt-1" />
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5 rounded-lg border bg-muted/30 px-3 py-2">
+                <HardDrive className="w-4 h-4 text-blue-500 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-bold leading-none">{storageUsedMb}</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                    {isAdmin ? 'MB dùng' : canCreateProject ? `/ ${storageLimitMb} MB` : 'MB dùng'}
+                  </p>
+                  {!isAdmin && canCreateProject && storageLimitMb > 0 && (
+                    <Progress value={(storageUsedMb / storageLimitMb) * 100} className="h-1 mt-1" />
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -535,15 +515,3 @@ export default function PersonalInfo() {
   );
 }
 
-function PermissionItem({ label, allowed }: { label: string; allowed: boolean }) {
-  return (
-    <div className="flex items-center gap-2 py-1.5">
-      {allowed ? (
-        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-      ) : (
-        <X className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-      )}
-      <span className={`text-sm ${allowed ? 'text-foreground' : 'text-muted-foreground'}`}>{label}</span>
-    </div>
-  );
-}
