@@ -1136,8 +1136,11 @@ export default function MemberManagementCard({
                 results.push({ row, status: 'missing_field', message: 'Thiếu họ tên' });
                 continue;
               }
-              // Check if already in project
-              const existing = members.find(m => m.profiles?.email?.toLowerCase() === row.email.toLowerCase());
+              // Check if already in project by studentId or email
+              const existing = members.find(m => 
+                (row.studentId && m.profiles?.student_id === row.studentId) ||
+                (row.email && m.profiles?.email?.toLowerCase() === row.email.toLowerCase())
+              );
               if (existing) {
                 results.push({ row, status: 'duplicate', message: 'Đã có trong project' });
               } else {
