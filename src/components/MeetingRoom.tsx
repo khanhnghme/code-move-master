@@ -248,7 +248,7 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
       </div>
 
       {/* Main content area */}
-      <div className={`flex-1 flex min-h-0 ${isFullscreen ? '' : 'h-[calc(100vh-220px)]'}`}>
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Video area */}
         <div className="flex-1 min-w-0">
           {meeting.status === 'in_progress' || meeting.status === 'scheduled' ? (
