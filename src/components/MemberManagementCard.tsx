@@ -149,9 +149,9 @@ export default function MemberManagementCard({
   const canDeleteMember = (member: GroupMember) => {
     if (member.user_id === currentUserId) return false;
     if (isMemberGroupCreator(member.user_id)) return false;
-    // Phó nhóm (leader role) cannot be removed - only regular members can
-    if (member.role === 'leader') return false;
-    return isLeaderInGroup;
+    // Only group creator (Trưởng nhóm) can remove members, Phó nhóm cannot
+    if (!isGroupCreator) return false;
+    return member.role === 'member'; // Can only remove regular members
   };
 
   const canChangeRole = (member: GroupMember) => {
