@@ -490,6 +490,32 @@ export default function MemberManagement() {
     setIsBulkProcessing(false); clearSelection(); setBulkAction(null); fetchMembers();
   };
 
+  const handleBulkDemote = async () => {
+    setIsBulkProcessing(true);
+    const ids = Array.from(selectedIds);
+    const demoted: string[] = [];
+    for (const id of ids) {
+      const member = members.find(m => m.id === id);
+      if (!member) continue;
+      const roles = memberRoles[id] || [];
+      if (!roles.includes('leader')) continue;
+      if (roles.includes('admin')) continue;
+      const { error } = await supabase.from('user_roles').delete().eq('user_id', id).eq('role', 'leader');
+      if (!error) demoted.push(member.full_name);
+    }
+    if (demoted.length > 0) {
+      await supabase.from('activity_logs').insert({
+        user_id: user!.id, user_name: currentProfile?.full_name || user?.email || 'Unknown',
+        action: 'BULK_DEMOTE_MEMBERS', action_type: 'member',
+        description: `Hạ cấp hàng loạt ${demoted.length} tài khoản về Thành viên: ${demoted.join(', ')}`,
+      });
+      toast({ title: 'Đã hạ cấp hàng loạt', description: `${demoted.length} tài khoản đã được hạ về Thành viên.` });
+    } else {
+      toast({ title: 'Không có thay đổi', description: 'Không có tài khoản nào đủ điều kiện để hạ cấp.', variant: 'destructive' });
+    }
+    setIsBulkProcessing(false); clearSelection(); setBulkAction(null); fetchMembers();
+  };
+
   if (authLoading || isLoading) {
     return (
       <DashboardLayout>
