@@ -130,6 +130,9 @@ export default function TaskSubmissionDialog({
   const [taskScore, setTaskScore] = useState<TaskScore | null>(null);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
 
+  // Storage usage check
+  const storageUsage = useStorageUsage(user?.id, profile?.storage_limit_mb);
+
   // Get max file size from task (cast since not in types yet)
   const taskWithSize = task as (Task & { max_file_size?: number }) | null;
   const maxFileSize = taskWithSize?.max_file_size || DEFAULT_MAX_FILE_SIZE;
