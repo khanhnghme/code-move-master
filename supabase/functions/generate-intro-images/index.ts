@@ -124,8 +124,8 @@ serve(async (req) => {
         if (url) imageUrls[item.key] = url;
       }
 
-      // Small delay between requests
-      await new Promise(r => setTimeout(r, 2000));
+      // Longer delay for pro model
+      await new Promise(r => setTimeout(r, 5000));
     }
 
     // Save URLs to system_settings
