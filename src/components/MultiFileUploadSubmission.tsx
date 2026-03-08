@@ -426,6 +426,23 @@ export default function MultiFileUploadSubmission({
         )}
       </div>
 
+      {/* Google Drive button */}
+      <GoogleDriveUploadButton
+        disabled={disabled || isUploading}
+        variant="outline"
+        size="sm"
+        className="w-full gap-2 text-xs h-8"
+        onFilesSelected={(driveFiles) => {
+          const newFiles: UploadedFile[] = driveFiles.map(df => ({
+            file_path: `drive://${df.driveFileId}`,
+            file_name: df.name,
+            file_size: df.size,
+            storage_name: df.url,
+          }));
+          onFilesChanged([...uploadedFiles, ...newFiles]);
+        }}
+      />
+
       <div className="flex items-center justify-between text-[10px] px-0.5">
         <span className="text-muted-foreground">
           {formatFileSize(currentTotalSize)} / {formatFileSize(maxTotalSize)}
