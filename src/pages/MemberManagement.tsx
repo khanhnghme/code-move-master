@@ -53,6 +53,7 @@ import {
   X,
   Check,
   Filter,
+  Star,
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
 import { exportMembersToExcel, getRoleDisplayName } from '@/lib/excelExport';
@@ -565,7 +566,7 @@ export default function MemberManagement() {
               <Badge className="bg-destructive/10 text-destructive text-xs gap-1"><Shield className="w-3 h-3" />Admin</Badge>
             )}
             {!isAdminMember && roles.includes('leader') && (
-              <Badge className="bg-primary/10 text-primary text-xs gap-1"><Shield className="w-3 h-3" />Thành viên Nâng cao</Badge>
+              <Badge className="bg-warning/20 text-warning border-warning/30 text-xs gap-1"><Star className="w-3 h-3" />Thành viên Nâng cao</Badge>
             )}
             {member.id === user?.id && <Badge variant="outline" className="text-xs">Bạn</Badge>}
             {suspended && <Badge variant="destructive" className="text-xs gap-1"><Lock className="w-3 h-3" />Đã khóa</Badge>}
