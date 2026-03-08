@@ -680,42 +680,87 @@ export default function Groups() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
             {groups.map((group) => (
               <Link key={group.id} to={`/p/${group.slug}`}>
-                <Card className="h-full hover:shadow-md transition-shadow cursor-pointer group overflow-hidden">
-                  <CardHeader className="flex flex-row items-start gap-4 pb-3">
-                    {/* Thumbnail 1:1 - consistent with Dashboard */}
-                    <div className="relative w-24 h-24 flex-shrink-0 rounded-xl bg-muted overflow-hidden">
-                      {group.image_url ? (
-                        <img
-                          src={group.image_url}
-                          alt={group.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
+                <Card className="h-full hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 cursor-pointer group overflow-hidden border-border/60 hover:border-primary/30">
+                  {/* Cover image / gradient hero */}
+                  <div className="relative h-36 overflow-hidden">
+                    {group.image_url ? (
+                      <img
+                        src={group.image_url}
+                        alt={group.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-accent/10 flex items-center justify-center">
+                        <FolderKanban className="w-12 h-12 text-primary/25" />
+                      </div>
+                    )}
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
+                    
+                    {/* Role badge - floating */}
+                    <div className="absolute top-3 right-3">
+                      {group.myRole === 'admin' ? (
+                        <Badge className="bg-destructive/90 text-destructive-foreground shadow-lg backdrop-blur-sm">
+                          <Crown className="w-3 h-3 mr-1" />
+                          Admin
+                        </Badge>
+                      ) : group.myRole === 'leader' ? (
+                        <Badge className="bg-primary/90 text-primary-foreground shadow-lg backdrop-blur-sm">
+                          <Crown className="w-3 h-3 mr-1" />
+                          Leader
+                        </Badge>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-                          <FolderKanban className="w-10 h-10 text-primary/40" />
+                        <Badge variant="secondary" className="shadow-lg backdrop-blur-sm bg-background/80">
+                          Member
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Title overlaid on image */}
+                    <div className="absolute bottom-0 left-0 right-0 px-4 pb-3">
+                      <h3 className="text-lg font-bold text-foreground line-clamp-2 drop-shadow-sm">
+                        {group.name}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Content area */}
+                  <CardContent className="pt-3 pb-4 space-y-3">
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
+                      {group.description || 'Không có mô tả'}
+                    </p>
+
+                    {/* Info chips */}
+                    <div className="flex flex-wrap gap-2">
+                      {group.class_code && (
+                        <div className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-muted/80 text-muted-foreground">
+                          <BookOpen className="w-3 h-3" />
+                          {group.class_code}
+                        </div>
+                      )}
+                      {group.instructor_name && (
+                        <div className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-muted/80 text-muted-foreground">
+                          <GraduationCap className="w-3 h-3" />
+                          {group.instructor_name}
                         </div>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <CardTitle className="line-clamp-2 text-base">{group.name}</CardTitle>
-                        {getRoleBadge(group.myRole)}
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Users className="w-3.5 h-3.5" />
+                        <span className="font-medium">{group.memberCount}</span>
+                        <span>thành viên</span>
                       </div>
-                      <CardDescription className="line-clamp-2">
-                        {group.description || 'Không có mô tả'}
-                      </CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Users className="w-4 h-4" />
-                        <span>{group.memberCount} thành viên</span>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(group.created_at).toLocaleDateString('vi-VN')}
                       </div>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                     </div>
                   </CardContent>
                 </Card>
