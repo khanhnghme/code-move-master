@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn, FileText, Shield } from 'lucide-react';
 import { UEHLogo } from '@/components/UEHLogo';
+import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -72,8 +73,8 @@ function PolicyCheckbox({
                   backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                 }} />
                 <div className="relative px-6 py-5 flex items-center gap-4">
-                  <div className="p-2 bg-white rounded-xl shadow-md">
-                    <UEHLogo width={44} />
+                  <div className="p-2 rounded-xl">
+                    <img src={uehLogoWhite} alt="UEH Logo" style={{ width: 44, height: 'auto' }} />
                   </div>
                   <div className="text-primary-foreground">
                     <DialogTitle className="text-xl font-bold">Chính sách hệ thống</DialogTitle>
