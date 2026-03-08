@@ -1013,6 +1013,7 @@ export default function MemberManagement() {
                 if (bulkAction === 'delete') handleBulkDelete();
                 else if (bulkAction === 'suspend') handleBulkSuspend();
                 else if (bulkAction === 'unsuspend') handleBulkUnsuspend();
+                else if (bulkAction === 'promote') handleBulkPromote();
               }}
               className={bulkAction === 'delete' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
               disabled={isBulkProcessing}
