@@ -536,7 +536,9 @@ export type Database = {
           major: string | null
           must_change_password: boolean
           phone: string | null
+          project_limit: number | null
           skills: string | null
+          storage_limit_mb: number | null
           student_id: string
           suspended_at: string | null
           suspended_by: string | null
@@ -556,7 +558,9 @@ export type Database = {
           major?: string | null
           must_change_password?: boolean
           phone?: string | null
+          project_limit?: number | null
           skills?: string | null
+          storage_limit_mb?: number | null
           student_id: string
           suspended_at?: string | null
           suspended_by?: string | null
@@ -576,7 +580,9 @@ export type Database = {
           major?: string | null
           must_change_password?: boolean
           phone?: string | null
+          project_limit?: number | null
           skills?: string | null
+          storage_limit_mb?: number | null
           student_id?: string
           suspended_at?: string | null
           suspended_by?: string | null
@@ -1381,6 +1387,7 @@ export type Database = {
         Returns: boolean
       }
       is_leader: { Args: { _user_id: string }; Returns: boolean }
+      is_moderator: { Args: { _user_id: string }; Returns: boolean }
       is_task_assignee: {
         Args: { _task_id: string; _user_id: string }
         Returns: boolean
