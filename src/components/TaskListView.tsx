@@ -216,6 +216,8 @@ function TaskRow({
   isMultiSelectMode,
   isSelected,
   onToggleSelect,
+  meeting,
+  onJoinMeeting,
 }: TaskRowProps) {
   // Handle extended deadline
   const taskWithExtended = task as Task & { extended_deadline?: string };
