@@ -1524,7 +1524,9 @@ export default function TaskListView({
                                 isDragging={snapshot.isDragging}
                                 isMultiSelectMode={isMultiSelectMode}
                                 isSelected={selectedTaskIds.has(task.id)}
-                                onToggleSelect={toggleTaskSelect}
+                                 onToggleSelect={toggleTaskSelect}
+                                 meeting={meetingsByTaskId[task.id]}
+                                 onJoinMeeting={handleJoinMeeting}
                               />
                             </div>
                           )}
