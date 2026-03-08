@@ -355,7 +355,7 @@ export default function Groups() {
               if (!open) resetForm();
             }}>
               <DialogTrigger asChild>
-                <Button size="lg" className="gap-2 bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-105 transition-all duration-300 text-base px-6">
+                <Button size="lg" className="gap-2 relative overflow-hidden bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-105 transition-all duration-300 text-base px-6 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700">
                   <Plus className="w-5 h-5" />
                   Tạo dự án mới
                 </Button>
