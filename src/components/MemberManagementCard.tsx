@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
