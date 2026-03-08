@@ -157,8 +157,8 @@ export default function ExcelMemberImport({
         if (!row.fullName && !row.studentId && !row.email) {
           return { row, status: 'missing_field', message: 'Thiếu tất cả thông tin' };
         }
-        if (action === 'add' && (!row.fullName || !row.email)) {
-          return { row, status: 'missing_field', message: `Thiếu ${!row.fullName ? 'họ tên' : 'email'}` };
+        if (action === 'add' && !row.fullName) {
+          return { row, status: 'missing_field', message: 'Thiếu họ tên' };
         }
         return { row, status: 'ok' };
       }));
