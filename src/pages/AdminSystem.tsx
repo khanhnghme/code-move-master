@@ -433,8 +433,8 @@ export default function AdminSystem() {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-lg bg-blue-500/10">
-                      <HardDrive className="w-4 h-4 text-blue-500" />
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <HardDrive className="w-4 h-4 text-primary" />
                     </div>
                     <div>
                       <CardTitle className="text-base flex items-center gap-2">
