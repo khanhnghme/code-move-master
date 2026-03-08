@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,6 +55,8 @@ import {
   Eye,
   CheckSquare,
   X,
+  LogOut,
+  Clock,
 } from 'lucide-react';
 import { exportMembersToExcel, getRoleDisplayName } from '@/lib/excelExport';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,6 +66,7 @@ import UserAvatar from '@/components/UserAvatar';
 import ProfileViewDialog from '@/components/ProfileViewDialog';
 import { useUserPresence } from '@/hooks/useUserPresence';
 import ExcelMemberImport, { type ParsedRow, type ExcelImportAction, type ImportValidation } from '@/components/ExcelMemberImport';
+import { logActivity } from '@/lib/activityLogger';
 import type { GroupMember, Profile } from '@/types/database';
 
 interface MemberManagementCardProps {
@@ -88,11 +92,16 @@ export default function MemberManagementCard({
 }: MemberManagementCardProps) {
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const { getPresenceStatus } = useUserPresence('system-global');
   const [memberToDelete, setMemberToDelete] = useState<GroupMember | null>(null);
   const [memberToChangeRole, setMemberToChangeRole] = useState<GroupMember | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isChangingRole, setIsChangingRole] = useState(false);
+  
+  // Leave project state
+  const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   
   // Add member dialog - Multi-select from system members
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -124,6 +133,24 @@ export default function MemberManagementCard({
   const [bulkRole, setBulkRole] = useState<'member' | 'leader'>('member');
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
   const [isExcelImportOpen, setIsExcelImportOpen] = useState(false);
+
+  // Calculate if current user can leave project (within 48h of joining)
+  const currentUserMember = useMemo(() => members.find(m => m.user_id === currentUserId), [members, currentUserId]);
+  
+  const leaveInfo = useMemo(() => {
+    if (!currentUserMember) return { canLeave: false, hoursLeft: 0, isCreator: false };
+    
+    const isCreator = currentUserMember.user_id === groupCreatorId;
+    if (isCreator) return { canLeave: false, hoursLeft: 0, isCreator: true };
+    
+    const joinedAt = new Date(currentUserMember.joined_at);
+    const now = new Date();
+    const hoursElapsed = (now.getTime() - joinedAt.getTime()) / (1000 * 60 * 60);
+    const hoursLeft = Math.max(0, 48 - hoursElapsed);
+    const canLeave = hoursLeft > 0;
+    
+    return { canLeave, hoursLeft, isCreator: false };
+  }, [currentUserMember, groupCreatorId]);
 
   const getRoleBadge = (role: string, memberId?: string) => {
     // Check if this member is the group creator (Trưởng nhóm)
@@ -467,6 +494,55 @@ export default function MemberManagementCard({
     }
   };
 
+  // Handle leave project
+  const handleLeaveProject = async () => {
+    if (!currentUserMember || !leaveInfo.canLeave) return;
+    setIsLeaving(true);
+    
+    try {
+      // Delete task assignments first
+      const { data: tasksData } = await supabase.from('tasks').select('id').eq('group_id', groupId);
+      if (tasksData && tasksData.length > 0) {
+        await supabase.from('task_assignments').delete()
+          .eq('user_id', currentUserId)
+          .in('task_id', tasksData.map(t => t.id));
+      }
+      
+      // Delete group membership
+      const { error } = await supabase.from('group_members').delete().eq('id', currentUserMember.id);
+      if (error) throw error;
+      
+      // Log activity
+      await logActivity({
+        userId: user!.id,
+        userName: profile?.full_name || user?.email || 'Unknown',
+        action: 'LEAVE_PROJECT',
+        actionType: 'member',
+        description: `${profile?.full_name || 'Thành viên'} đã rời khỏi project`,
+        groupId,
+        metadata: { left_user_id: currentUserId }
+      });
+      
+      toast({ title: 'Đã rời project', description: 'Bạn đã rời khỏi project thành công' });
+      setIsLeaveDialogOpen(false);
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsLeaving(false);
+    }
+  };
+
+  // Format hours left for display
+  const formatHoursLeft = (hours: number) => {
+    if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      const remainingHours = Math.floor(hours % 24);
+      return `${days} ngày ${remainingHours} giờ`;
+    }
+    return `${Math.floor(hours)} giờ`;
+  };
+
   return (
     <>
       <Card>
@@ -619,6 +695,28 @@ export default function MemberManagementCard({
                 
                 <div className="flex items-center gap-3">
                   {getRoleBadge(member.role, member.user_id)}
+                  
+                  {/* Leave button for current user */}
+                  {member.user_id === currentUserId && !leaveInfo.isCreator && (
+                    <div className="flex items-center gap-2">
+                      {leaveInfo.canLeave ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5 text-destructive border-destructive/50 hover:bg-destructive/10"
+                          onClick={(e) => { e.stopPropagation(); setIsLeaveDialogOpen(true); }}
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Rời project</span>
+                        </Button>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs gap-1 text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          <span className="hidden sm:inline">Đã quá 48h</span>
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                   
                   {(canChangeRole(member) || canDeleteMember(member)) && (
                     <DropdownMenu>
@@ -1253,6 +1351,53 @@ export default function MemberManagementCard({
           return { success, failed, errors };
         }}
       />
+
+      {/* Leave Project Confirmation Dialog */}
+      <AlertDialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <LogOut className="w-5 h-5 text-destructive" />
+              Rời khỏi project?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>Bạn có chắc muốn rời khỏi project này? Hành động này sẽ:</p>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                <li>Xóa bạn khỏi danh sách thành viên</li>
+                <li>Hủy tất cả nhiệm vụ được giao cho bạn</li>
+              </ul>
+              {leaveInfo.canLeave && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-sm">
+                  <Clock className="w-4 h-4 text-primary shrink-0" />
+                  <span>
+                    Còn <strong className="text-primary">{formatHoursLeft(leaveInfo.hoursLeft)}</strong> để có thể tự rời project
+                  </span>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLeaving}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLeaveProject}
+              disabled={isLeaving}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isLeaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Đang rời...
+                </>
+              ) : (
+                <>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Rời project
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
