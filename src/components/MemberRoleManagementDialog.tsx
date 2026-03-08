@@ -213,6 +213,7 @@ export default function MemberRoleManagementDialog({
         metadata: { target_user_id: member.id, from_role: 'leader', to_role: 'member' },
       });
 
+      await notifyRoleChanged({ userIds: [member.id], adminName: currentProfile?.full_name || 'Admin', newRole: 'Thành viên', action: 'demote' });
       toast({ title: 'Đã hạ quyền', description: `${member.full_name} đã trở thành Thành viên.` });
       onRoleChanged();
       setShowDemoteConfirm(false);
