@@ -86,6 +86,15 @@ export default function ShareSettingsCard({
           ? 'Link xem project đã được tạo' 
           : 'Link xem project đã bị vô hiệu hóa',
       });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: enabled ? 'ENABLE_PUBLIC_SHARE' : 'DISABLE_PUBLIC_SHARE',
+          actionType: 'setting',
+          description: enabled ? 'Bật chia sẻ công khai dự án' : 'Tắt chia sẻ công khai dự án',
+          groupId,
+        });
+      }
       onUpdate();
     } catch (error: any) {
       console.error('Toggle share error:', error);
