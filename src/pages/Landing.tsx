@@ -774,7 +774,7 @@ export default function Landing() {
           />
         </>
       )}
-      <div className="relative" style={{ zIndex: 2 }}>
+      <div className="relative flex flex-col flex-1 min-h-screen" style={{ zIndex: 2 }}>
       {/* Header */}
       <header className="border-b bg-primary text-primary-foreground sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
