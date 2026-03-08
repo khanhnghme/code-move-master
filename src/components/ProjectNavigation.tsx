@@ -81,9 +81,6 @@ export default function ProjectNavigation({
               </TooltipProvider>
             </div>
           </div>
-          
-          {/* Right spacer */}
-          <div className="w-[160px] shrink-0 hidden lg:block" />
         </nav>
       </div>
     </div>
