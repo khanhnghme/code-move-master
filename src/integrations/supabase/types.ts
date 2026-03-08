@@ -232,6 +232,7 @@ export type Database = {
         Row: {
           activity_logging_enabled: boolean | null
           additional_info: string | null
+          allow_join_by_code: boolean | null
           class_code: string | null
           created_at: string
           created_by: string
@@ -241,6 +242,7 @@ export type Database = {
           instructor_email: string | null
           instructor_name: string | null
           is_public: boolean | null
+          join_code: string | null
           leader_id: string | null
           name: string
           share_token: string | null
@@ -255,6 +257,7 @@ export type Database = {
         Insert: {
           activity_logging_enabled?: boolean | null
           additional_info?: string | null
+          allow_join_by_code?: boolean | null
           class_code?: string | null
           created_at?: string
           created_by: string
@@ -264,6 +267,7 @@ export type Database = {
           instructor_email?: string | null
           instructor_name?: string | null
           is_public?: boolean | null
+          join_code?: string | null
           leader_id?: string | null
           name: string
           share_token?: string | null
@@ -278,6 +282,7 @@ export type Database = {
         Update: {
           activity_logging_enabled?: boolean | null
           additional_info?: string | null
+          allow_join_by_code?: boolean | null
           class_code?: string | null
           created_at?: string
           created_by?: string
@@ -287,6 +292,7 @@ export type Database = {
           instructor_email?: string | null
           instructor_name?: string | null
           is_public?: boolean | null
+          join_code?: string | null
           leader_id?: string | null
           name?: string
           share_token?: string | null
