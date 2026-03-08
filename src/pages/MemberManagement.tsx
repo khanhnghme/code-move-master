@@ -1055,6 +1055,15 @@ export default function MemberManagement() {
           return { success, failed, errors };
         }}
       />
+
+      {/* Role Management Dialog */}
+      <MemberRoleManagementDialog
+        open={isRoleManagementOpen}
+        onOpenChange={setIsRoleManagementOpen}
+        member={selectedMember}
+        systemRoles={selectedMember ? (memberRoles[selectedMember.id] || []) : []}
+        onRoleChanged={() => { fetchMembers(); }}
+      />
     </DashboardLayout>
   );
 }
