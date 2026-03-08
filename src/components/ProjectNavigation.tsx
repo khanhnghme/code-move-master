@@ -42,8 +42,9 @@ export default function ProjectNavigation({
   membersCount,
 }: ProjectNavigationProps) {
   const showSettings = isLeaderInGroup && isGroupCreator;
+  const showLogs = isLeaderInGroup && isGroupCreator;
   const visibleTabs = tabs.filter(tab => 
-    tab.showAlways || (tab.id === 'settings' && showSettings)
+    tab.showAlways || (tab.id === 'settings' && showSettings) || (tab.id === 'logs' && showLogs)
   );
 
   return (
