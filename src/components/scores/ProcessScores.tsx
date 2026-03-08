@@ -372,6 +372,14 @@ export default function ProcessScores({
         }
       }
       toast({ title: 'Thành công', description: 'Đã gửi phúc khảo' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'SUBMIT_APPEAL', actionType: 'score',
+          description: `Gửi phúc khảo điểm ${appealDialog.type === 'task' ? 'task' : 'giai đoạn'}: "${content.substring(0, 100)}"`,
+          groupId,
+        });
+      }
       setAppealDialog(null);
       fetchScoreData();
     } catch (error: any) {
