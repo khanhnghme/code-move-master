@@ -208,6 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isLeader = roles.includes('leader') || isAdmin;
   const isApproved = profile?.is_approved ?? false;
   const mustChangePassword = profile?.must_change_password ?? false;
+  const needsProfileCompletion = !!(user && profile && (!profile.student_id || profile.student_id === ''));
 
   // Check if user is suspended
   const isSuspended = profile?.suspended_until
@@ -220,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const contextValue = {
     user, session, profile, roles, isLoading,
-    isAdmin, isLeader, isApproved, mustChangePassword,
+    isAdmin, isLeader, isApproved, mustChangePassword, needsProfileCompletion,
     signIn, signUp, signOut, refreshProfile,
   };
 
