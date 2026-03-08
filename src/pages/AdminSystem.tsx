@@ -34,7 +34,6 @@ export default function AdminSystem() {
   const [customDays, setCustomDays] = useState('');
   const [maintenanceStart, setMaintenanceStart] = useState('');
   const [maintenanceEnd, setMaintenanceEnd] = useState('');
-  const [maintenanceEnd, setMaintenanceEnd] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showMaintenanceConfirm, setShowMaintenanceConfirm] = useState(false);
