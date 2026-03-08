@@ -196,7 +196,7 @@ export default function MemberManagementCard({
     }
     setIsAddingMember(true);
 
-    const finalRole = isGroupCreator ? selectedRole : 'member';
+    const finalRole = canManageProjectRoles ? selectedRole : 'member';
 
     try {
       const memberInserts = Array.from(selectedUserIds).map(uid => ({
