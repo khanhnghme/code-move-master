@@ -237,7 +237,7 @@ export default function Dashboard() {
               <CardDescription>Các dự án bạn đang tham gia</CardDescription>
             </div>
             <Link to="/groups">
-              <Button className="gap-2 bg-amber-500 text-white hover:bg-amber-600">
+              <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
                 <FolderKanban className="w-4 h-4" />
                 <span className="hidden md:inline">Xem & Tạo Project</span>
                 <ArrowRight className="w-4 h-4" />
