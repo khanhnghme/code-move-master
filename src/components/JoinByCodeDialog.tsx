@@ -125,7 +125,7 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) resetState(); onOpenChange(v); }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <KeyRound className="w-5 h-5 text-primary" />
