@@ -17,7 +17,7 @@ import {
   User, Mail, GraduationCap, BookOpen, Phone, Sparkles, FileText,
   Camera, Loader2, Save, Shield, Crown, UserCheck, Calendar,
   CheckCircle2, AlertCircle, Edit3, X, FolderKanban, HardDrive,
-  Lock, Unlock, Zap
+  Lock, Unlock, Zap, ArrowRight, Plus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
