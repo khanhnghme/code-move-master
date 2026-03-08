@@ -45,6 +45,7 @@ interface TaskEditDialogProps {
   onClose: () => void;
   onSave: () => void;
   canEdit: boolean;
+  groupCreatorId?: string;
 }
 
 export default function TaskEditDialog({
@@ -55,6 +56,7 @@ export default function TaskEditDialog({
   onClose,
   onSave,
   canEdit: canEditProp,
+  groupCreatorId,
 }: TaskEditDialogProps) {
   const { toast } = useToast();
   const { user, isLeader, isAdmin, profile } = useAuth();
