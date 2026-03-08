@@ -5,39 +5,42 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import uehLogo from '@/assets/ueh-logo-new.png';
-import { Skeleton } from '@/components/ui/skeleton';
+import introPage1 from '@/assets/intro-page1-overview.png';
+import introPage2 from '@/assets/intro-page2-tasks.png';
+import introPage3 from '@/assets/intro-page3-scoring.png';
+import introPage4 from '@/assets/intro-page4-project.png';
+import introPage5 from '@/assets/intro-page5-advanced.png';
 
-/* ─── Intro Images Context ─── */
+/* ─── Intro Images ─── */
 type IntroImages = Record<string, string>;
+const STATIC_INTRO_IMAGES: IntroImages = {
+  page1: introPage1,
+  page2: introPage2,
+  page3: introPage3,
+  page4: introPage4,
+  page5: introPage5,
+};
 
 const IntroHeroImage = React.forwardRef<HTMLDivElement, { imageUrl?: string; fallbackGradient: string; alt: string }>(
   function IntroHeroImage({ imageUrl, fallbackGradient, alt }, ref) {
     const [loaded, setLoaded] = useState(false);
-    const [error, setError] = useState(false);
 
-    if (!imageUrl || error) {
+    if (!imageUrl) {
       return (
         <div ref={ref} className={`w-full h-full rounded-xl ${fallbackGradient} border border-border/30 flex items-center justify-center`}>
-          <div className="text-center text-muted-foreground">
-            <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-muted/50 flex items-center justify-center">
-              <Zap className="w-5 h-5 opacity-40" />
-            </div>
-            <p className="text-[10px] opacity-60">Chưa có ảnh minh họa</p>
-            <p className="text-[9px] opacity-40">Admin có thể tạo trong Quản trị hệ thống</p>
-          </div>
+          <Zap className="w-5 h-5 opacity-40 text-muted-foreground" />
         </div>
       );
     }
 
     return (
       <div ref={ref} className="w-full h-full relative rounded-xl overflow-hidden">
-        {!loaded && <Skeleton className="absolute inset-0 rounded-xl" />}
+        {!loaded && <div className="absolute inset-0 rounded-xl bg-muted animate-pulse" />}
         <img
           src={imageUrl}
           alt={alt}
           className={`w-full h-full object-cover rounded-xl transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setLoaded(true)}
-          onError={() => setError(true)}
         />
       </div>
     );
@@ -575,7 +578,7 @@ const introPageComponents = [Page1Overview, Page2Tasks, Page3Scoring, Page4Proje
 
 export default function Landing() {
   const [isInitializing, setIsInitializing] = useState(false);
-  const [introImages, setIntroImages] = useState<IntroImages>({});
+  const introImages = STATIC_INTRO_IMAGES;
   const [showIntro, setShowIntro] = useState(false);
   const [introVisible, setIntroVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -584,21 +587,15 @@ export default function Landing() {
   const [videoOpacity, setVideoOpacity] = useState(0);
   const [videoUrl, setVideoUrl] = useState('');
 
-  // Fetch video background settings + intro images
+  // Fetch video background settings
   useEffect(() => {
     const fetchSettings = async () => {
-      const [videoRes, imagesRes] = await Promise.all([
-        supabase.from('system_settings').select('value').eq('key', 'dashboard_video_bg').maybeSingle(),
-        supabase.from('system_settings').select('value').eq('key', 'intro_images').maybeSingle(),
-      ]);
+      const videoRes = await supabase.from('system_settings').select('value').eq('key', 'dashboard_video_bg').maybeSingle();
       if (videoRes.data?.value) {
         const val = videoRes.data.value as { enabled?: boolean; landing_opacity?: number; opacity?: number; url?: string };
         setVideoEnabled(val.enabled ?? false);
         setVideoOpacity(val.landing_opacity ?? val.opacity ?? 0.2);
         setVideoUrl(val.url ?? '');
-      }
-      if (imagesRes.data?.value) {
-        setIntroImages(imagesRes.data.value as IntroImages);
       }
     };
     fetchSettings();
