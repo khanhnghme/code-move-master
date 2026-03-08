@@ -214,11 +214,97 @@ export default function ResourceUploadDialog({
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('Chưa đăng nhập');
 
-      // Upload files
-      for (let i = 0; i < pendingFiles.length; i++) {
-        const item = pendingFiles[i];
-        if (item.status !== 'pending') continue;
+      // Group folder-source files by their root folder name
+      const folderFiles = pendingFiles.filter(f => f.source === 'folder' && f.status === 'pending');
+      const regularFiles = pendingFiles.filter(f => f.source === 'file' && f.status === 'pending');
 
+      // Extract unique root folder names from webkitRelativePath
+      const folderGroups = new Map<string, PendingFile[]>();
+      for (const item of folderFiles) {
+        const relativePath = item.file.webkitRelativePath;
+        const rootFolderName = relativePath ? relativePath.split('/')[0] : null;
+        if (rootFolderName) {
+          if (!folderGroups.has(rootFolderName)) {
+            folderGroups.set(rootFolderName, []);
+          }
+          folderGroups.get(rootFolderName)!.push(item);
+        }
+      }
+
+      // Create folders and upload folder files
+      for (const [folderName, files] of folderGroups) {
+        // Create the resource_folder
+        let targetFolderId = folderId;
+        try {
+          const { data: newFolder, error: folderError } = await (supabase
+            .from('resource_folders')
+            .insert({
+              group_id: groupId,
+              name: folderName,
+              created_by: userData.user.id,
+            } as any)
+            .select('id')
+            .single() as any);
+
+          if (folderError) throw folderError;
+          targetFolderId = newFolder.id;
+        } catch (err: any) {
+          // If folder creation fails, upload to current folder
+          console.error('Failed to create folder:', err);
+        }
+
+        // Upload files into that folder
+        for (const item of files) {
+          setPendingFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: 'uploading', progress: 10 } : f));
+
+          try {
+            const fileExt = item.file.name.split('.').pop();
+            const storageName = `${groupId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from('project-resources')
+              .upload(storageName, item.file);
+
+            if (uploadError) throw uploadError;
+
+            setPendingFiles(prev => prev.map(f => f.id === item.id ? { ...f, progress: 70 } : f));
+
+            const { data: urlData } = supabase.storage
+              .from('project-resources')
+              .getPublicUrl(storageName);
+
+            const finalFileName = item.customName.trim()
+              ? `${item.customName.trim()}.${fileExt}`
+              : item.file.name;
+
+            const { error: insertError } = await (supabase
+              .from('project_resources')
+              .insert({
+                group_id: groupId,
+                name: finalFileName,
+                file_path: urlData.publicUrl,
+                storage_name: storageName,
+                file_size: item.file.size,
+                file_type: item.file.type,
+                category: item.category,
+                description: null,
+                uploaded_by: userData.user.id,
+                folder_id: targetFolderId,
+                resource_type: 'file',
+                link_url: null,
+              } as any) as any);
+
+            if (insertError) throw insertError;
+
+            setPendingFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: 'done', progress: 100 } : f));
+          } catch (err: any) {
+            setPendingFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: 'error', error: err.message } : f));
+          }
+        }
+      }
+
+      // Upload regular files (non-folder source)
+      for (const item of regularFiles) {
         setPendingFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: 'uploading', progress: 10 } : f));
 
         try {
