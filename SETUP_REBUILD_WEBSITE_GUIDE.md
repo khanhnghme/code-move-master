@@ -3619,6 +3619,13 @@ teamworks-ueh/
 | UserChangePasswordDialog.tsx | Đổi password |
 | UserPresenceIndicator.tsx | Trạng thái online |
 | ExcelMemberImport.tsx | Import thành viên từ Excel |
+| GroupMeetings.tsx | Quản lý cuộc họp nhóm |
+| CreateMeetingDialog.tsx | Dialog tạo cuộc họp mới |
+| MeetingRoom.tsx | Phòng họp (Jitsi + chat + điểm danh) |
+| MaintenanceScreen.tsx | Màn hình bảo trì hệ thống |
+| MemberNavigation.tsx | Navigation cho member |
+| MemberRoleManagementDialog.tsx | Quản lý vai trò thành viên |
+| ProjectTransferDialog.tsx | Dialog chuyển nhượng dự án |
 
 ---
 
