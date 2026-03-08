@@ -170,22 +170,12 @@ export default function Dashboard() {
               <CardTitle className="text-xl">Projects của tôi</CardTitle>
               <CardDescription>Các dự án bạn đang tham gia</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              {(isLeader || isAdmin) && (
-                <Link to="/groups">
-                  <Button className="gap-2 bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-105 transition-all duration-300 animate-[pulse_3s_ease-in-out_infinite]">
-                    <Plus className="w-4 h-4" />
-                    Tạo dự án mới
-                  </Button>
-                </Link>
-              )}
-              <Link to="/groups">
-                <Button variant="outline" className="gap-2">
-                  Xem tất cả Project
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
+            <Link to="/groups">
+              <Button variant="outline" className="gap-2">
+                Xem tất cả Project
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent>
             {groups.length === 0 ? (
