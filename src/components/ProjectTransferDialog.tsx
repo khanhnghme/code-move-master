@@ -264,7 +264,9 @@ export default function ProjectTransferDialog({
                                 <div className="flex items-center gap-2">
                                   <UserAvatar src={m.avatar_url} name={m.full_name} size="sm" />
                                   <span>{m.full_name}</span>
-                                  <span className="text-xs text-muted-foreground">({m.role === 'leader' ? 'Phó nhóm' : 'Thành viên'})</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    ({m.role === 'admin' ? 'Admin' : m.role === 'leader' ? 'Phó nhóm' : 'Thành viên'})
+                                  </span>
                                 </div>
                               </SelectItem>
                             ))
