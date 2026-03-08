@@ -31,6 +31,7 @@ import ProjectNavigation from '@/components/ProjectNavigation';
 import ProcessScores from '@/components/scores/ProcessScores';
 import ProjectResources from '@/components/ProjectResources';
 import ProjectEvidenceExport from '@/components/ProjectEvidenceExport';
+import GroupMeetings from '@/components/GroupMeetings';
 
 import type { Group, GroupMember, Task, Profile, Stage } from '@/types/database';
 import { DeadlineHourPicker } from '@/components/DeadlineHourPicker';
