@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Vui lòng nhập Mã số sinh viên'),
@@ -94,7 +95,7 @@ function PolicyCheckbox({
               <div className="flex-1 overflow-y-auto px-8 py-6">
                 <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-primary prose-h1:text-2xl prose-h1:border-b prose-h1:border-primary/20 prose-h1:pb-3 prose-h2:text-lg prose-h2:mt-6 prose-a:text-accent prose-strong:text-foreground">
                   {policyContent ? (
-                    <ReactMarkdown>{policyContent}</ReactMarkdown>
+                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>{policyContent}</ReactMarkdown>
                   ) : (
                     <div className="text-center py-16">
                       <FileText className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
