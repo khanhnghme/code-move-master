@@ -238,26 +238,35 @@ function Page4Project({ images }: { images: IntroImages }) {
   ];
 
   return (
-    <div className="flex gap-3 flex-1 min-h-0">
-      {/* Hero image */}
-      <div className="w-[35%] flex-shrink-0 rounded-xl overflow-hidden" style={{ animation: 'fade-in 0.5s ease-out both' }}>
-        <img src={introPage4} alt="Quản lý dự án" className="w-full h-full object-cover" />
+    <div className="h-full flex flex-col gap-3">
+      {/* Title */}
+      <div className="text-center flex-shrink-0">
+        <h3 className="text-2xl font-bold text-foreground">Quản lý dự án</h3>
+        <p className="text-xs text-muted-foreground">Tổ chức nhóm và tài nguyên hiệu quả</p>
       </div>
 
-      {/* 2x2 feature grid */}
-      <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0">
-        {features.map((f, i) => (
-          <div
-            key={i}
-            className="relative group rounded-xl overflow-hidden border border-border/40"
-            style={{ animation: `fade-in 0.4s ease-out ${100 + i * 100}ms both` }}
-          >
-            <img src={f.img} alt={f.label} className="w-full h-full object-cover" />
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent px-3 py-2">
-              <p className="text-xs font-semibold text-foreground">{f.label}</p>
+      {/* Image grid */}
+      <div className="flex gap-3 flex-1 min-h-0">
+        {/* Left: Hero image */}
+        <div className="w-[35%] flex-shrink-0 rounded-xl overflow-hidden" style={{ animation: 'fade-in 0.5s ease-out both' }}>
+          <img src={introPage4} alt="Quản lý dự án" className="w-full h-full object-cover rounded-xl" />
+        </div>
+
+        {/* Right: 2x2 feature grid */}
+        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0">
+          {features.map((f, i) => (
+            <div
+              key={i}
+              className="relative rounded-xl overflow-hidden border border-border/40 bg-muted/20"
+              style={{ animation: `fade-in 0.4s ease-out ${100 + i * 100}ms both` }}
+            >
+              <img src={f.img} alt={f.label} className="w-full h-full object-cover" />
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+                <p className="text-xs font-semibold text-foreground">{f.label}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
