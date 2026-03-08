@@ -100,15 +100,16 @@ export default function AdminSystem() {
     setSaving(true);
     try {
       const now = new Date();
-      const endAt = maintenanceDays > 0 ? new Date(now.getTime() + maintenanceDays * 86400000).toISOString() : null;
+      const endAt = maintenanceEnabled && maintenanceDays > 0 ? new Date(now.getTime() + maintenanceDays * 86400000).toISOString() : null;
+      const startAt = maintenanceEnabled ? now.toISOString() : null;
       const { error } = await supabase
         .from('system_settings')
         .update({
           value: {
             enabled: maintenanceEnabled,
             message: maintenanceMessage,
-            duration_days: maintenanceDays || null,
-            start_at: maintenanceEnabled ? now.toISOString() : null,
+            duration_days: maintenanceEnabled ? (maintenanceDays || null) : null,
+            start_at: startAt,
             end_at: endAt,
           },
           updated_at: now.toISOString(),
@@ -117,6 +118,16 @@ export default function AdminSystem() {
 
       if (error) throw error;
       setOrigMaintenanceEnabled(maintenanceEnabled);
+
+      if (maintenanceEnabled) {
+        setMaintenanceStart(startAt!);
+        setMaintenanceEnd(endAt ?? '');
+      } else {
+        setMaintenanceStart('');
+        setMaintenanceEnd('');
+        setMaintenanceDays(0);
+        setCustomDays('');
+      }
 
       toast({
         title: 'Đã lưu cài đặt',
