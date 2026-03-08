@@ -741,20 +741,20 @@ export default function Groups() {
                       {/* Strong gradient overlay for text readability */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-                      {/* Role badge - top right with glow */}
-                      <div className="absolute top-3 right-3">
+                      {/* Role badge - solid opaque bg, never blends with image */}
+                      <div className="absolute top-3 right-3 drop-shadow-md">
                         {group.myRole === 'admin' ? (
-                          <Badge className="bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 backdrop-blur-md border border-white/20 font-semibold">
+                          <Badge className="bg-destructive text-destructive-foreground shadow-lg font-semibold">
                             <Crown className="w-3 h-3 mr-1" />
                             Admin
                           </Badge>
                         ) : group.myRole === 'leader' ? (
-                          <Badge className="bg-accent text-accent-foreground shadow-lg shadow-accent/30 backdrop-blur-md border border-white/20 font-semibold">
+                          <Badge className="bg-accent text-accent-foreground shadow-lg font-semibold">
                             <Crown className="w-3 h-3 mr-1" />
                             Leader
                           </Badge>
                         ) : (
-                          <Badge className="bg-white/20 text-white shadow-lg backdrop-blur-md border border-white/20 font-medium">
+                          <Badge className="bg-foreground text-background shadow-lg font-medium">
                             Member
                           </Badge>
                         )}
