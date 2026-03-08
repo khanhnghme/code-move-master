@@ -682,6 +682,8 @@ export default function GroupDetail() {
                   showMembersPublic={group.show_members_public ?? true}
                   showActivityPublic={group.show_activity_public ?? true}
                   showResourcesPublic={(group as any).show_resources_public ?? true}
+                  joinCode={(group as any).join_code || null}
+                  allowJoinByCode={(group as any).allow_join_by_code || false}
                   onUpdate={fetchGroupData}
                 />
                 <ProjectEvidenceExport groupId={group.id} project={group} />
