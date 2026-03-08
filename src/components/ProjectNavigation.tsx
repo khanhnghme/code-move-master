@@ -1,4 +1,4 @@
-import { LayoutDashboard, Layers, Users, Activity, Settings, Award, FolderOpen } from 'lucide-react';
+import { LayoutDashboard, Layers, Users, Activity, Settings, Award, FolderOpen, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,

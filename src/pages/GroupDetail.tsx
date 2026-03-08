@@ -79,6 +79,7 @@ export default function GroupDetail() {
   const availableTabs = [
     'overview',
     'tasks',
+    'meetings',
     'members',
     'resources',
     'scores',
