@@ -322,37 +322,67 @@ export default function AdminSystem() {
 
       {/* Policy Editor Dialog - 16:9 */}
       <Dialog open={policyDialogOpen} onOpenChange={setPolicyDialogOpen}>
-        <DialogContent className="max-w-[95vw] w-[1280px] h-[720px] max-h-[90vh] p-0 overflow-hidden flex flex-col">
-          <DialogHeader className="px-5 py-3 border-b bg-primary/5 shrink-0">
-            <div className="flex items-center gap-3">
-              <UEHLogo width={40} />
-              <div>
-                <DialogTitle className="text-lg font-bold">Chính sách hệ thống</DialogTitle>
-                <p className="text-xs text-muted-foreground">
-                  Soạn thảo nội dung chính sách (hỗ trợ Markdown)
+        <DialogContent className="max-w-[95vw] w-[1280px] h-[720px] max-h-[90vh] p-0 overflow-hidden flex flex-col border-0 shadow-2xl">
+          {/* Header with UEH branding */}
+          <div className="relative shrink-0 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-accent" />
+            <div className="absolute inset-0 opacity-10" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }} />
+            <div className="relative px-6 py-4 flex items-center gap-4">
+              <div className="p-2 rounded-xl">
+                <img src={uehLogoWhite} alt="UEH Logo" style={{ width: 44, height: 'auto' }} />
+              </div>
+              <div className="text-primary-foreground flex-1">
+                <DialogTitle className="text-xl font-bold text-primary-foreground">Chỉnh sửa Chính sách hệ thống</DialogTitle>
+                <p className="text-sm opacity-80">
+                  Soạn thảo nội dung Markdown — Xem trước realtime
                   {policyUpdatedAt && (
                     <> · Cập nhật lần cuối: <span className="font-medium">{format(new Date(policyUpdatedAt), "HH:mm dd/MM/yyyy", { locale: vi })}</span></>
                   )}
                 </p>
               </div>
+              <Badge className="bg-white/20 text-primary-foreground border-0 backdrop-blur-sm text-xs">
+                <Edit className="w-3 h-3 mr-1" /> Editor
+              </Badge>
             </div>
-          </DialogHeader>
+          </div>
 
-          <div className="flex-1 overflow-hidden grid grid-cols-2 divide-x">
+          <div className="flex-1 overflow-hidden grid grid-cols-[1fr_1fr] divide-x">
             {/* Editor */}
             <div className="flex flex-col">
-              <div className="px-4 py-2 border-b bg-muted/30">
+              <div className="px-4 py-2 border-b bg-muted/30 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                   <Edit className="w-3.5 h-3.5" /> Soạn thảo
                 </span>
               </div>
-              <div className="flex-1 p-4 overflow-hidden">
+              <div className="flex-1 p-4 overflow-hidden flex flex-col gap-3">
                 <Textarea
                   value={editPolicyContent}
                   onChange={(e) => setEditPolicyContent(e.target.value)}
                   placeholder={"# Chính sách hệ thống\n\n## 1. Quy tắc chung\n- Không chia sẻ tài khoản...\n\n## 2. Bảo mật thông tin\n..."}
-                  className="font-mono text-sm h-full resize-none"
+                  className="font-mono text-sm flex-1 resize-none"
                 />
+                {/* Markdown guide */}
+                <div className="rounded-lg border bg-muted/40 p-3 text-xs text-muted-foreground space-y-1.5">
+                  <p className="font-semibold text-foreground flex items-center gap-1.5 mb-2">
+                    <HelpCircle className="w-3.5 h-3.5" /> Hướng dẫn Markdown
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                    <span><code className="bg-muted px-1 rounded text-[11px]">**text**</code> → <strong>in đậm</strong></span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]">*text*</code> → <em>in nghiêng</em></span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]"># Tiêu đề lớn</code> → <span className="font-bold">H1</span></span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]">## Tiêu đề phụ</code> → <span className="font-semibold">H2</span></span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]">### Mục nhỏ</code> → <span className="font-medium">H3</span></span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]">- mục 1</code> → danh sách</span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]">1. mục 1</code> → danh sách số</span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]">[text](url)</code> → liên kết</span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]">---</code> → đường kẻ ngang</span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]">&gt; trích dẫn</code> → blockquote</span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]">Enter 2 lần</code> → xuống đoạn</span>
+                    <span><code className="bg-muted px-1 rounded text-[11px]">2 space + Enter</code> → xuống hàng</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -363,22 +393,23 @@ export default function AdminSystem() {
                   <FileText className="w-3.5 h-3.5" /> Xem trước
                 </span>
               </div>
-              <div className="flex-1 p-4 overflow-y-auto">
-                <div className="prose prose-sm dark:prose-invert max-w-none">
+              <div className="flex-1 p-6 overflow-y-auto">
+                <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-primary prose-h1:text-2xl prose-h1:border-b prose-h1:border-primary/20 prose-h1:pb-3 prose-h2:text-lg prose-h2:mt-6 prose-a:text-accent prose-strong:text-foreground">
                   {editPolicyContent ? (
                     <ReactMarkdown>{editPolicyContent}</ReactMarkdown>
                   ) : (
-                    <p className="text-muted-foreground text-center py-10">Nhập nội dung bên trái để xem trước...</p>
+                    <div className="text-center py-10">
+                      <FileText className="w-10 h-10 mx-auto text-muted-foreground/30 mb-2" />
+                      <p className="text-muted-foreground">Nhập nội dung bên trái để xem trước...</p>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="px-5 py-3 border-t bg-muted/30 shrink-0">
-            <p className="text-xs text-muted-foreground mr-auto">
-              Sử dụng **in đậm**, *in nghiêng*, ## tiêu đề, - danh sách
-            </p>
+          <DialogFooter className="px-5 py-3 border-t bg-muted/30 shrink-0 flex items-center">
+            <p className="text-[10px] text-muted-foreground mr-auto">© UEH Teamworks</p>
             <Button variant="outline" onClick={() => setPolicyDialogOpen(false)}>Hủy</Button>
             <Button onClick={handleSavePolicy} disabled={savingPolicy} className="gap-2">
               {savingPolicy ? 'Đang lưu...' : <><CheckCircle2 className="w-4 h-4" /> Xác nhận thay đổi</>}
