@@ -292,7 +292,6 @@ export default function MemberManagementCard({
         metadata: { 
           created_user_id: newUserId, 
           created_user_name: newMemberFullName.trim(),
-          created_user_email: newMemberEmail.trim(),
           role: roleToAssign
         }
       });
