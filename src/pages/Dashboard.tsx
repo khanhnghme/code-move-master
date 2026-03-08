@@ -236,12 +236,20 @@ export default function Dashboard() {
               <CardTitle className="text-xl">Projects của tôi</CardTitle>
               <CardDescription>Các dự án bạn đang tham gia</CardDescription>
             </div>
-            <Link to="/groups">
-              <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
-                Xem & Tạo Project
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link to="/groups">
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <FolderKanban className="w-4 h-4" />
+                  <span className="hidden md:inline">Xem tất cả</span>
+                </Button>
+              </Link>
+              <Link to="/groups?action=create">
+                <Button size="sm" className="gap-1.5">
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden md:inline">Tạo Project</span>
+                </Button>
+              </Link>
+            </div>
           </CardHeader>
           <CardContent>
             {groups.length === 0 ? (
