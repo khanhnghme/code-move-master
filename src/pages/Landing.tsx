@@ -764,9 +764,14 @@ export default function Landing() {
             loop
             muted
             playsInline
-            className="fixed inset-0 w-full h-full object-cover pointer-events-none"
+            className="fixed inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-1000"
             style={{ opacity: videoOpacity, zIndex: 0 }}
             src={videoUrl}
+            onLoadedData={(e) => {
+              const vid = e.currentTarget;
+              vid.style.opacity = '0';
+              requestAnimationFrame(() => { vid.style.opacity = String(videoOpacity); });
+            }}
           />
           <div
             className="fixed inset-0 bg-background/60 pointer-events-none"
