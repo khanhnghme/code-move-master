@@ -57,7 +57,7 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
     try {
       const { data: group, error: groupError } = await supabase
         .from('groups')
-        .select('id, name, description, class_code, instructor_name, created_at, image_url')
+        .select('id, name, description, class_code, instructor_name, created_at, image_url, created_by')
         .eq('join_code', code)
         .eq('allow_join_by_code', true)
         .single();
@@ -67,24 +67,20 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
         return;
       }
 
-      // Get member count
-      const { count } = await supabase
-        .from('group_members')
-        .select('id', { count: 'exact', head: true })
-        .eq('group_id', group.id);
+      // Get member count, leader profile, task count in parallel
+      const [memberRes, leaderRes, taskRes, existingRes] = await Promise.all([
+        supabase.from('group_members').select('id', { count: 'exact', head: true }).eq('group_id', group.id),
+        supabase.from('profiles').select('full_name').eq('id', group.created_by).single(),
+        supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('group_id', group.id),
+        supabase.from('group_members').select('id').eq('group_id', group.id).eq('user_id', user.id).maybeSingle(),
+      ]);
 
-      // Check if already a member
-      const { data: existing } = await supabase
-        .from('group_members')
-        .select('id')
-        .eq('group_id', group.id)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      setAlreadyMember(!!existing);
+      setAlreadyMember(!!existingRes.data);
       setGroupPreview({
         ...group,
-        memberCount: count || 0,
+        memberCount: memberRes.count || 0,
+        leaderName: leaderRes.data?.full_name || null,
+        taskCount: taskRes.count || 0,
       });
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
