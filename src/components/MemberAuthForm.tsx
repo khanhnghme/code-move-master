@@ -143,6 +143,7 @@ export function MemberAuthForm() {
   const [otpCode, setOtpCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [resendCountdown, setResendCountdown] = useState(0);
 
   // Login fields
   const [identifier, setIdentifier] = useState('');
@@ -160,6 +161,14 @@ export function MemberAuthForm() {
   // Policy
   const [policyContent, setPolicyContent] = useState('');
   const [policyUpdatedAt, setPolicyUpdatedAt] = useState<string | null>(null);
+
+  // Resend countdown timer
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown(prev => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCountdown]);
 
   useEffect(() => {
     if (user && profile) {
@@ -660,15 +669,25 @@ export function MemberAuthForm() {
                     <button type="button" className="text-primary hover:underline font-medium" onClick={() => { setForgotStep('input'); setOtpCode(''); setErrors({}); }}>
                       ← Quay lại
                     </button>
-                    <button type="button" className="text-muted-foreground hover:underline text-xs" onClick={async () => {
+                    <button type="button" className="text-muted-foreground hover:underline text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline" disabled={resendCountdown > 0 || forgotLoading} onClick={async () => {
                       setForgotLoading(true);
-                      await supabase.functions.invoke('password-reset-otp', {
-                        body: { action: 'send_code', email: forgotEmail },
-                      });
-                      setForgotLoading(false);
-                      toast({ title: 'Đã gửi lại mã', description: 'Mã mới đã được gửi đến email của bạn.' });
+                      try {
+                        const res = await supabase.functions.invoke('password-reset-otp', {
+                          body: { action: 'send_code', email: forgotEmail },
+                        });
+                        setForgotLoading(false);
+                        if (res.data?.error) {
+                          toast({ title: 'Không thể gửi mã', description: res.data.error, variant: 'destructive' });
+                        } else {
+                          setResendCountdown(60);
+                          toast({ title: 'Đã gửi lại mã', description: 'Mã mới đã được gửi đến email của bạn.' });
+                        }
+                      } catch {
+                        setForgotLoading(false);
+                        toast({ title: 'Lỗi', description: 'Có lỗi xảy ra.', variant: 'destructive' });
+                      }
                     }}>
-                      Gửi lại mã
+                      {resendCountdown > 0 ? `Gửi lại sau (${resendCountdown}s)` : 'Gửi lại mã'}
                     </button>
                   </div>
                 </form>
@@ -708,10 +727,7 @@ export function MemberAuthForm() {
                     } else {
                       setForgotEmail(registeredEmail);
                       setForgotStep('otp');
-                      // Show dev code in toast for testing (remove in production)
-                      if (data?._dev_code) {
-                        toast({ title: 'Mã xác minh (Dev)', description: `Mã: ${data._dev_code}`, duration: 30000 });
-                      }
+                      setResendCountdown(60);
                     }
                   } catch {
                     setForgotLoading(false);
