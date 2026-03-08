@@ -117,9 +117,11 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
         }
 
         fetchMeetings();
+        onRefreshTasks?.();
       },
       onUndo: () => {
         fetchMeetings();
+        onRefreshTasks?.();
       },
     });
   }, [user, groupId]);
