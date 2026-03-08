@@ -480,63 +480,44 @@ export default function GroupDetail() {
                                 />
                               </div>
 
-                              {/* Stage & Config + Deadline - Card style */}
-                              <div className="grid grid-cols-2 gap-3">
+                              {/* Stage, Deadline, Submission Method, File Limit - Single row */}
+                              <div className={`grid gap-3 ${stages.length > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
                                 {stages.length > 0 && (
-                                  <div className="p-3 rounded-lg bg-warning/5 border border-warning/20">
+                                  <div>
                                     <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-warning">
                                       <Layers className="w-3.5 h-3.5" />
                                       Giai đoạn <span className="text-destructive">*</span>
                                     </Label>
                                     <Select value={newTaskStageId} onValueChange={setNewTaskStageId}>
-                                      <SelectTrigger className="h-9 bg-background/80 border-warning/30"><SelectValue placeholder="Chọn giai đoạn..." /></SelectTrigger>
+                                      <SelectTrigger className="h-9"><SelectValue placeholder="Chọn..." /></SelectTrigger>
                                       <SelectContent>
                                         {stages.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                                       </SelectContent>
                                     </Select>
                                   </div>
                                 )}
-                                <div className="p-3 rounded-lg bg-accent/5 border border-accent/20">
+                                <div>
                                   <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-accent">
                                     <Calendar className="w-3.5 h-3.5" />
                                     Deadline
                                   </Label>
-                                  <DeadlineHourPicker value={newTaskDeadline} onChange={setNewTaskDeadline} placeholder="Chọn deadline..." />
+                                  <DeadlineHourPicker value={newTaskDeadline} onChange={setNewTaskDeadline} placeholder="Chọn..." />
                                 </div>
-                              </div>
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/20">
+                                <div>
                                   <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
                                     <Send className="w-3.5 h-3.5" />
                                     Cách nộp bài
                                   </Label>
                                   <Select value={newTaskSubmissionMethod} onValueChange={setNewTaskSubmissionMethod}>
-                                    <SelectTrigger className="h-9 bg-background/80 border-indigo-500/30">
-                                      <SelectValue />
-                                    </SelectTrigger>
+                                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="both">
-                                        <span className="flex items-center gap-2">
-                                          <span className="w-2 h-2 rounded-full bg-primary" />
-                                          Cả hai cách
-                                        </span>
-                                      </SelectItem>
-                                      <SelectItem value="file_only">
-                                        <span className="flex items-center gap-2">
-                                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                                          Chỉ tải file lên
-                                        </span>
-                                      </SelectItem>
-                                      <SelectItem value="link_only">
-                                        <span className="flex items-center gap-2">
-                                          <span className="w-2 h-2 rounded-full bg-blue-500" />
-                                          Chỉ dán liên kết
-                                        </span>
-                                      </SelectItem>
+                                      <SelectItem value="both">Cả hai cách</SelectItem>
+                                      <SelectItem value="file_only">Chỉ tải file</SelectItem>
+                                      <SelectItem value="link_only">Chỉ dán link</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
-                                <div className="p-3 rounded-lg bg-muted/50 border border-border">
+                                <div>
                                   <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-muted-foreground">
                                     <FileText className="w-3.5 h-3.5" />
                                     Giới hạn file
