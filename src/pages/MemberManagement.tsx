@@ -56,6 +56,7 @@ import {
 import type { Profile } from '@/types/database';
 import { exportMembersToExcel, getRoleDisplayName } from '@/lib/excelExport';
 import MemberDetailDialog from '@/components/MemberDetailDialog';
+import MemberRoleManagementDialog from '@/components/MemberRoleManagementDialog';
 import SuspendMemberDialog from '@/components/SuspendMemberDialog';
 import ExcelMemberImport, { type ParsedRow, type ExcelImportAction, type ImportValidation } from '@/components/ExcelMemberImport';
 import UserPresenceIndicator from '@/components/UserPresenceIndicator';
