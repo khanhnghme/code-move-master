@@ -130,12 +130,11 @@ export default function Communication() {
   // Scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current && activeTab === 'all') {
-      // ScrollArea wraps content in a viewport div
       const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (viewport) {
-        setTimeout(() => {
+        requestAnimationFrame(() => {
           viewport.scrollTop = viewport.scrollHeight;
-        }, 50);
+        });
       }
     }
   }, [messages, activeTab]);
