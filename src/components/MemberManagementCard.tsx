@@ -144,6 +144,7 @@ export default function MemberManagementCard({
   };
 
   const isMemberGroupCreator = (memberId: string) => memberId === groupCreatorId;
+  const canManageProjectRoles = currentUserId === groupCreatorId;
 
   const canDeleteMember = (member: GroupMember) => {
     if (member.user_id === currentUserId) return false;
@@ -154,7 +155,7 @@ export default function MemberManagementCard({
   const canChangeRole = (member: GroupMember) => {
     if (isMemberGroupCreator(member.user_id)) return false;
     // Only group creator (Trưởng nhóm) can change roles, not Phó nhóm
-    return isGroupCreator;
+    return canManageProjectRoles;
   };
 
   const resetAddForm = () => {
