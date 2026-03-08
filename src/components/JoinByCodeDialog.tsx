@@ -80,8 +80,8 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
         return;
       }
 
-      const [memberRes, leaderRes, existingRes] = await Promise.all([
-        supabase.from('group_members').select('id', { count: 'exact', head: true }).eq('group_id', group.id),
+      const [stats, leaderRes, existingRes] = await Promise.all([
+        fetchJoinStats(group.id),
         supabase.from('profiles').select('full_name').eq('id', group.created_by).single(),
         supabase.from('group_members').select('id').eq('group_id', group.id).eq('user_id', user.id).maybeSingle(),
       ]);
@@ -89,9 +89,9 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
       setAlreadyMember(!!existingRes.data);
       setGroupPreview({
         ...group,
-        memberCount: memberRes.count || 0,
+        memberCount: stats.memberCount,
         leaderName: leaderRes.data?.full_name || null,
-        joinMemberLimit: (group as any).join_member_limit ?? null,
+        joinMemberLimit: stats.joinMemberLimit ?? (group as any).join_member_limit ?? null,
       });
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
