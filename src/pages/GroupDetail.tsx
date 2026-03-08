@@ -685,14 +685,16 @@ export default function GroupDetail() {
               />
             </TabsContent>
 
-            <TabsContent value="logs" className="mt-6">
-              <ProjectActivityLog 
-                groupId={group.id} 
-                groupName={group.name} 
-                isLeader={isLeaderInGroup}
-                isAdmin={isAdmin}
-              />
-            </TabsContent>
+            {(isGroupCreator || isAdmin) && (
+              <TabsContent value="logs" className="mt-6">
+                <ProjectActivityLog 
+                  groupId={group.id} 
+                  groupName={group.name} 
+                  isLeader={isLeaderInGroup}
+                  isAdmin={isAdmin}
+                />
+              </TabsContent>
+            )}
 
             {isLeaderInGroup && group.created_by === user?.id && (
               <TabsContent value="settings" className="mt-6 space-y-6">
