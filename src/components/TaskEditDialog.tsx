@@ -428,6 +428,16 @@ export default function TaskEditDialog({
                       </div>
                     )}
                   </div>
+                  <div>
+                    <Label className="text-xs mb-1.5 block flex items-center gap-1">
+                      <HardDrive className="w-3 h-3" /> Giới hạn upload
+                    </Label>
+                    {canEditDetails ? (
+                      <FileSizeLimitSelector value={maxFileSize} onChange={setMaxFileSize} />
+                    ) : (
+                      <div className="p-2 rounded-md bg-muted/50 border text-sm">{formatFileSizeMB(maxFileSize)}</div>
+                    )}
+                  </div>
                 </div>
               </div>
 
