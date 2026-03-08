@@ -1,4 +1,4 @@
-import { LayoutDashboard, Layers, Users, Activity, Settings, Award, FolderOpen } from 'lucide-react';
+import { LayoutDashboard, Layers, Users, Activity, Settings, Award, FolderOpen, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
@@ -26,6 +26,7 @@ interface NavTab {
 const tabs: NavTab[] = [
   { id: 'overview', label: 'Tổng quan', icon: LayoutDashboard, showAlways: true, description: 'Xem tổng quan dự án' },
   { id: 'tasks', label: 'Task', icon: Layers, showAlways: true, description: 'Quản lý công việc' },
+  { id: 'meetings', label: 'Họp nhóm', icon: Video, showAlways: true, description: 'Họp video & điểm danh' },
   { id: 'resources', label: 'Tài nguyên', icon: FolderOpen, showAlways: true, description: 'File & tài liệu' },
   { id: 'members', label: 'Thành viên', icon: Users, showAlways: true, description: 'Danh sách thành viên' },
   { id: 'scores', label: 'Điểm', icon: Award, showAlways: true, description: 'Điểm số & đánh giá' },

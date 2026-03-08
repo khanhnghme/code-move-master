@@ -31,6 +31,7 @@ import ProjectNavigation from '@/components/ProjectNavigation';
 import ProcessScores from '@/components/scores/ProcessScores';
 import ProjectResources from '@/components/ProjectResources';
 import ProjectEvidenceExport from '@/components/ProjectEvidenceExport';
+import GroupMeetings from '@/components/GroupMeetings';
 
 import type { Group, GroupMember, Task, Profile, Stage } from '@/types/database';
 import { DeadlineHourPicker } from '@/components/DeadlineHourPicker';
@@ -79,6 +80,7 @@ export default function GroupDetail() {
   const availableTabs = [
     'overview',
     'tasks',
+    'meetings',
     'members',
     'resources',
     'scores',
@@ -405,6 +407,7 @@ export default function GroupDetail() {
             <TabsList>
               <TabsTrigger value="overview">Tổng quan</TabsTrigger>
               <TabsTrigger value="tasks">Task</TabsTrigger>
+              <TabsTrigger value="meetings">Họp nhóm</TabsTrigger>
               <TabsTrigger value="members">Thành viên</TabsTrigger>
               <TabsTrigger value="resources">Tài nguyên</TabsTrigger>
               <TabsTrigger value="scores">Điểm quá trình</TabsTrigger>
@@ -651,6 +654,16 @@ export default function GroupDetail() {
 
             <TabsContent value="tasks" className="mt-6">
               <TaskListView stages={stages} tasks={tasks} members={members} isLeaderInGroup={isLeaderInGroup} groupId={group.id} groupSlug={group.slug} onRefresh={fetchGroupData} onEditTask={setEditingTask} onCreateTask={(stageId) => { setNewTaskStageId(stageId); setIsTaskDialogOpen(true); }} onEditStage={setEditingStage} onDeleteStage={setStageToDelete} onToggleStageHidden={handleToggleStageHidden} />
+            </TabsContent>
+
+            <TabsContent value="meetings" className="mt-6">
+              <GroupMeetings
+                groupId={group.id}
+                groupName={group.name}
+                stages={stages}
+                members={members}
+                isLeader={isLeaderInGroup}
+              />
             </TabsContent>
 
             <TabsContent value="members" className="mt-6">
