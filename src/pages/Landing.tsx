@@ -884,7 +884,7 @@ export default function Landing() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t bg-primary/80 backdrop-blur-md text-primary-foreground py-6 mt-8">
+      <footer className="border-t bg-primary/90 backdrop-blur-md text-primary-foreground py-6 mt-8">
         <div className="container mx-auto px-4 space-y-4 text-sm">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
