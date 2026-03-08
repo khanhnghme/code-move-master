@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 import UserAvatar from '@/components/UserAvatar';
 import DashboardProjectCard from '@/components/dashboard/DashboardProjectCard';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,8 @@ import {
   Star,
   User,
   KeyRound,
+  Video,
+  Eye,
 } from 'lucide-react';
 import type { Group } from '@/types/database';
 
