@@ -571,6 +571,7 @@ const introPageComponents = [Page1Overview, Page2Tasks, Page3Scoring, Page4Proje
 
 export default function Landing() {
   const [isInitializing, setIsInitializing] = useState(false);
+  const [introImages, setIntroImages] = useState<IntroImages>({});
   const [showIntro, setShowIntro] = useState(false);
   const [introVisible, setIntroVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
