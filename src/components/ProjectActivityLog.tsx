@@ -39,6 +39,7 @@ interface ProjectActivityLogProps {
   groupName?: string;
   isLeader?: boolean;
   isAdmin?: boolean;
+  isGroupCreator?: boolean;
 }
 
 const DEFAULT_FILTERS: ActivityFilters = {
