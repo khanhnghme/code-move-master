@@ -433,6 +433,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
         }
         const { error: dbError } = await supabase.from('project_resources').delete().eq('id', resourceRef.id);
         if (dbError) throw dbError;
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'DELETE_RESOURCE', actionType: 'resource',
+            description: `Xóa ${resourceRef.resource_type === 'link' ? 'link' : 'file'} "${resourceRef.name}" (${formatFileSize(resourceRef.file_size)})`,
+            groupId,
+          });
+        }
         fetchResources();
       },
       onUndo: () => {
