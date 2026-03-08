@@ -30,45 +30,6 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "Email service not configured" }, 500);
       }
 
-      // === Rate limiting ===
-      const now = new Date();
-
-      // Cooldown: 1 request per 60 seconds
-      const { data: lastCode } = await supabase
-        .from("password_reset_codes")
-        .select("created_at")
-        .eq("email", email.toLowerCase())
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (lastCode) {
-        const lastSentAt = new Date(lastCode.created_at);
-        const diffSeconds = (now.getTime() - lastSentAt.getTime()) / 1000;
-        if (diffSeconds < 60) {
-          const waitSeconds = Math.ceil(60 - diffSeconds);
-          return jsonResponse(
-            { error: `Vui lòng chờ ${waitSeconds} giây trước khi gửi lại mã.` },
-            429
-          );
-        }
-      }
-
-      // Burst limit: max 3 codes per 15 minutes
-      const fifteenMinAgo = new Date(now.getTime() - 15 * 60 * 1000).toISOString();
-      const { data: recentCodes } = await supabase
-        .from("password_reset_codes")
-        .select("id")
-        .eq("email", email.toLowerCase())
-        .gte("created_at", fifteenMinAgo);
-
-      if (recentCodes && recentCodes.length >= 3) {
-        return jsonResponse(
-          { error: "Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau 15 phút." },
-          429
-        );
-      }
-
       // Generate 6-digit code
       const otpCode = String(Math.floor(100000 + Math.random() * 900000));
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 min
