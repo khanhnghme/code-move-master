@@ -395,6 +395,14 @@ export default function ProcessScores({
     try {
       await supabase.from('score_appeals').update({ status: approved ? 'approved' : 'rejected', response, responded_by: user?.id, responded_at: new Date().toISOString() }).eq('id', reviewDialog.appeal.id);
       toast({ title: 'Thành công', description: approved ? 'Đã chấp nhận phúc khảo' : 'Đã từ chối phúc khảo' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: approved ? 'APPROVE_APPEAL' : 'REJECT_APPEAL', actionType: 'score',
+          description: `${approved ? 'Chấp nhận' : 'Từ chối'} phúc khảo của ${getMemberProfile(reviewDialog.appeal.user_id)?.full_name || 'Unknown'}`,
+          groupId,
+        });
+      }
       setReviewDialog({ isOpen: false, appeal: null });
       fetchScoreData();
     } catch (error: any) {
