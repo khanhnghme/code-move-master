@@ -134,7 +134,7 @@ export function MemberAuthForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState<'login' | 'register' | 'forgot'>('login');
-  const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [registerSuccess, setRegisterSuccess] = useState<false | 'pending' | 'approved'>(false);
   const [forgotIdentifier, setForgotIdentifier] = useState('');
   const [forgotEmailInput, setForgotEmailInput] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -350,10 +350,23 @@ export function MemberAuthForm() {
           toast({ title: 'Đăng ký thất bại', description: error.message, variant: 'destructive' });
         }
       } else {
+        // Check if auto-approve is enabled
+        const { data: settingData } = await supabase
+          .from('system_settings')
+          .select('value')
+          .eq('key', 'auto_approve_accounts')
+          .maybeSingle();
+        const isAutoApproved = settingData?.value && (settingData.value as any).enabled === true;
+
         await supabase.auth.signOut({ scope: 'local' });
         setIsLoading(false);
-        setRegisterSuccess(true);
-        toast({ title: 'Đăng ký thành công', description: 'Tài khoản đang chờ Admin duyệt.' });
+        setRegisterSuccess(isAutoApproved ? 'approved' : 'pending');
+        toast({
+          title: 'Đăng ký thành công',
+          description: isAutoApproved
+            ? 'Tài khoản đã được kích hoạt. Bạn có thể đăng nhập ngay!'
+            : 'Tài khoản đang chờ Admin duyệt.',
+        });
       }
     } catch (err) {
       setIsLoading(false);
@@ -362,6 +375,7 @@ export function MemberAuthForm() {
   };
 
   if (registerSuccess) {
+    const isApproved = registerSuccess === 'approved';
     return (
       <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center gap-2">
@@ -372,16 +386,30 @@ export function MemberAuthForm() {
         </div>
         <Card className="w-full shadow-card-lg border-border/50">
           <CardContent className="pt-6 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto">
-              <UserPlus className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <h2 className="text-xl font-heading font-semibold">Đăng ký thành công!</h2>
-            <p className="text-sm text-muted-foreground">
-              Tài khoản của bạn đã được tạo và đang chờ Admin xét duyệt. Bạn sẽ có thể đăng nhập sau khi được duyệt.
-            </p>
+            {isApproved ? (
+              <>
+                <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto">
+                  <Shield className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <h2 className="text-xl font-heading font-semibold">Tài khoản đã sẵn sàng!</h2>
+                <p className="text-sm text-muted-foreground">
+                  Tài khoản của bạn đã được tạo và <strong>kích hoạt tự động</strong>. Bạn có thể đăng nhập ngay bây giờ.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto">
+                  <UserPlus className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                </div>
+                <h2 className="text-xl font-heading font-semibold">Đăng ký thành công!</h2>
+                <p className="text-sm text-muted-foreground">
+                  Tài khoản của bạn đã được tạo và đang chờ Admin xét duyệt. Bạn sẽ có thể đăng nhập sau khi được duyệt.
+                </p>
+              </>
+            )}
             <Button
-              variant="outline"
-              className="w-full"
+              variant={isApproved ? 'default' : 'outline'}
+              className={`w-full ${isApproved ? 'bg-foreground text-background hover:bg-foreground/90' : ''}`}
               onClick={() => {
                 setRegisterSuccess(false);
                 setActiveTab('login');
@@ -392,7 +420,7 @@ export function MemberAuthForm() {
                 setRegConfirmPassword('');
               }}
             >
-              Quay lại đăng nhập
+              {isApproved ? 'Đăng nhập ngay' : 'Quay lại đăng nhập'}
             </Button>
           </CardContent>
         </Card>
