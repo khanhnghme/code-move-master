@@ -365,17 +365,64 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
   );
 }
 
-function getLinkPlatform(url: string): string {
-  if (!url) return '';
-  try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    if (hostname.includes('meet.google') || hostname.includes('hangouts.google')) return 'Google Meet';
-    if (hostname.includes('zoom.us') || hostname.includes('zoom.com')) return 'Zoom';
-    if (hostname.includes('teams.microsoft') || hostname.includes('teams.live')) return 'Microsoft Teams';
-    if (hostname.includes('discord')) return 'Discord';
-    if (hostname.includes('jit.si') || hostname.includes('jitsi')) return 'Jitsi Meet';
-    return hostname;
-  } catch {
-    return '';
-  }
+function JitsiEmbed({ roomName, displayName, email }: { roomName: string; displayName: string; email: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const apiRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Load JaaS external API script
+    const scriptId = 'jaas-external-api';
+    let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+    
+    const initJitsi = () => {
+      if (apiRef.current) {
+        apiRef.current.dispose();
+      }
+      if (!containerRef.current) return;
+
+      apiRef.current = new (window as any).JitsiMeetExternalAPI('8x8.vc', {
+        roomName,
+        parentNode: containerRef.current,
+        userInfo: {
+          displayName,
+          email,
+        },
+        configOverrides: {
+          startWithAudioMuted: true,
+          startWithVideoMuted: false,
+          disableDeepLinking: true,
+          prejoinPageEnabled: true,
+        },
+        interfaceConfigOverrides: {
+          SHOW_JITSI_WATERMARK: false,
+          SHOW_WATERMARK_FOR_GUESTS: false,
+          MOBILE_APP_PROMO: false,
+        },
+      });
+    };
+
+    if (!script) {
+      script = document.createElement('script');
+      script.id = scriptId;
+      script.src = `https://8x8.vc/${JAAS_APP_ID}/external_api.js`;
+      script.async = true;
+      script.onload = initJitsi;
+      document.head.appendChild(script);
+    } else if ((window as any).JitsiMeetExternalAPI) {
+      initJitsi();
+    } else {
+      script.addEventListener('load', initJitsi);
+    }
+
+    return () => {
+      if (apiRef.current) {
+        apiRef.current.dispose();
+        apiRef.current = null;
+      }
+    };
+  }, [roomName, displayName, email]);
+
+  return <div ref={containerRef} className="w-full h-full" />;
 }

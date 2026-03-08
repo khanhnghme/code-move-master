@@ -213,7 +213,7 @@ export default function CreateMeetingDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
-          <Button onClick={handleCreate} disabled={isCreating || !title.trim() || !scheduledAt || !externalLink.trim()}>
+          <Button onClick={handleCreate} disabled={isCreating || !title.trim() || !scheduledAt}>
             {isCreating ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Đang tạo...</> : 'Tạo cuộc họp'}
           </Button>
         </DialogFooter>
