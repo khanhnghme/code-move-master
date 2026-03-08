@@ -151,8 +151,9 @@ export default function DashboardLayout({ children, projectId, projectName, zalo
             </div>
           </nav>
 
-          {/* Right: User area - fixed width to balance with left */}
+           {/* Right: User area - fixed width to balance with left */}
           <div className="w-[160px] shrink-0 flex items-center justify-end gap-3">
+            <ThemeToggle />
             <NotificationBell />
             
             <DropdownMenu>
