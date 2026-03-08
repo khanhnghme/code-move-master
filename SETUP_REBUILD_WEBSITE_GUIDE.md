@@ -1297,6 +1297,113 @@ CREATE INDEX idx_error_logs_user ON public.system_error_logs(user_id);
 
 ---
 
+#### 3.2.29 Bảng `system_settings`
+
+**Mục đích:** Lưu cấu hình hệ thống (chế độ bảo trì, chính sách hệ thống, v.v.)
+
+```sql
+CREATE TABLE public.system_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key TEXT NOT NULL UNIQUE,
+  value JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_by UUID,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX idx_system_settings_key ON public.system_settings(key);
+```
+
+**Các key hiện có:**
+
+| key | Mô tả | Cấu trúc value |
+|-----|--------|----------------|
+| `maintenance_mode` | Chế độ bảo trì | `{ enabled: bool, message: string, start_at?: string, end_at?: string }` |
+| `system_policy` | Chính sách hệ thống | `{ content: string (Markdown), updated_at: string }` |
+
+---
+
+#### 3.2.30 Bảng `meetings`
+
+**Mục đích:** Quản lý cuộc họp nhóm với tích hợp Jitsi Meet
+
+```sql
+CREATE TABLE public.meetings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  scheduled_at TIMESTAMPTZ NOT NULL,
+  duration_minutes INTEGER NOT NULL DEFAULT 60,
+  status TEXT NOT NULL DEFAULT 'scheduled',
+  jitsi_room_name TEXT NOT NULL,
+  external_link TEXT,
+  notes TEXT,
+  task_id UUID REFERENCES tasks(id) ON DELETE SET NULL,
+  created_by UUID NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_meetings_group ON public.meetings(group_id);
+CREATE INDEX idx_meetings_scheduled ON public.meetings(scheduled_at);
+```
+
+| status | Mô tả |
+|--------|-------|
+| `scheduled` | Đã lên lịch |
+| `in_progress` | Đang diễn ra |
+| `completed` | Đã kết thúc |
+| `cancelled` | Đã hủy |
+
+---
+
+#### 3.2.31 Bảng `meeting_attendance`
+
+**Mục đích:** Điểm danh thành viên tham gia cuộc họp
+
+```sql
+CREATE TABLE public.meeting_attendance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  status TEXT NOT NULL DEFAULT 'absent',
+  joined_at TIMESTAMPTZ,
+  marked_by UUID,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(meeting_id, user_id)
+);
+
+CREATE INDEX idx_attendance_meeting ON public.meeting_attendance(meeting_id);
+```
+
+| status | Mô tả |
+|--------|-------|
+| `present` | Có mặt |
+| `absent` | Vắng mặt |
+| `late` | Đến trễ |
+| `excused` | Có phép |
+
+---
+
+#### 3.2.32 Bảng `meeting_messages`
+
+**Mục đích:** Tin nhắn chat trong phòng họp
+
+```sql
+CREATE TABLE public.meeting_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  user_name TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_meeting_messages ON public.meeting_messages(meeting_id);
+```
+
+---
+
 ### 3.3 DATABASE FUNCTIONS
 
 ```sql
