@@ -194,6 +194,8 @@ interface TaskRowProps {
   isMultiSelectMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: (taskId: string) => void;
+  meeting?: any;
+  onJoinMeeting?: (meetingId: string) => void;
 }
 
 function TaskRow({
