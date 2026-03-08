@@ -55,7 +55,10 @@ import {
   Bug,
   Reply,
   X,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
@@ -71,6 +74,9 @@ interface Feedback {
   user_student_id?: string;
   user_avatar_url?: string;
   comment_count?: number;
+  useful_count?: number;
+  not_useful_count?: number;
+  my_reaction?: 'useful' | 'not_useful' | null;
 }
 
 interface FeedbackComment {
@@ -147,12 +153,35 @@ export default function FeedbackPage() {
           countMap.set(c.feedback_id, (countMap.get(c.feedback_id) || 0) + 1);
         });
 
+        // Get reactions
+        const { data: reactionsData } = await supabase
+          .from('feedback_reactions')
+          .select('feedback_id, reaction, user_id')
+          .in('feedback_id', feedbackIds);
+
+        const usefulMap = new Map<string, number>();
+        const notUsefulMap = new Map<string, number>();
+        const myReactionMap = new Map<string, 'useful' | 'not_useful'>();
+        reactionsData?.forEach(r => {
+          if (r.reaction === 'useful') {
+            usefulMap.set(r.feedback_id, (usefulMap.get(r.feedback_id) || 0) + 1);
+          } else {
+            notUsefulMap.set(r.feedback_id, (notUsefulMap.get(r.feedback_id) || 0) + 1);
+          }
+          if (r.user_id === user?.id) {
+            myReactionMap.set(r.feedback_id, r.reaction as 'useful' | 'not_useful');
+          }
+        });
+
         setFeedbacks(feedbacksData.map(f => ({
           ...f,
           user_name: profileMap.get(f.user_id)?.full_name || 'Unknown',
           user_student_id: profileMap.get(f.user_id)?.student_id || '',
           user_avatar_url: profileMap.get(f.user_id)?.avatar_url || null,
           comment_count: countMap.get(f.id) || 0,
+          useful_count: usefulMap.get(f.id) || 0,
+          not_useful_count: notUsefulMap.get(f.id) || 0,
+          my_reaction: myReactionMap.get(f.id) || null,
         })));
       } else {
         setFeedbacks([]);
@@ -366,6 +395,55 @@ export default function FeedbackPage() {
     }
   };
 
+  const handleReaction = async (feedbackId: string, reaction: 'useful' | 'not_useful') => {
+    if (!user) return;
+    const feedback = feedbacks.find(f => f.id === feedbackId);
+    if (!feedback) return;
+
+    try {
+      if (feedback.my_reaction === reaction) {
+        // Remove reaction
+        await supabase
+          .from('feedback_reactions')
+          .delete()
+          .eq('feedback_id', feedbackId)
+          .eq('user_id', user.id);
+        setFeedbacks(prev => prev.map(f => f.id === feedbackId ? {
+          ...f,
+          my_reaction: null,
+          useful_count: reaction === 'useful' ? Math.max(0, (f.useful_count || 0) - 1) : f.useful_count,
+          not_useful_count: reaction === 'not_useful' ? Math.max(0, (f.not_useful_count || 0) - 1) : f.not_useful_count,
+        } : f));
+      } else if (feedback.my_reaction) {
+        // Switch reaction
+        await supabase
+          .from('feedback_reactions')
+          .update({ reaction })
+          .eq('feedback_id', feedbackId)
+          .eq('user_id', user.id);
+        setFeedbacks(prev => prev.map(f => f.id === feedbackId ? {
+          ...f,
+          my_reaction: reaction,
+          useful_count: reaction === 'useful' ? (f.useful_count || 0) + 1 : Math.max(0, (f.useful_count || 0) - 1),
+          not_useful_count: reaction === 'not_useful' ? (f.not_useful_count || 0) + 1 : Math.max(0, (f.not_useful_count || 0) - 1),
+        } : f));
+      } else {
+        // New reaction
+        await supabase
+          .from('feedback_reactions')
+          .insert({ feedback_id: feedbackId, user_id: user.id, reaction });
+        setFeedbacks(prev => prev.map(f => f.id === feedbackId ? {
+          ...f,
+          my_reaction: reaction,
+          useful_count: reaction === 'useful' ? (f.useful_count || 0) + 1 : f.useful_count,
+          not_useful_count: reaction === 'not_useful' ? (f.not_useful_count || 0) + 1 : f.not_useful_count,
+        } : f));
+      }
+    } catch (error) {
+      console.error('Error handling reaction:', error);
+    }
+  };
+
   const formatTime = (dateStr: string) => {
     return format(new Date(dateStr), "dd/MM/yyyy 'lúc' HH:mm", { locale: vi });
   };
@@ -493,7 +571,7 @@ export default function FeedbackPage() {
               </Card>
             ) : (
               <div className="space-y-5">
-                {feedbacks.map(feedback => (
+                {feedbacks.map((feedback, index) => (
                   <Card
                     key={feedback.id}
                     className={`transition-all overflow-hidden hover:shadow-md ${
@@ -577,12 +655,64 @@ export default function FeedbackPage() {
                     <CardContent className="pt-0 pb-4 space-y-4">
                       {/* Title */}
                       <div className="space-y-2">
-                        <h3 className="text-lg font-semibold text-foreground leading-tight">
-                          {feedback.title}
-                        </h3>
+                        <div className="flex items-start gap-2">
+                          <Badge variant="outline" className="shrink-0 mt-0.5 font-mono text-xs px-2 py-0.5 bg-primary/10 text-primary border-primary/20">
+                            #{feedbacks.length - index}
+                          </Badge>
+                          <h3 className="text-lg font-semibold text-foreground leading-tight">
+                            {feedback.title}
+                          </h3>
+                        </div>
                         <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-relaxed">
                           {feedback.content}
                         </p>
+                      </div>
+
+                      {/* Reactions + Divider */}
+                      <div className="flex items-center gap-3 pt-1">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`gap-1.5 h-8 px-3 rounded-full transition-all ${
+                                  feedback.my_reaction === 'useful'
+                                    ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                                    : 'text-muted-foreground hover:text-emerald-600 hover:bg-emerald-500/10'
+                                }`}
+                                onClick={() => handleReaction(feedback.id, 'useful')}
+                              >
+                                <ThumbsUp className={`w-4 h-4 ${feedback.my_reaction === 'useful' ? 'fill-current' : ''}`} />
+                                <span className="text-xs font-medium">{feedback.useful_count || 0}</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Bổ ích</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`gap-1.5 h-8 px-3 rounded-full transition-all ${
+                                  feedback.my_reaction === 'not_useful'
+                                    ? 'bg-destructive/15 text-destructive hover:bg-destructive/25'
+                                    : 'text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+                                }`}
+                                onClick={() => handleReaction(feedback.id, 'not_useful')}
+                              >
+                                <ThumbsDown className={`w-4 h-4 ${feedback.my_reaction === 'not_useful' ? 'fill-current' : ''}`} />
+                                <span className="text-xs font-medium">{feedback.not_useful_count || 0}</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Chưa hữu ích</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <div className="flex-1" />
                       </div>
 
                       {/* Divider */}
