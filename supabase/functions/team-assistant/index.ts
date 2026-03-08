@@ -30,6 +30,21 @@ interface ResourceData {
   folderName: string | null;
 }
 
+interface MeetingData {
+  title: string;
+  description: string | null;
+  scheduledAt: string;
+  scheduledAtFormatted: string;
+  durationMinutes: number;
+  status: string;
+  createdByName: string;
+  externalLink: string | null;
+  taskTitle: string | null;
+  attendeeCount: number;
+  isUpcoming: boolean;
+  isPast: boolean;
+}
+
 interface ProjectContext {
   project: {
     id: string;
@@ -51,6 +66,7 @@ interface ProjectContext {
   }>;
   tasks: TaskData[];
   resources: ResourceData[];
+  meetings: MeetingData[];
   currentUser: {
     name: string;
     role: string;
@@ -64,6 +80,16 @@ function getStatusLabel(status: string): string {
     'IN_PROGRESS': 'Đang thực hiện',
     'DONE': 'Hoàn thành',
     'VERIFIED': 'Đã duyệt'
+  };
+  return statusMap[status] || status;
+}
+
+function getMeetingStatusLabel(status: string): string {
+  const statusMap: Record<string, string> = {
+    'scheduled': 'Đã lên lịch',
+    'in_progress': 'Đang diễn ra',
+    'completed': 'Đã kết thúc',
+    'cancelled': 'Đã hủy'
   };
   return statusMap[status] || status;
 }
@@ -128,6 +154,38 @@ function buildProjectContext(context: ProjectContext): string {
     resourcesFormatted = lines.join('\n');
   }
 
+  // Build meetings section
+  const upcomingMeetings = context.meetings.filter(m => m.isUpcoming);
+  const pastMeetings = context.meetings.filter(m => m.isPast);
+
+  let meetingsFormatted = '';
+  if (context.meetings.length > 0) {
+    const lines: string[] = [];
+    
+    if (upcomingMeetings.length > 0) {
+      lines.push('  [Sắp diễn ra]');
+      for (const m of upcomingMeetings) {
+        const taskInfo = m.taskTitle ? ` (Liên kết task: "${m.taskTitle}")` : '';
+        const linkInfo = m.externalLink ? ` | Link: ${m.externalLink}` : '';
+        lines.push(`    - 📅 "${m.title}" — ${m.scheduledAtFormatted} (${m.durationMinutes} phút)`);
+        lines.push(`      Trạng thái: ${getMeetingStatusLabel(m.status)} | Tạo bởi: ${m.createdByName}${taskInfo}${linkInfo}`);
+      }
+    }
+
+    if (pastMeetings.length > 0) {
+      lines.push('  [Đã qua]');
+      for (const m of pastMeetings.slice(0, 5)) { // Only show last 5 past meetings
+        const taskInfo = m.taskTitle ? ` (Task: "${m.taskTitle}")` : '';
+        lines.push(`    - "${m.title}" — ${m.scheduledAtFormatted} (${m.durationMinutes} phút) — ${getMeetingStatusLabel(m.status)}${taskInfo}`);
+      }
+      if (pastMeetings.length > 5) {
+        lines.push(`    ... và ${pastMeetings.length - 5} buổi họp khác`);
+      }
+    }
+
+    meetingsFormatted = lines.join('\n');
+  }
+
   return `
 === DỰ ÁN: ${context.project.name} ===
 Mô tả: ${context.project.description || 'Không có mô tả'}
@@ -150,6 +208,9 @@ Tổng: ${context.tasks.length} công việc
 --- DANH SÁCH CÔNG VIỆC ---
 ${taskListFormatted || '(Chưa có công việc nào)'}
 
+--- CUỘC HỌP NHÓM (${context.meetings.length} buổi, ${upcomingMeetings.length} sắp tới) ---
+${meetingsFormatted || '(Chưa có cuộc họp nào)'}
+
 --- TÀI NGUYÊN DỰ ÁN (${context.resources.length} mục) ---
 ${resourcesFormatted || '(Chưa có tài nguyên nào)'}
 
@@ -159,6 +220,9 @@ ${overdueTasks.length > 0
   : '✅ Không có công việc quá hạn'}
 ${upcomingTasks.length > 0 
   ? `\n⏰ ${upcomingTasks.length} công việc sắp đến hạn (trong 3 ngày):\n${upcomingTasks.map(t => `   - "${t.title}" - còn ${t.daysUntilDeadline} ngày`).join('\n')}` 
+  : ''}
+${upcomingMeetings.length > 0 
+  ? `\n📅 ${upcomingMeetings.length} cuộc họp sắp tới:\n${upcomingMeetings.map(m => `   - "${m.title}" — ${m.scheduledAtFormatted}`).join('\n')}` 
   : ''}
 
 --- THÔNG TIN CỦA BẠN ---
@@ -220,17 +284,21 @@ ${projectContexts.join('\n---\n')}` : '## Người dùng chưa tham gia dự án
 4. ✅ Deadline ghi đúng định dạng: ngày/tháng/năm – giờ:phút (ví dụ: 20/01/2026 – 23:59)
 5. ✅ Trả lời ngắn gọn, rõ ràng, giống như đọc lại giao diện cho người dùng
 6. ✅ Khi được hỏi về tài nguyên: liệt kê tên, loại (file/link), thư mục, mô tả
+7. ✅ Khi được hỏi về cuộc họp: trả lời tiêu đề, thời gian, thời lượng, trạng thái, người tạo
+8. ✅ Trạng thái cuộc họp dùng: "Đã lên lịch", "Đang diễn ra", "Đã kết thúc", "Đã hủy"
 
 ## VÍ DỤ TRẢ LỜI ĐÚNG
 - "Bạn có 2 công việc được giao: 'Viết báo cáo' và 'Thiết kế slide'"
 - "Công việc 'Viết báo cáo' có deadline 20/01/2026 – 23:59, trạng thái: Đang thực hiện"
 - "Dự án có 3 tài nguyên: 'Bảng phân công' (file), 'Tài liệu tham khảo' (link), 'Mẫu báo cáo' (file)"
-- "Không tìm thấy tài nguyên nào tên 'XYZ' trong dự án này"
+- "Cuộc họp 'Họp tiến độ tuần 3' diễn ra lúc 15/01/2026 – 14:00, thời lượng 60 phút"
+- "Có 2 cuộc họp sắp tới: 'Họp tiến độ' ngày 20/01 và 'Họp tổng kết' ngày 25/01"
 
 ## VÍ DỤ TRẢ LỜI SAI (KHÔNG ĐƯỢC LÀM)
 - ❌ "Task [#abc123] có status IN_PROGRESS" → phải viết: "Công việc 'Tên task' đang thực hiện"
 - ❌ "ID: abc-def-123" → KHÔNG hiển thị ID
-- ❌ "TODO: 2, DONE: 1" → phải viết: "2 công việc chờ thực hiện, 1 công việc hoàn thành"`;
+- ❌ "TODO: 2, DONE: 1" → phải viết: "2 công việc chờ thực hiện, 1 công việc hoàn thành"
+- ❌ "Meeting status: scheduled" → phải viết: "Cuộc họp đã lên lịch"`;
 }
 
 serve(async (req) => {
@@ -393,16 +461,20 @@ async function fetchProjectContext(
 
   if (!project) return null;
 
-  const { data: stages } = await supabase
-    .from('stages')
-    .select('*')
-    .eq('group_id', projectId)
-    .order('order_index');
+  // Fetch stages, members, tasks, resources, meetings in parallel
+  const [stagesRes, membersRes, tasksRes, resourcesRes, meetingsRes] = await Promise.all([
+    supabase.from('stages').select('*').eq('group_id', projectId).order('order_index'),
+    supabase.from('group_members').select('*').eq('group_id', projectId),
+    supabase.from('tasks').select('*').eq('group_id', projectId).order('created_at', { ascending: true }),
+    supabase.from('project_resources').select('name, resource_type, category, description, link_url, folder_id').eq('group_id', projectId).order('created_at', { ascending: true }),
+    supabase.from('meetings').select('*').eq('group_id', projectId).order('scheduled_at', { ascending: false }),
+  ]);
 
-  const { data: members } = await supabase
-    .from('group_members')
-    .select('*')
-    .eq('group_id', projectId);
+  const stages = stagesRes.data;
+  const members = membersRes.data;
+  const tasks = tasksRes.data;
+  const resources = resourcesRes.data;
+  const meetings = meetingsRes.data;
 
   const memberUserIds = members?.map((m: any) => m.user_id) || [];
   const { data: profiles } = await supabase
@@ -412,25 +484,13 @@ async function fetchProjectContext(
 
   const profilesMap = new Map(profiles?.map((p: any) => [p.id, p]) || []);
 
-  const { data: tasks } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('group_id', projectId)
-    .order('created_at', { ascending: true });
-
   const taskIds = tasks?.map((t: any) => t.id) || [];
   const { data: assignments } = await supabase
     .from('task_assignments')
     .select('*')
     .in('task_id', taskIds.length > 0 ? taskIds : ['none']);
 
-  // Fetch project resources with folders
-  const { data: resources } = await supabase
-    .from('project_resources')
-    .select('name, resource_type, category, description, link_url, folder_id')
-    .eq('group_id', projectId)
-    .order('created_at', { ascending: true });
-
+  // Fetch folder names for resources
   const folderIds = [...new Set((resources || []).filter((r: any) => r.folder_id).map((r: any) => r.folder_id))];
   let foldersMap = new Map<string, string>();
   if (folderIds.length > 0) {
@@ -442,6 +502,38 @@ async function fetchProjectContext(
   }
 
   const stageMap = new Map(stages?.map((s: any) => [s.id, s.name]) || []);
+  const taskMap = new Map(tasks?.map((t: any) => [t.id, t.title]) || []);
+
+  // Process meetings
+  const meetingsData: MeetingData[] = (meetings || []).map((m: any) => {
+    const scheduledAt = new Date(m.scheduled_at);
+    const endTime = new Date(scheduledAt.getTime() + m.duration_minutes * 60 * 1000);
+    const isUpcoming = scheduledAt.getTime() > now.getTime();
+    const isPast = endTime.getTime() < now.getTime();
+    
+    const creatorProfile = profilesMap.get(m.created_by) as any;
+
+    return {
+      title: m.title,
+      description: m.description,
+      scheduledAt: m.scheduled_at,
+      scheduledAtFormatted: scheduledAt.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      durationMinutes: m.duration_minutes,
+      status: m.status,
+      createdByName: creatorProfile?.full_name || 'Không rõ',
+      externalLink: m.external_link,
+      taskTitle: m.task_id ? (taskMap.get(m.task_id) || null) : null,
+      attendeeCount: 0,
+      isUpcoming,
+      isPast,
+    };
+  });
 
   return {
     project: {
@@ -511,6 +603,7 @@ async function fetchProjectContext(
       linkUrl: r.link_url,
       folderName: r.folder_id ? foldersMap.get(r.folder_id) || null : null,
     })),
+    meetings: meetingsData,
     currentUser: {
       name: (profilesMap.get(userId) as any)?.full_name || 'Người dùng',
       role: members?.find((m: any) => m.user_id === userId)?.role || 'member',
