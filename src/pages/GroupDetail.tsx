@@ -127,7 +127,7 @@ export default function GroupDetail() {
   const [newTaskAssignees, setNewTaskAssignees] = useState<string[]>([]);
   const [newTaskStageId, setNewTaskStageId] = useState<string>('');
   const [newTaskMaxFileSize, setNewTaskMaxFileSize] = useState<number>(10 * 1024 * 1024); // 10MB default
-
+  const [newTaskSubmissionMethod, setNewTaskSubmissionMethod] = useState<string>('both');
   const [isDeleteGroupDialogOpen, setIsDeleteGroupDialogOpen] = useState(false);
   const [isDeletingGroup, setIsDeletingGroup] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
