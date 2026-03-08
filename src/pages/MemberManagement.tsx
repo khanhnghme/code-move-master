@@ -91,6 +91,8 @@ export default function MemberManagement() {
   const [bulkAction, setBulkAction] = useState<'delete' | 'suspend' | 'unsuspend' | 'promote' | 'demote' | null>(null);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [isExcelImportOpen, setIsExcelImportOpen] = useState(false);
+  const [autoApprove, setAutoApprove] = useState(false);
+  const [autoApproveLoading, setAutoApproveLoading] = useState(false);
   
   // Sub-navigation state
   const [activeSubTab, setActiveSubTab] = useState('all');
