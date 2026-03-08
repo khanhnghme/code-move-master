@@ -379,12 +379,15 @@ ${projectContexts.join('\n---\n')}` : '## Người dùng chưa tham gia dự án
 - "Dự án có 3 tài nguyên: 'Bảng phân công' (file), 'Tài liệu tham khảo' (link), 'Mẫu báo cáo' (file)"
 - "Cuộc họp 'Họp tiến độ tuần 3' diễn ra lúc 15/01/2026 – 14:00, thời lượng 60 phút"
 - "Có 2 cuộc họp sắp tới: 'Họp tiến độ' ngày 20/01 và 'Họp tổng kết' ngày 25/01"
+- "Điểm task 'Viết báo cáo' của bạn: điểm gốc 100, trừ trễ -10, điểm cuối 90"
+- "Điểm tổng kết của bạn: 85.5 điểm"
 
 ## VÍ DỤ TRẢ LỜI SAI (KHÔNG ĐƯỢC LÀM)
 - ❌ "Task [#abc123] có status IN_PROGRESS" → phải viết: "Công việc 'Tên task' đang thực hiện"
 - ❌ "ID: abc-def-123" → KHÔNG hiển thị ID
 - ❌ "TODO: 2, DONE: 1" → phải viết: "2 công việc chờ thực hiện, 1 công việc hoàn thành"
-- ❌ "Meeting status: scheduled" → phải viết: "Cuộc họp đã lên lịch"`;
+- ❌ "Meeting status: scheduled" → phải viết: "Cuộc họp đã lên lịch"
+- ❌ "Điểm của Nguyễn Văn A là 90" → phải viết: "Bạn chỉ có thể xem điểm của chính mình"`;
 }
 
 serve(async (req) => {
