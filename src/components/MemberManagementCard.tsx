@@ -696,6 +696,28 @@ export default function MemberManagementCard({
                 <div className="flex items-center gap-3">
                   {getRoleBadge(member.role, member.user_id)}
                   
+                  {/* Leave button for current user */}
+                  {member.user_id === currentUserId && !leaveInfo.isCreator && (
+                    <div className="flex items-center gap-2">
+                      {leaveInfo.canLeave ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5 text-destructive border-destructive/50 hover:bg-destructive/10"
+                          onClick={(e) => { e.stopPropagation(); setIsLeaveDialogOpen(true); }}
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Rời project</span>
+                        </Button>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs gap-1 text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          <span className="hidden sm:inline">Đã quá 48h</span>
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                  
                   {(canChangeRole(member) || canDeleteMember(member)) && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
