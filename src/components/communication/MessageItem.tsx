@@ -17,10 +17,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import ProfileViewDialog from '@/components/ProfileViewDialog';
 import { renderMessageContent } from '@/lib/messageParser';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import type { Profile } from '@/types/database';
 import { 
   ExternalLink, 
   MoreHorizontal, 
@@ -45,11 +48,19 @@ export interface Message {
   reply_to_user_name?: string;
 }
 
+interface MemberInfo {
+  id: string;
+  name: string;
+  avatar_url?: string;
+}
+
 interface MessageItemProps {
   message: Message;
   isOwn: boolean;
   showAvatar?: boolean;
   showName?: boolean;
+  members?: MemberInfo[];
+  groupId?: string;
   onTaskClick?: (taskId: string) => void;
   onDelete?: (messageId: string) => void;
   onReply?: (message: Message) => void;
