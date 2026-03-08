@@ -115,6 +115,9 @@ export default function AdminSystem() {
         setVideoBgDashboardOpacity(Math.round((val.dashboard_opacity ?? val.opacity ?? 0.2) * 100));
         setVideoBgUrl(val.url ?? '');
       }
+      if (introImagesRes.data?.value) {
+        setIntroImages(introImagesRes.data.value as Record<string, string>);
+      }
     } catch (err) {
       console.error('Error fetching settings:', err);
     } finally {
