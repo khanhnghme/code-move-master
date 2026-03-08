@@ -323,16 +323,12 @@ export function MemberAuthForm() {
         return;
       }
 
-      const { error } = await signUp(regEmail.trim(), regPassword, regStudentId.trim(), regFullName.trim());
+      const placeholderEmail = `${regStudentId.trim().toLowerCase()}@teamworks.local`;
+      const { error } = await signUp(placeholderEmail, regPassword, regStudentId.trim(), regFullName.trim());
 
       if (error) {
         setIsLoading(false);
-        const msg = error.message?.toLowerCase() || '';
-        if (msg.includes('already registered') || msg.includes('already exists')) {
-          toast({ title: 'Email đã tồn tại', description: 'Email này đã được sử dụng. Vui lòng dùng email khác.', variant: 'destructive' });
-        } else {
-          toast({ title: 'Đăng ký thất bại', description: error.message, variant: 'destructive' });
-        }
+        toast({ title: 'Đăng ký thất bại', description: error.message, variant: 'destructive' });
       } else {
         await supabase.auth.signOut({ scope: 'local' });
         setIsLoading(false);
