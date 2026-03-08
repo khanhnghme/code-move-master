@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,6 +62,8 @@ import {
   Award,
   CheckSquare,
   X,
+  Video,
+  Sparkles,
 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/integrations/supabase/client';
@@ -191,6 +194,8 @@ interface TaskRowProps {
   isMultiSelectMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: (taskId: string) => void;
+  meeting?: any;
+  onJoinMeeting?: (meetingId: string) => void;
 }
 
 function TaskRow({
@@ -211,6 +216,8 @@ function TaskRow({
   isMultiSelectMode,
   isSelected,
   onToggleSelect,
+  meeting,
+  onJoinMeeting,
 }: TaskRowProps) {
   // Handle extended deadline
   const taskWithExtended = task as Task & { extended_deadline?: string };
@@ -222,6 +229,10 @@ function TaskRow({
   const canSubmit = isAssignee || isLeaderInGroup;
   const assignments = task.task_assignments || [];
   const hasMultipleAssignees = assignments.length > 1;
+  const isMeetingTask = !!meeting;
+  const meetingIsLive = meeting?.status === 'in_progress';
+  const meetingIsScheduled = meeting?.status === 'scheduled';
+  const meetingIsCompleted = meeting?.status === 'completed';
 
   // Calculate extension text for display
   const getExtensionText = () => {
@@ -338,14 +349,35 @@ function TaskRow({
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-1.5">
-              {taskIsOverdue && (
+              {isMeetingTask && (
+                <Video className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+              )}
+              {taskIsOverdue && !isMeetingTask && (
                 <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" />
               )}
               <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
                 {task.title}
               </h4>
+              {/* Meeting status badges */}
+              {meetingIsLive && (
+                <Badge className="bg-destructive/15 text-destructive border-destructive/30 text-[10px] px-1.5 py-0 shrink-0 animate-pulse gap-1">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive" />
+                  </span>
+                  LIVE
+                </Badge>
+              )}
+              {meetingIsScheduled && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">Sắp họp</Badge>
+              )}
+              {meetingIsCompleted && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Đã họp</Badge>
+              )}
               {/* Drill-down indicator - shows on hover */}
-              <Eye className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              {!isMeetingTask && (
+                <Eye className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              )}
             </div>
             
             {/* Assignees */}
@@ -424,6 +456,18 @@ function TaskRow({
               </div>
 
               <div className="flex items-center gap-1">
+                {/* Meeting join button - mobile */}
+                {isMeetingTask && (meetingIsLive || meetingIsScheduled) && onJoinMeeting && (
+                  <Button
+                    size="sm"
+                    variant={meetingIsLive ? "default" : "outline"}
+                    className={`h-7 text-xs px-2 gap-1 ${meetingIsLive ? 'animate-pulse' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
+                  >
+                    <Video className="w-3 h-3" />
+                    {meetingIsLive ? 'Vào họp' : 'Phòng họp'}
+                  </Button>
+                )}
                 <SubmissionHistoryPopup 
                   taskId={task.id}
                   groupId={groupId}
@@ -553,105 +597,120 @@ function TaskRow({
           </Badge>
         </div>
         
-        {/* Desktop actions: keep History + View File pinned in fixed sub-columns */}
-        <div className="hidden md:grid grid-cols-[64px_104px_92px_40px] items-center justify-end gap-1 flex-nowrap min-w-0">
-          <div className="flex justify-end">
-            <SubmissionHistoryPopup 
-              taskId={task.id}
-              groupId={groupId}
-              taskDeadline={task.deadline}
-              currentSubmissionLink={task.submission_link}
-            />
-          </div>
+        {/* Desktop actions */}
+        <div className="hidden md:flex items-center justify-end gap-1 flex-nowrap min-w-0">
+          {/* Meeting join button - desktop */}
+          {isMeetingTask && (meetingIsLive || meetingIsScheduled) && onJoinMeeting ? (
+            <Button
+              size="sm"
+              variant={meetingIsLive ? "default" : "outline"}
+              className={`h-7 text-xs px-3 gap-1.5 ${meetingIsLive ? '' : ''}`}
+              onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
+            >
+              {meetingIsLive ? <Sparkles className="w-3 h-3" /> : <Video className="w-3 h-3" />}
+              {meetingIsLive ? 'Vào họp ngay' : 'Phòng họp'}
+            </Button>
+          ) : (
+            <div className="grid grid-cols-[64px_104px_92px_40px] items-center justify-end gap-1 flex-nowrap min-w-0">
+              <div className="flex justify-end">
+                <SubmissionHistoryPopup 
+                  taskId={task.id}
+                  groupId={groupId}
+                  taskDeadline={task.deadline}
+                  currentSubmissionLink={task.submission_link}
+                />
+              </div>
 
-          <div className="flex justify-end">
-            <SubmissionButton 
-              submissionLink={task.submission_link} 
-              variant="compact"
-              onStopPropagation={true}
-              taskId={task.id}
-              groupId={groupId}
-            />
-          </div>
+              <div className="flex justify-end">
+                <SubmissionButton 
+                  submissionLink={task.submission_link} 
+                  variant="compact"
+                  onStopPropagation={true}
+                  taskId={task.id}
+                  groupId={groupId}
+                />
+              </div>
 
-          <div className="flex justify-end">
-            {canSubmit ? (
-              <Button
-                variant={task.submission_link ? "outline" : "default"}
-                size="sm"
-                className="h-7 w-[92px] text-xs px-2 gap-1 shrink-0 justify-center"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openSubmissionDialog(task);
-                }}
-              >
-                {task.submission_link ? (
-                  <>
-                    <Edit className="w-3 h-3" />
-                    <span className="hidden lg:inline">Sửa</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-3 h-3" />
-                    <span className="hidden lg:inline">Nộp</span>
-                  </>
-                )}
-              </Button>
-            ) : (
-              <span className="h-7 w-[92px]" aria-hidden />
-            )}
-          </div>
-
-          <div className="flex justify-end">
-            {isLeaderInGroup ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-7 w-7 shrink-0"
-                    onClick={(e) => e.stopPropagation()}
+              <div className="flex justify-end">
+                {canSubmit ? (
+                  <Button
+                    variant={task.submission_link ? "outline" : "default"}
+                    size="sm"
+                    className="h-7 w-[92px] text-xs px-2 gap-1 shrink-0 justify-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openSubmissionDialog(task);
+                    }}
                   >
-                    <MoreVertical className="w-3.5 h-3.5" />
+                    {task.submission_link ? (
+                      <>
+                        <Edit className="w-3 h-3" />
+                        <span className="hidden lg:inline">Sửa</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3 h-3" />
+                        <span className="hidden lg:inline">Nộp</span>
+                      </>
+                    )}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
-                    <Edit className="w-3.5 h-3.5 mr-2" />
-                    Chỉnh sửa
-                  </DropdownMenuItem>
-                  {onScoreTask && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onScoreTask(task); }} className="text-xs">
-                      <Award className="w-3.5 h-3.5 mr-2" />
-                      Chấm điểm
-                    </DropdownMenuItem>
-                  )}
-                  {onToggleHidden && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggleHidden(task); }} className="text-xs">
-                      {task.is_hidden ? (
-                        <>
-                          <Eye className="w-3.5 h-3.5 mr-2" />
-                          Hiện task
-                        </>
-                      ) : (
-                        <>
-                          <EyeOff className="w-3.5 h-3.5 mr-2" />
-                          Ẩn task
-                        </>
+                ) : (
+                  <span className="h-7 w-[92px]" aria-hidden />
+                )}
+              </div>
+
+              <div className="flex justify-end">
+                {isLeaderInGroup ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-7 w-7 shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="w-3.5 h-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
+                        <Edit className="w-3.5 h-3.5 mr-2" />
+                        Chỉnh sửa
+                      </DropdownMenuItem>
+                      {onScoreTask && (
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onScoreTask(task); }} className="text-xs">
+                          <Award className="w-3.5 h-3.5 mr-2" />
+                          Chấm điểm
+                        </DropdownMenuItem>
                       )}
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
-                    <Trash2 className="w-3.5 h-3.5 mr-2" />
-                    Xóa
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <span className="h-7 w-7" aria-hidden />
-            )}
-          </div>
+                      {onToggleHidden && (
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggleHidden(task); }} className="text-xs">
+                          {task.is_hidden ? (
+                            <>
+                              <Eye className="w-3.5 h-3.5 mr-2" />
+                              Hiện task
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="w-3.5 h-3.5 mr-2" />
+                              Ẩn task
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
+                        <Trash2 className="w-3.5 h-3.5 mr-2" />
+                        Xóa
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <span className="h-7 w-7" aria-hidden />
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -688,12 +747,33 @@ export default function TaskListView({
 }: TaskListViewProps) {
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  const [, setSearchParams] = useSearchParams();
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set(stages.map(s => s.id)));
   const [filterStage, setFilterStage] = useState<string>('all');
   const [showHidden, setShowHidden] = useState(false);
   const [taskFilters, setTaskFilters] = useState<TaskFiltersType>(defaultTaskFilters);
+  const [meetingsByTaskId, setMeetingsByTaskId] = useState<Record<string, any>>({});
+  
+  // Fetch meetings for this group to show on meeting tasks
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      const { data } = await (supabase.from('meetings') as any)
+        .select('id, task_id, status, jitsi_room_name')
+        .eq('group_id', groupId);
+      if (data) {
+        const map: Record<string, any> = {};
+        data.forEach((m: any) => { if (m.task_id) map[m.task_id] = m; });
+        setMeetingsByTaskId(map);
+      }
+    };
+    fetchMeetings();
+  }, [groupId, tasks]);
+
+  const handleJoinMeeting = useCallback((meetingId: string) => {
+    setSearchParams({ tab: 'meetings', meeting: meetingId });
+  }, [setSearchParams]);
   
   // Multi-select state
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
@@ -1366,7 +1446,9 @@ export default function TaskListView({
                                       isDragging={snapshot.isDragging}
                                       isMultiSelectMode={isMultiSelectMode}
                                       isSelected={selectedTaskIds.has(task.id)}
-                                      onToggleSelect={toggleTaskSelect}
+                                       onToggleSelect={toggleTaskSelect}
+                                       meeting={meetingsByTaskId[task.id]}
+                                       onJoinMeeting={handleJoinMeeting}
                                     />
                                   </div>
                                 )}
@@ -1442,7 +1524,9 @@ export default function TaskListView({
                                 isDragging={snapshot.isDragging}
                                 isMultiSelectMode={isMultiSelectMode}
                                 isSelected={selectedTaskIds.has(task.id)}
-                                onToggleSelect={toggleTaskSelect}
+                                 onToggleSelect={toggleTaskSelect}
+                                 meeting={meetingsByTaskId[task.id]}
+                                 onJoinMeeting={handleJoinMeeting}
                               />
                             </div>
                           )}

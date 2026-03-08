@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ interface GroupMeetingsProps {
 }
 
 export default function GroupMeetings({ groupId, groupName, stages, members, isLeader }: GroupMeetingsProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [meetings, setMeetings] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<Record<string, any[]>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -49,6 +51,18 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
             grouped[a.meeting_id].push(a);
           });
           setAttendance(grouped);
+        }
+      }
+      // Auto-select meeting from URL params
+      const meetingId = searchParams.get('meeting');
+      if (meetingId && data) {
+        const target = data.find((m: any) => m.id === meetingId);
+        if (target) {
+          setSelectedMeeting(target);
+          // Clean up the search param
+          const newParams = new URLSearchParams(searchParams);
+          newParams.delete('meeting');
+          setSearchParams(newParams, { replace: true });
         }
       }
     }
