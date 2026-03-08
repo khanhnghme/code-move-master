@@ -32,7 +32,9 @@ import {
   Info,
   CheckCircle2,
   AlertCircle,
+  HardDrive,
 } from 'lucide-react';
+import GoogleDriveUploadButton, { type DriveFileResult } from '@/components/GoogleDriveUploadButton';
 
 const CATEGORIES = [
   { value: 'general', label: 'Tài liệu chung', color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
