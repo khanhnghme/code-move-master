@@ -102,6 +102,8 @@ export default function MemberManagementCard({
   // Leave project state
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [leaveCountdown, setLeaveCountdown] = useState(15);
+  const [leaveCountdownActive, setLeaveCountdownActive] = useState(false);
   
   // Add member dialog - Multi-select from system members
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
