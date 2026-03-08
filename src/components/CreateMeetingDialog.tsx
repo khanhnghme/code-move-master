@@ -147,14 +147,14 @@ export default function CreateMeetingDialog({
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Link2 className="w-4 h-4 text-primary" />
-              Link phòng họp <span className="text-destructive">*</span>
+              Link phòng họp (tuỳ chọn)
             </Label>
             <Input
               value={externalLink}
               onChange={e => setExternalLink(e.target.value)}
-              placeholder="VD: https://meet.google.com/abc-defg-hij hoặc Zoom link"
+              placeholder="Để trống để dùng phòng họp tích hợp (JaaS)"
             />
-            <p className="text-[11px] text-muted-foreground">Hỗ trợ Google Meet, Zoom, Microsoft Teams, hoặc bất kỳ link nào</p>
+            <p className="text-[11px] text-muted-foreground">Để trống → dùng phòng họp nhúng trực tiếp trong app. Hoặc nhập link Google Meet, Zoom...</p>
           </div>
 
           <div className="space-y-2">
