@@ -3813,7 +3813,7 @@ VALUES ('your-user-id', 'admin');
 
 ```
 ✅ Database
-   [ ] Tất cả 28 bảng đã được tạo
+   [ ] Tất cả 32 bảng đã được tạo
    [ ] Tất cả indexes đã được tạo
    [ ] Tất cả functions đã được tạo
    [ ] Tất cả triggers đã được tạo
