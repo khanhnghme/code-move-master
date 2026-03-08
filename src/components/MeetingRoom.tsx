@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -10,7 +10,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ArrowLeft, Video, VideoOff, Users, CheckCircle, Clock, XCircle, ChevronDown, ChevronUp, StickyNote, Save, Loader2 } from 'lucide-react';
+import {
+  ArrowLeft, Video, VideoOff, Users, CheckCircle, Clock, XCircle,
+  ChevronDown, ChevronUp, StickyNote, Loader2, Maximize, Minimize,
+  Link2, Copy, Check
+} from 'lucide-react';
 import type { GroupMember } from '@/types/database';
 
 interface MeetingRoomProps {
@@ -28,9 +32,13 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
   const [attendance, setAttendance] = useState<any[]>([]);
   const [isEnding, setIsEnding] = useState(false);
   const [isAttendanceOpen, setIsAttendanceOpen] = useState(false);
+  const [isNotesOpen, setIsNotesOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [notes, setNotes] = useState(meeting.notes || '');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [copied, setCopied] = useState(false);
   const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto check-in when member opens the room
   useEffect(() => {
@@ -41,10 +49,16 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
     });
   }, [meeting.id, user]);
 
+  // Listen for fullscreen change
+  useEffect(() => {
+    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
   const autoCheckIn = async () => {
     if (!user) return;
     try {
-      // Update own attendance to present if currently absent
       const { data: existing } = await (supabase.from('meeting_attendance') as any)
         .select('id, status')
         .eq('meeting_id', meeting.id)
@@ -53,10 +67,7 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
 
       if (existing && existing.status === 'absent') {
         await (supabase.from('meeting_attendance') as any)
-          .update({
-            status: 'present',
-            joined_at: new Date().toISOString(),
-          })
+          .update({ status: 'present', joined_at: new Date().toISOString() })
           .eq('id', existing.id);
         fetchAttendance();
       }
@@ -65,7 +76,6 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
     }
   };
 
-  // Auto-save notes with debounce
   const handleNotesChange = (value: string) => {
     setNotes(value);
     if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
@@ -78,9 +88,7 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
       await (supabase.from('meetings') as any)
         .update({ notes: content, updated_at: new Date().toISOString() })
         .eq('id', meeting.id);
-    } catch (e) {
-      // silent
-    } finally {
+    } catch (e) { /* silent */ } finally {
       setIsSavingNotes(false);
     }
   };
@@ -94,26 +102,18 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
 
   const handleUpdateAttendance = async (userId: string, status: string) => {
     await (supabase.from('meeting_attendance') as any)
-      .update({
-        status,
-        marked_by: user!.id,
-        joined_at: status === 'present' ? new Date().toISOString() : null
-      })
+      .update({ status, marked_by: user!.id, joined_at: status === 'present' ? new Date().toISOString() : null })
       .eq('meeting_id', meeting.id)
       .eq('user_id', userId);
     fetchAttendance();
   };
 
   const handleStartMeeting = async () => {
-    await (supabase.from('meetings') as any)
-      .update({ status: 'in_progress' })
-      .eq('id', meeting.id);
+    await (supabase.from('meetings') as any).update({ status: 'in_progress' }).eq('id', meeting.id);
     await logActivity({
-      userId: user!.id,
-      userName: profile?.full_name || user?.email || 'Unknown',
+      userId: user!.id, userName: profile?.full_name || user?.email || 'Unknown',
       action: 'START_MEETING', actionType: 'task',
-      description: `Bắt đầu cuộc họp "${meeting.title}"`,
-      groupId,
+      description: `Bắt đầu cuộc họp "${meeting.title}"`, groupId,
     });
     onRefresh();
   };
@@ -128,11 +128,9 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
         await supabase.from('tasks').update({ status: 'DONE' }).eq('id', meeting.task_id);
       }
       await logActivity({
-        userId: user!.id,
-        userName: profile?.full_name || user?.email || 'Unknown',
+        userId: user!.id, userName: profile?.full_name || user?.email || 'Unknown',
         action: 'END_MEETING', actionType: 'task',
-        description: `Kết thúc cuộc họp "${meeting.title}" - ${presentCount}/${members.length} có mặt`,
-        groupId,
+        description: `Kết thúc cuộc họp "${meeting.title}" - ${presentCount}/${members.length} có mặt`, groupId,
       });
       toast({ title: 'Đã kết thúc cuộc họp', description: 'Task đã được cập nhật trạng thái DONE' });
       onRefresh();
@@ -142,6 +140,23 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
     } finally {
       setIsEnding(false);
     }
+  };
+
+  const toggleFullscreen = useCallback(() => {
+    if (!containerRef.current) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      containerRef.current.requestFullscreen();
+    }
+  }, []);
+
+  const handleCopyLink = () => {
+    const meetingUrl = `${window.location.origin}${window.location.pathname}?tab=meetings&meeting=${meeting.id}`;
+    navigator.clipboard.writeText(meetingUrl);
+    setCopied(true);
+    toast({ title: 'Đã sao chép đường dẫn', description: 'Chia sẻ link này để mời thành viên vào họp' });
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const presentCount = attendance.filter(a => a.status === 'present').length;
@@ -164,151 +179,176 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
   };
 
   const jitsiUrl = `https://meet.jit.si/${meeting.jitsi_room_name}#userInfo.displayName="${encodeURIComponent(profile?.full_name || 'User')}"`;
+  const isSidebarOpen = isAttendanceOpen || isNotesOpen;
 
   return (
-    <div className="space-y-3">
-      {/* Compact Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onBack}>
+    <div ref={containerRef} className={`flex flex-col bg-background ${isFullscreen ? 'h-screen' : ''}`}>
+      {/* Compact toolbar */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border/50 shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={onBack}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <div>
-            <h2 className="text-lg font-bold leading-tight">{meeting.title}</h2>
-            <p className="text-xs text-muted-foreground">
-              {new Date(meeting.scheduled_at).toLocaleString('vi-VN')} • {meeting.duration_minutes} phút
-            </p>
-          </div>
+          <h2 className="text-sm font-bold truncate">{meeting.title}</h2>
+          <Badge variant={meeting.status === 'in_progress' ? 'default' : meeting.status === 'completed' ? 'secondary' : 'outline'} className="text-[10px] shrink-0">
+            {meeting.status === 'scheduled' ? 'Đã lên lịch' : meeting.status === 'in_progress' ? '🔴 LIVE' : 'Xong'}
+          </Badge>
+          <span className="text-[11px] text-muted-foreground hidden sm:inline shrink-0">
+            {new Date(meeting.scheduled_at).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} • {meeting.duration_minutes}p
+          </span>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-1 shrink-0">
+          {/* Copy link */}
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyLink} title="Sao chép đường dẫn">
+            {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Link2 className="w-3.5 h-3.5" />}
+          </Button>
+
+          {/* Toggle attendance */}
+          <Button
+            variant={isAttendanceOpen ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 gap-1 text-xs px-2"
+            onClick={() => { setIsAttendanceOpen(!isAttendanceOpen); if (!isAttendanceOpen) setIsNotesOpen(false); }}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Điểm danh</span>
+            <Badge variant="outline" className="text-[9px] px-1 py-0 ml-0.5">{presentCount}/{members.length}</Badge>
+          </Button>
+
+          {/* Toggle notes */}
+          <Button
+            variant={isNotesOpen ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 gap-1 text-xs px-2"
+            onClick={() => { setIsNotesOpen(!isNotesOpen); if (!isNotesOpen) setIsAttendanceOpen(false); }}
+          >
+            <StickyNote className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Ghi chú</span>
+            {isSavingNotes && <Loader2 className="w-3 h-3 animate-spin" />}
+          </Button>
+
+          {/* Fullscreen */}
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleFullscreen} title={isFullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}>
+            {isFullscreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
+          </Button>
+
+          {/* Meeting controls */}
           {meeting.status === 'scheduled' && isLeader && (
-            <Button size="sm" onClick={handleStartMeeting} className="gap-1.5 h-8">
+            <Button size="sm" onClick={handleStartMeeting} className="gap-1 h-7 text-xs px-2.5">
               <Video className="w-3.5 h-3.5" /> Bắt đầu
             </Button>
           )}
           {meeting.status === 'in_progress' && isLeader && (
-            <Button variant="destructive" size="sm" onClick={handleEndMeeting} disabled={isEnding} className="gap-1.5 h-8">
+            <Button variant="destructive" size="sm" onClick={handleEndMeeting} disabled={isEnding} className="gap-1 h-7 text-xs px-2.5">
               <VideoOff className="w-3.5 h-3.5" /> Kết thúc
             </Button>
           )}
-          <Badge variant={meeting.status === 'in_progress' ? 'default' : meeting.status === 'completed' ? 'secondary' : 'outline'} className="text-xs">
-            {meeting.status === 'scheduled' ? 'Đã lên lịch' : meeting.status === 'in_progress' ? '🔴 Đang họp' : 'Đã kết thúc'}
-          </Badge>
         </div>
       </div>
 
-      {/* Main content: Video + Sidebar */}
-      <div className="grid lg:grid-cols-3 gap-3" style={{ height: 'calc(100vh - 260px)' }}>
-        {/* Jitsi iframe - takes most space */}
-        <div className="lg:col-span-2 rounded-xl overflow-hidden border border-border/50 bg-muted/30">
+      {/* Main content area */}
+      <div className={`flex-1 flex min-h-0 ${isFullscreen ? '' : 'h-[calc(100vh-220px)]'}`}>
+        {/* Video area */}
+        <div className="flex-1 min-w-0">
           {meeting.status === 'in_progress' || meeting.status === 'scheduled' ? (
             <iframe
               src={jitsiUrl}
-              className="w-full h-full min-h-[400px]"
+              className="w-full h-full"
               allow="camera;microphone;display-capture;autoplay;clipboard-write"
               style={{ border: 'none' }}
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
+            <div className="flex items-center justify-center h-full bg-muted/30">
               <div className="text-center">
-                <VideoOff className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p className="font-medium">Cuộc họp đã kết thúc</p>
+                <VideoOff className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+                <p className="font-medium text-muted-foreground">Cuộc họp đã kết thúc</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* Right sidebar: collapsible attendance + notes */}
-        <div className="flex flex-col gap-3 min-h-0 overflow-hidden">
-          {/* Attendance - collapsible */}
-          <Collapsible open={isAttendanceOpen} onOpenChange={setIsAttendanceOpen}>
-            <Card className="flex flex-col">
-              <CollapsibleTrigger asChild>
-                <button className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/50 transition-colors rounded-t-lg">
+        {/* Slide-in sidebar panel */}
+        {isSidebarOpen && (
+          <div className="w-[300px] shrink-0 border-l border-border/50 flex flex-col bg-background overflow-hidden animate-in slide-in-from-right-4 duration-200">
+            {/* Attendance panel */}
+            {isAttendanceOpen && (
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-border/50">
                   <div className="flex items-center gap-2 text-sm font-semibold">
-                    <Users className="w-4 h-4 text-primary" />
-                    Điểm danh
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">
-                      {presentCount}/{members.length}
-                    </Badge>
+                    <Users className="w-4 h-4 text-primary" /> Điểm danh
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">{presentCount} có mặt</Badge>
                     {lateCount > 0 && (
-                      <Badge className="bg-yellow-500/15 text-yellow-600 border-yellow-500/30 text-[10px] px-1.5 py-0">
-                        {lateCount} trễ
-                      </Badge>
+                      <Badge className="bg-yellow-500/15 text-yellow-600 border-yellow-500/30 text-[10px] px-1.5 py-0">{lateCount} trễ</Badge>
                     )}
                   </div>
-                  {isAttendanceOpen ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent className="p-0 border-t">
-                  <ScrollArea className="max-h-[280px]">
-                    <div className="space-y-0.5 p-2">
-                      {members.map(member => {
-                        const att = attendance.find(a => a.user_id === member.user_id);
-                        const mp = member.profiles;
-                        return (
-                          <div key={member.user_id} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50 transition-colors">
-                            {getStatusIcon(att?.status || 'absent')}
-                            {mp?.avatar_url ? (
-                              <img src={mp.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
-                            ) : (
-                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-                                {mp?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                              </div>
-                            )}
-                            <span className="text-xs font-medium truncate flex-1">{mp?.full_name}</span>
-                            {isLeader && meeting.status !== 'completed' ? (
-                              <Select
-                                value={att?.status || 'absent'}
-                                onValueChange={(v) => handleUpdateAttendance(member.user_id, v)}
-                              >
-                                <SelectTrigger className="w-[80px] h-6 text-[10px] px-2">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="present">Có mặt</SelectItem>
-                                  <SelectItem value="late">Trễ</SelectItem>
-                                  <SelectItem value="absent">Vắng</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              getStatusBadge(att?.status || 'absent')
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
-
-          {/* Meeting Notes */}
-          <Card className="flex-1 flex flex-col min-h-0">
-            <div className="flex items-center justify-between px-4 py-3">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <StickyNote className="w-4 h-4 text-primary" />
-                Ghi chú buổi họp
-              </div>
-              {isSavingNotes && (
-                <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                  <Loader2 className="w-3 h-3 animate-spin" /> Đang lưu...
                 </div>
-              )}
-            </div>
-            <CardContent className="flex-1 p-0 px-4 pb-4 min-h-0">
-              <Textarea
-                value={notes}
-                onChange={e => handleNotesChange(e.target.value)}
-                placeholder="Ghi chú nội dung cuộc họp, quyết định, action items..."
-                className="h-full min-h-[120px] resize-none text-sm"
-                readOnly={!isLeader && meeting.status === 'completed'}
-              />
-            </CardContent>
-          </Card>
-        </div>
+                <ScrollArea className="flex-1">
+                  <div className="space-y-0.5 p-2">
+                    {members.map(member => {
+                      const att = attendance.find(a => a.user_id === member.user_id);
+                      const mp = member.profiles;
+                      return (
+                        <div key={member.user_id} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50 transition-colors">
+                          {getStatusIcon(att?.status || 'absent')}
+                          {mp?.avatar_url ? (
+                            <img src={mp.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+                              {mp?.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-xs font-medium truncate flex-1">{mp?.full_name}</span>
+                          {isLeader && meeting.status !== 'completed' ? (
+                            <Select value={att?.status || 'absent'} onValueChange={(v) => handleUpdateAttendance(member.user_id, v)}>
+                              <SelectTrigger className="w-[75px] h-6 text-[10px] px-1.5">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="present">Có mặt</SelectItem>
+                                <SelectItem value="late">Trễ</SelectItem>
+                                <SelectItem value="absent">Vắng</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            getStatusBadge(att?.status || 'absent')
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+
+            {/* Notes panel */}
+            {isNotesOpen && (
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-border/50">
+                  <div className="flex items-center gap-2 text-sm font-semibold">
+                    <StickyNote className="w-4 h-4 text-primary" /> Ghi chú
+                  </div>
+                  {isSavingNotes && (
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Lưu...
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 p-2 min-h-0">
+                  <Textarea
+                    value={notes}
+                    onChange={e => handleNotesChange(e.target.value)}
+                    placeholder="Ghi chú nội dung cuộc họp, quyết định, action items..."
+                    className="h-full resize-none text-sm border-0 focus-visible:ring-0 shadow-none"
+                    readOnly={!isLeader && meeting.status === 'completed'}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
