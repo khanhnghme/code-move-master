@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Profile, UserRole, AppRole } from '@/types/database';
 import SuspendedScreen from '@/components/SuspendedScreen';
 import MaintenanceScreen from '@/components/MaintenanceScreen';
+import { ProfileCompletionForm } from '@/components/ProfileCompletionForm';
 
 interface AuthContextType {
   user: User | null;
@@ -15,6 +16,7 @@ interface AuthContextType {
   isLeader: boolean;
   isApproved: boolean;
   mustChangePassword: boolean;
+  needsProfileCompletion: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, studentId: string, fullName: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -206,6 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isLeader = roles.includes('leader') || isAdmin;
   const isApproved = profile?.is_approved ?? false;
   const mustChangePassword = profile?.must_change_password ?? false;
+  const needsProfileCompletion = !!(user && profile && (!profile.student_id || profile.student_id === ''));
 
   // Check if user is suspended
   const isSuspended = profile?.suspended_until
@@ -218,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const contextValue = {
     user, session, profile, roles, isLoading,
-    isAdmin, isLeader, isApproved, mustChangePassword,
+    isAdmin, isLeader, isApproved, mustChangePassword, needsProfileCompletion,
     signIn, signUp, signOut, refreshProfile,
   };
 
@@ -241,6 +244,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           onSignOut={signOut}
           onUnlocked={handleUnlocked}
         />
+      </AuthContext.Provider>
+    );
+  }
+
+  // Show profile completion for Google users without student_id
+  if (user && profile && needsProfileCompletion && !isAdmin) {
+    return (
+      <AuthContext.Provider value={contextValue}>
+        <ProfileCompletionForm />
       </AuthContext.Provider>
     );
   }

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { GoogleAccountLinking } from '@/components/GoogleAccountLinking';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const DEFAULT_PROJECT_LIMIT = 2;
@@ -486,6 +487,9 @@ export default function PersonalInfo() {
             )}
           </CardContent>
         </Card>
+
+        {/* Google Account Linking */}
+        <GoogleAccountLinking />
       </div>
     </DashboardLayout>
   );
