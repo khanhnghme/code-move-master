@@ -57,7 +57,7 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
     try {
       const { data: group, error: groupError } = await supabase
         .from('groups')
-        .select('id, name, description, class_code, instructor_name, created_at, image_url, created_by')
+        .select('id, name, description, class_code, instructor_name, created_at, image_url, created_by, zalo_link')
         .eq('join_code', code)
         .eq('allow_join_by_code', true)
         .single();
