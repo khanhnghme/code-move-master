@@ -23,6 +23,8 @@ import PublicProjectView from "./pages/PublicProjectView";
 import FilePreview from "./pages/FilePreview";
 import PersonalInfo from "./pages/PersonalInfo";
 import ResetPassword from "./pages/ResetPassword";
+import Utilities from "./pages/Utilities";
+import PublicProfile from "./pages/PublicProfile";
 
 const queryClient = new QueryClient();
 
