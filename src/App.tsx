@@ -21,6 +21,7 @@ import Communication from "./pages/Communication";
 import PublicProjectView from "./pages/PublicProjectView";
 import FilePreview from "./pages/FilePreview";
 import PersonalInfo from "./pages/PersonalInfo";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
