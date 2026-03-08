@@ -3654,6 +3654,7 @@ teamworks-ueh/
 | `/admin/activity` | AdminActivity.tsx | ✅ Admin | Nhật ký hệ thống |
 | `/admin/backup` | AdminBackup.tsx | ✅ Admin | Backup/Restore |
 | `/admin/users` | AdminUsers.tsx | ✅ Admin | Quản lý users (hidden) |
+| `/admin/system` | AdminSystem.tsx | ✅ Admin | Cài đặt hệ thống (bảo trì, chính sách) |
 | `*` | NotFound.tsx | ❌ | 404 |
 
 ---
