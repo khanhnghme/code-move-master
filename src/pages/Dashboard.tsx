@@ -11,11 +11,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUserPresence } from '@/hooks/useUserPresence';
 import UserPresenceIndicator from '@/components/UserPresenceIndicator';
 import FirstTimeOnboarding from '@/components/FirstTimeOnboarding';
+import { getSystemRoleLabel } from '@/lib/roleLabels';
 import {
   FolderKanban,
   ArrowRight,
   Loader2,
   Sparkles,
+  Shield,
+  Star,
+  User,
 } from 'lucide-react';
 import type { Group } from '@/types/database';
 
