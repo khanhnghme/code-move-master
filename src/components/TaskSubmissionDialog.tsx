@@ -996,10 +996,10 @@ export default function TaskSubmissionDialog({
                             />
                           )}
                         </div>
-                      </div>
+                      </div>}
 
                       {/* Method 2: External Links */}
-                      <div className="rounded-xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-background overflow-hidden flex flex-col">
+                      {allowLinkSubmission && <div className="rounded-xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-background overflow-hidden flex flex-col">
                         {/* Method Header */}
                         <div className="px-3 py-2 bg-blue-500/10 border-b border-blue-500/20 shrink-0">
                           <div className="flex items-center justify-between">
