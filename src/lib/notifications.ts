@@ -195,3 +195,24 @@ export function notifyDeadlineApproaching(params: {
     groupId: params.groupId,
   });
 }
+
+// When user role is changed (promoted/demoted)
+export function notifyRoleChanged(params: {
+  userIds: string[];
+  adminName: string;
+  newRole: string;
+  action: 'promote' | 'demote';
+}): Promise<void> {
+  const title = params.action === 'promote' 
+    ? '⬆️ Bạn đã được nâng cấp' 
+    : '⬇️ Vai trò đã thay đổi';
+  const message = params.action === 'promote'
+    ? `${params.adminName} đã nâng cấp bạn lên ${params.newRole}`
+    : `${params.adminName} đã chuyển bạn về ${params.newRole}`;
+  
+  return sendNotifications(params.userIds, {
+    type: 'role_changed',
+    title,
+    message,
+  });
+}
