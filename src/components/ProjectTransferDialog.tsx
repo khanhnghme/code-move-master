@@ -46,22 +46,39 @@ export default function ProjectTransferDialog({
 
   // Fetch members for all groups when dialog opens
   useEffect(() => {
-    if (open && ownedGroups.length > 0) {
+    if (open && ownedGroups.length > 0 && member) {
       setLoading(true);
       Promise.all(
         ownedGroups.map(async (g) => {
-          const { data } = await supabase
+          // Fetch group members (excluding the member being demoted)
+          const { data: memberData } = await supabase
             .from('group_members')
-            .select('user_id, role, profiles(full_name, avatar_url)')
+            .select('user_id, role')
             .eq('group_id', g.id)
-            .neq('user_id', member?.id || '');
+            .neq('user_id', member.id);
           
+          if (!memberData || memberData.length === 0) {
+            return { groupId: g.id, members: [] };
+          }
+
+          // Fetch profiles separately
+          const userIds = memberData.map(m => m.user_id);
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url')
+            .in('id', userIds);
+
+          const profilesMap: Record<string, { full_name: string; avatar_url: string | null }> = {};
+          (profilesData || []).forEach(p => {
+            profilesMap[p.id] = { full_name: p.full_name, avatar_url: p.avatar_url };
+          });
+
           return {
             groupId: g.id,
-            members: (data || []).map((d: any) => ({
+            members: memberData.map(d => ({
               user_id: d.user_id,
-              full_name: d.profiles?.full_name || 'Unknown',
-              avatar_url: d.profiles?.avatar_url,
+              full_name: profilesMap[d.user_id]?.full_name || 'Unknown',
+              avatar_url: profilesMap[d.user_id]?.avatar_url || null,
               role: d.role,
             })),
           };
@@ -73,7 +90,7 @@ export default function ProjectTransferDialog({
         setLoading(false);
       });
     }
-  }, [open, ownedGroups.length]);
+  }, [open, ownedGroups.length, member?.id]);
 
   const allGroupsAssigned = ownedGroups.every(g => transfers[g.id]);
 
