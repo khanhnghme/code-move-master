@@ -1375,28 +1375,38 @@ export default function TaskListView({
             return (
               <Card 
                 key={stage.id} 
-                className={`overflow-hidden border-l-4 ${stageColor.border} shadow-sm ${stage.is_hidden ? 'opacity-60 border-dashed' : ''}`}
+                className={`overflow-hidden shadow-sm ${stage.is_hidden ? 'opacity-60 border-dashed' : ''}`}
               >
+                {/* Colored top stripe like Scores page */}
+                <div className="h-1" style={{ background: `hsl(var(--stage-${Math.min(stageIndex + 1, 6)}))` }} />
+                
                 {/* Stage Header */}
                 <CardHeader 
-                  className={`py-2.5 px-4 cursor-pointer transition-colors ${stageColor.bg} hover:opacity-90`}
+                  className="py-2.5 px-4 cursor-pointer transition-colors hover:bg-muted/40"
                   onClick={() => toggleStage(stage.id)}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
                       <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0 p-0">
                         {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                       </Button>
-                      <div className={`w-2.5 h-2.5 rounded-full ${stageColor.dot} shrink-0`} />
+                      {/* Numbered badge like Scores page */}
+                      <div 
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold text-primary-foreground shrink-0"
+                        style={{ background: `hsl(var(--stage-${Math.min(stageIndex + 1, 6)}))` }}
+                      >
+                        {stageIndex + 1}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <CardTitle className={`text-sm font-bold ${stageColor.text} truncate`}>
+                        <CardTitle className="text-sm font-bold truncate">
                           {stage.name}
                         </CardTitle>
+                        <p className="text-[11px] text-muted-foreground">
+                          {stageTasks.length} task · {completedCount} hoàn thành
+                          {hiddenTasksInStage > 0 && isLeaderInGroup && ` · ${hiddenTasksInStage} ẩn`}
+                        </p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <Badge variant="secondary" className="text-[10px] px-1.5 h-5 font-medium">
-                          {completedCount}/{stageTasks.length}
-                        </Badge>
                         {overdueCount > 0 && (
                           <Badge variant="destructive" className="text-[10px] px-1.5 h-5">
                             {overdueCount} trễ
@@ -1407,12 +1417,18 @@ export default function TaskListView({
                     
                     <div className="flex items-center gap-2 shrink-0">
                       {/* Progress bar */}
-                      <div className="hidden sm:flex items-center gap-1.5 w-24">
+                      <div className="hidden sm:flex items-center gap-1.5 w-28">
                         <Progress value={progressPercent} className="h-1.5 flex-1" />
-                        <span className="text-[10px] text-muted-foreground w-7 text-right">
+                        <span className="text-[10px] text-muted-foreground w-8 text-right font-medium">
                           {Math.round(progressPercent)}%
                         </span>
                       </div>
+                      
+                      {stage.is_hidden && (
+                        <Badge variant="outline" className="text-[10px] h-5 gap-1 text-muted-foreground">
+                          <EyeOff className="w-3 h-3" /> Ẩn
+                        </Badge>
+                      )}
                       
                       {isLeaderInGroup && (
                         <DropdownMenu>
@@ -1429,15 +1445,9 @@ export default function TaskListView({
                             {onToggleStageHidden && (
                               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggleStageHidden(stage); }} className="text-xs">
                                 {stage.is_hidden ? (
-                                  <>
-                                    <Eye className="w-3.5 h-3.5 mr-2" />
-                                    Hiện giai đoạn
-                                  </>
+                                  <><Eye className="w-3.5 h-3.5 mr-2" />Hiện giai đoạn</>
                                 ) : (
-                                  <>
-                                    <EyeOff className="w-3.5 h-3.5 mr-2" />
-                                    Ẩn giai đoạn
-                                  </>
+                                  <><EyeOff className="w-3.5 h-3.5 mr-2" />Ẩn giai đoạn</>
                                 )}
                               </DropdownMenuItem>
                             )}
