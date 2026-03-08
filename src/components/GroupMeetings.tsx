@@ -392,7 +392,7 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
                 {/* Date */}
                 <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground shrink-0 w-[140px]">
                   <Calendar className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">{scheduledDate.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                  <span className="truncate">{formatDeadlineVN(meeting.scheduled_at)}</span>
                 </div>
 
                 {/* Duration */}
