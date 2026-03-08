@@ -61,7 +61,9 @@ export default function ShareSettingsCard({
     setLocalShowMembers(showMembersPublic);
     setLocalShowActivity(showActivityPublic);
     setLocalShowResources(showResourcesPublic);
-  }, [isPublic, shareToken, showMembersPublic, showActivityPublic, showResourcesPublic]);
+    setLocalJoinCode(joinCode || null);
+    setLocalAllowJoin(allowJoinByCode);
+  }, [isPublic, shareToken, showMembersPublic, showActivityPublic, showResourcesPublic, joinCode, allowJoinByCode]);
 
   const publicLink = localShareToken 
     ? `${window.location.origin}/s/${localShareToken}` 
