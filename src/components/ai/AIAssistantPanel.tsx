@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Send, Loader2, Sparkles, AlertCircle, Info, MessageCircle, AlertTriangle, FolderKanban, Globe } from 'lucide-react';
+import { Send, Loader2, Sparkles, AlertCircle, Info, MessageCircle, AlertTriangle, FolderKanban, Globe, Zap, Brain, CalendarClock, BarChart3, Users, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -30,11 +30,11 @@ const MAX_MESSAGE_WORDS = 100;
 const QUESTIONS_PER_PROJECT = 10;
 
 const SUGGESTED_QUESTIONS = [
-  "Công việc nào của tôi sắp đến hạn?",
-  "Ai đang làm task nào?",
-  "Tiến độ project hiện tại ra sao?",
-  "Có cuộc họp nào sắp tới không?",
-  "Điểm quá trình của tôi hiện tại bao nhiêu?",
+  { icon: CalendarClock, text: "Công việc nào của tôi sắp đến hạn?", color: "text-orange-500" },
+  { icon: Users, text: "Ai đang làm task nào?", color: "text-blue-500" },
+  { icon: Zap, text: "Tiến độ project hiện tại ra sao?", color: "text-emerald-500" },
+  { icon: Brain, text: "Có cuộc họp nào sắp tới không?", color: "text-purple-500" },
+  { icon: BarChart3, text: "Điểm quá trình của tôi hiện tại bao nhiêu?", color: "text-rose-500" },
 ];
 
 // Get usage key based on user and date
@@ -71,12 +71,10 @@ export default function AIAssistantPanel({
     const loadData = async () => {
       if (!user?.id) return;
 
-      // Load usage count
       const usageKey = getUsageKey(user.id);
       const stored = localStorage.getItem(usageKey);
       setQuestionsToday(stored ? parseInt(stored, 10) : 0);
 
-      // Fetch project count from database
       try {
         const { count, error } = await supabase
           .from('group_members')
@@ -84,15 +82,13 @@ export default function AIAssistantPanel({
           .eq('user_id', user.id);
 
         if (!error && count !== null) {
-          setProjectCount(Math.max(1, count)); // At least 1
+          setProjectCount(Math.max(1, count));
           localStorage.setItem(getProjectCountKey(user.id), count.toString());
         } else {
-          // Fallback to cached value
           const cached = localStorage.getItem(getProjectCountKey(user.id));
           if (cached) setProjectCount(Math.max(1, parseInt(cached, 10)));
         }
       } catch {
-        // Fallback to cached value
         const cached = localStorage.getItem(getProjectCountKey(user.id));
         if (cached) setProjectCount(Math.max(1, parseInt(cached, 10)));
       }
@@ -129,7 +125,6 @@ export default function AIAssistantPanel({
 
     const wordCount = countWords(messageText);
 
-    // Check word limit
     if (wordCount > MAX_MESSAGE_WORDS) {
       toast({
         title: 'Câu hỏi quá dài',
@@ -139,7 +134,6 @@ export default function AIAssistantPanel({
       return;
     }
 
-    // Check daily limit
     if (questionsToday >= maxQuestions) {
       toast({
         title: 'Đã hết lượt hỏi hôm nay',
@@ -155,13 +149,11 @@ export default function AIAssistantPanel({
     setInput('');
     setIsLoading(true);
 
-    // Add thinking message immediately
     setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
     let assistantContent = '';
 
     try {
-      // Get session token
       const { data: { session } } = await supabase.auth.getSession();
       
       const response = await fetch(
@@ -193,7 +185,6 @@ export default function AIAssistantPanel({
         throw new Error('No response body');
       }
 
-      // Increment usage count on successful request
       incrementUsage();
 
       const reader = response.body.getReader();
@@ -235,7 +226,6 @@ export default function AIAssistantPanel({
               });
             }
           } catch {
-            // Incomplete JSON, put back and wait
             textBuffer = line + '\n' + textBuffer;
             break;
           }
@@ -273,7 +263,6 @@ export default function AIAssistantPanel({
       const errorMessage = err instanceof Error ? err.message : 'Có lỗi xảy ra';
       setError(errorMessage);
       
-      // Remove empty assistant message if error
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === 'assistant' && !last.content) {
@@ -308,79 +297,101 @@ export default function AIAssistantPanel({
     sendMessage(question);
   };
 
+  const handleClearChat = () => {
+    setMessages([]);
+    setError(null);
+  };
+
   const remainingQuestions = maxQuestions - questionsToday;
   const wordCount = countWords(input);
   const isOverLimit = wordCount > MAX_MESSAGE_WORDS;
+  const usagePercent = Math.min(100, (questionsToday / maxQuestions) * 100);
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent 
         side="right" 
-        className="w-full sm:max-w-2xl p-0 flex flex-col h-full"
+        className="w-full sm:max-w-2xl p-0 flex flex-col h-full border-l-0 shadow-2xl"
       >
         {/* Header */}
-        <SheetHeader className="px-4 py-3 border-b bg-gradient-to-r from-primary/10 to-primary/5">
-          <SheetTitle className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 ring-2 ring-primary/20">
-              <AvatarImage src={aiLogo} alt="AI Assistant" />
-              <AvatarFallback className="bg-primary/10">
-                <Sparkles className="h-4 w-4 text-primary" />
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col items-start">
-              <span className="text-sm font-semibold">Trợ lý AI</span>
-              <span className="text-xs text-muted-foreground font-normal">
-                {projectName ? `Project: ${projectName}` : 'Hỗ trợ chung'}
-              </span>
-            </div>
-          </SheetTitle>
+        <SheetHeader className="px-5 py-4 border-b bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground relative overflow-hidden">
+          {/* Decorative shapes */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          
+          <div className="relative flex items-center justify-between">
+            <SheetTitle className="flex items-center gap-3 text-primary-foreground">
+              <div className="relative">
+                <Avatar className="h-10 w-10 ring-2 ring-white/30 shadow-lg">
+                  <AvatarImage src={aiLogo} alt="AI Assistant" />
+                  <AvatarFallback className="bg-white/20">
+                    <Sparkles className="h-5 w-5 text-primary-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-primary" />
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-sm font-semibold tracking-tight">Trợ lý AI</span>
+                <span className="text-[11px] text-primary-foreground/70 font-normal">
+                  {projectName ? `📁 ${projectName}` : '🌐 Hỗ trợ chung'}
+                </span>
+              </div>
+            </SheetTitle>
+            
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearChat}
+                className="text-primary-foreground/70 hover:text-primary-foreground hover:bg-white/10 h-8 px-2 gap-1.5"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="text-xs hidden sm:inline">Xóa chat</span>
+              </Button>
+            )}
+          </div>
           <SheetDescription className="sr-only">
             Trợ lý AI hỗ trợ tra cứu thông tin về công việc, deadline và phân công
           </SheetDescription>
         </SheetHeader>
 
-        {/* Scope indicator - prominent display */}
-        <div className={cn(
-          "px-4 py-2.5 border-b flex items-center gap-2 text-xs",
-          projectId ? "bg-blue-50 dark:bg-blue-950/30" : "bg-amber-50 dark:bg-amber-950/30"
-        )}>
-          {projectId ? (
-            <>
-              <FolderKanban className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
-              <div>
-                <span className="font-medium text-blue-700 dark:text-blue-300">
-                  AI đang hỗ trợ Project: {projectName}
-                </span>
-                <span className="text-blue-600/80 dark:text-blue-400/80 block">
-                  Chỉ trả lời dựa trên dữ liệu của project này
-                </span>
-              </div>
-            </>
-          ) : (
-            <>
-              <Globe className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-              <div>
-                <span className="font-medium text-amber-700 dark:text-amber-300">
-                  AI đang trả lời tổng quan trên toàn hệ thống
-                </span>
-                <span className="text-amber-600/80 dark:text-amber-400/80 block">
-                  Có thể truy cập thông tin từ tất cả project của bạn
-                </span>
-              </div>
-            </>
-          )}
-        </div>
+        {/* Scope + Usage bar - compact */}
+        <div className="px-4 py-2.5 border-b bg-muted/30 space-y-2">
+          {/* Scope */}
+          <div className={cn(
+            "flex items-center gap-2 text-xs rounded-lg px-3 py-2",
+            projectId 
+              ? "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300" 
+              : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300"
+          )}>
+            {projectId ? (
+              <>
+                <FolderKanban className="h-3.5 w-3.5 shrink-0" />
+                <span className="font-medium truncate">Dữ liệu: {projectName}</span>
+              </>
+            ) : (
+              <>
+                <Globe className="h-3.5 w-3.5 shrink-0" />
+                <span className="font-medium">Trả lời tổng quan hệ thống</span>
+              </>
+            )}
+          </div>
 
-        {/* Usage indicator */}
-        <div className="px-4 py-2 bg-muted/30 border-b flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Info className="h-3.5 w-3.5" />
-            <span>
-              Còn {remainingQuestions}/{maxQuestions} lượt 
-              <span className="hidden sm:inline"> ({projectCount} project × {QUESTIONS_PER_PROJECT})</span>
+          {/* Usage bar */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+              <div 
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  usagePercent > 80 ? "bg-destructive" : usagePercent > 50 ? "bg-warning" : "bg-primary"
+                )}
+                style={{ width: `${usagePercent}%` }}
+              />
+            </div>
+            <span className="text-[10px] text-muted-foreground whitespace-nowrap font-medium">
+              {remainingQuestions}/{maxQuestions} lượt
             </span>
           </div>
-          <span className="text-muted-foreground">Tối đa {MAX_MESSAGE_WORDS} từ/câu</span>
         </div>
 
         {/* Messages Area */}
@@ -389,54 +400,74 @@ export default function AIAssistantPanel({
           className="flex-1 px-4 py-4"
         >
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full py-6 px-2">
-              <Avatar className="h-14 w-14 mb-3 ring-2 ring-primary/20">
-                <AvatarImage src={aiLogo} alt="AI Assistant" />
-                <AvatarFallback className="bg-primary/10">
-                  <Sparkles className="h-7 w-7 text-primary" />
-                </AvatarFallback>
-              </Avatar>
-              <h3 className="text-base font-medium mb-1">
-                Xin chào{profile?.full_name ? `, ${profile.full_name.split(' ').pop()}` : ''}!
+            <div className="flex flex-col items-center justify-center h-full py-4 px-2">
+              {/* Hero section */}
+              <div className="relative mb-5">
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150" />
+                <Avatar className="relative h-16 w-16 ring-4 ring-primary/10 shadow-xl">
+                  <AvatarImage src={aiLogo} alt="AI Assistant" />
+                  <AvatarFallback className="bg-primary/10">
+                    <Sparkles className="h-8 w-8 text-primary" />
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              
+              <h3 className="text-lg font-semibold mb-1 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                Xin chào{profile?.full_name ? `, ${profile.full_name.split(' ').pop()}` : ''}! 👋
               </h3>
-              <p className="text-xs text-muted-foreground text-center mb-4 px-4">
+              <p className="text-xs text-muted-foreground text-center mb-5 max-w-[280px] leading-relaxed">
                 {projectName 
-                  ? `Tôi có thể giúp bạn về project "${projectName}".`
-                  : 'Tôi có thể giúp bạn tra cứu thông tin về công việc và deadline.'
+                  ? `Tôi có thể giúp bạn tra cứu thông tin, theo dõi tiến độ và trả lời câu hỏi về project "${projectName}".`
+                  : 'Tôi sẵn sàng hỗ trợ bạn tra cứu công việc, deadline, cuộc họp và điểm quá trình.'
                 }
               </p>
               
-              {/* Suggested Questions */}
-              <div className="w-full space-y-2">
-                <p className="text-xs text-muted-foreground font-medium mb-2">Gợi ý câu hỏi:</p>
-                {SUGGESTED_QUESTIONS.map((question, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSuggestionClick(question)}
-                    className="w-full text-left px-3 py-2.5 rounded-xl border bg-card hover:bg-accent hover:border-primary/30 transition-all text-sm flex items-center gap-2"
-                  >
-                    <MessageCircle className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span>{question}</span>
-                  </button>
-                ))}
+              {/* Suggested Questions - card grid */}
+              <div className="w-full space-y-1.5">
+                <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider mb-2 px-1">
+                  💡 Thử hỏi
+                </p>
+                {SUGGESTED_QUESTIONS.map((q, idx) => {
+                  const Icon = q.icon;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleSuggestionClick(q.text)}
+                      className={cn(
+                        "w-full text-left px-3.5 py-3 rounded-xl border bg-card",
+                        "hover:bg-accent/5 hover:border-primary/30 hover:shadow-sm",
+                        "transition-all duration-200 text-sm flex items-center gap-3",
+                        "group active:scale-[0.98]"
+                      )}
+                    >
+                      <div className={cn(
+                        "flex items-center justify-center w-8 h-8 rounded-lg bg-muted/80 shrink-0",
+                        "group-hover:bg-primary/10 transition-colors"
+                      )}>
+                        <Icon className={cn("h-4 w-4", q.color)} />
+                      </div>
+                      <span className="text-foreground/80 group-hover:text-foreground transition-colors">{q.text}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {messages.map((message, idx) => (
                 <div
                   key={idx}
                   className={cn(
-                    "flex gap-2.5",
+                    "flex gap-2.5 animate-fade-in",
                     message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
                   )}
                 >
                   {/* Avatar */}
                   {message.role === 'assistant' ? (
-                    <Avatar className="h-8 w-8 shrink-0 ring-1 ring-border">
+                    <Avatar className="h-7 w-7 shrink-0 mt-1 ring-1 ring-border shadow-sm">
                       <AvatarImage src={aiLogo} alt="AI" />
                       <AvatarFallback className="bg-primary/10 text-primary">
-                        <Sparkles className="h-4 w-4" />
+                        <Sparkles className="h-3.5 w-3.5" />
                       </AvatarFallback>
                     </Avatar>
                   ) : (
@@ -444,22 +475,22 @@ export default function AIAssistantPanel({
                       src={profile?.avatar_url}
                       name={profile?.full_name}
                       size="sm"
-                      className="ring-1 ring-border shrink-0"
+                      className="ring-1 ring-border shrink-0 mt-1 shadow-sm"
                     />
                   )}
 
                   {/* Message Bubble */}
                   <div
                     className={cn(
-                      "max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
+                      "max-w-[82%] text-sm leading-relaxed",
                       message.role === 'user'
-                        ? 'bg-primary text-primary-foreground rounded-br-md'
-                        : 'bg-muted border border-border rounded-bl-md'
+                        ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-2.5 shadow-sm'
+                        : 'bg-muted/50 border border-border/60 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm'
                     )}
                   >
                     {message.content ? (
                       message.role === 'assistant' ? (
-                        <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-foreground">
+                        <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-strong:text-foreground prose-headings:text-foreground prose-headings:text-sm">
                           <ReactMarkdown
                             components={{
                               p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -468,6 +499,7 @@ export default function AIAssistantPanel({
                               li: ({ children }) => <li className="text-sm">{children}</li>,
                               strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                               em: ({ children }) => <em className="italic">{children}</em>,
+                              code: ({ children }) => <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono">{children}</code>,
                             }}
                           >
                             {message.content}
@@ -477,13 +509,13 @@ export default function AIAssistantPanel({
                         <div className="whitespace-pre-wrap">{message.content}</div>
                       )
                     ) : (
-                      <div className="flex items-center gap-2 text-muted-foreground">
+                      <div className="flex items-center gap-3 py-1">
                         <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
-                        <span className="text-xs">Đang suy nghĩ...</span>
+                        <span className="text-xs text-muted-foreground italic">Đang phân tích...</span>
                       </div>
                     )}
                   </div>
@@ -491,7 +523,7 @@ export default function AIAssistantPanel({
               ))}
 
               {error && (
-                <div className="flex items-center gap-2 text-destructive text-xs p-3 bg-destructive/10 rounded-xl">
+                <div className="flex items-center gap-2 text-destructive text-xs p-3 bg-destructive/5 border border-destructive/20 rounded-xl">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -501,45 +533,51 @@ export default function AIAssistantPanel({
         </ScrollArea>
 
         {/* Disclaimer */}
-        <div className="px-4 py-2 border-t bg-amber-50/50 dark:bg-amber-950/20">
-          <div className="flex items-start gap-2 text-[10px] text-amber-700 dark:text-amber-400">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+        <div className="px-4 py-2 border-t bg-muted/20">
+          <div className="flex items-start gap-2 text-[10px] text-muted-foreground">
+            <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
             <span>
-              Câu trả lời của AI được tạo tự động dựa trên dữ liệu hiện có trong hệ thống. 
-              Vui lòng kiểm tra lại thông tin quan trọng như task, deadline trước khi thực hiện.
+              AI tạo câu trả lời tự động — vui lòng kiểm tra lại thông tin quan trọng.
             </span>
           </div>
         </div>
 
         {/* Input Area */}
-        <div className="border-t p-3 bg-background">
-          <form onSubmit={handleSubmit} className="flex gap-2">
+        <div className="border-t p-3 bg-background/95 backdrop-blur-sm">
+          <form onSubmit={handleSubmit} className="flex gap-2 items-end">
             <div className="flex-1 relative">
               <Textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Hỏi về công việc, deadline..."
+                placeholder={remainingQuestions <= 0 ? "Đã hết lượt hỏi hôm nay..." : "Hỏi về công việc, deadline, cuộc họp..."}
                 disabled={isLoading || remainingQuestions <= 0}
                 className={cn(
-                  "min-h-[44px] max-h-[120px] resize-none pr-14 text-sm",
+                  "min-h-[44px] max-h-[120px] resize-none pr-14 text-sm rounded-xl",
+                  "focus-visible:ring-primary/30",
                   isOverLimit && "border-destructive focus-visible:ring-destructive"
                 )}
                 rows={1}
               />
-              <span className={cn(
-                "absolute right-3 bottom-2 text-[10px]",
-                isOverLimit ? "text-destructive font-medium" : "text-muted-foreground"
-              )}>
-                {wordCount}/{MAX_MESSAGE_WORDS}
-              </span>
+              {input.trim() && (
+                <span className={cn(
+                  "absolute right-3 bottom-2 text-[10px] tabular-nums",
+                  isOverLimit ? "text-destructive font-semibold" : "text-muted-foreground"
+                )}>
+                  {wordCount}/{MAX_MESSAGE_WORDS}
+                </span>
+              )}
             </div>
             <Button 
               type="submit" 
               size="icon" 
               disabled={!input.trim() || isLoading || isOverLimit || remainingQuestions <= 0}
-              className="shrink-0 h-11 w-11"
+              className={cn(
+                "shrink-0 h-11 w-11 rounded-xl shadow-sm",
+                "transition-all duration-200",
+                input.trim() && !isLoading && !isOverLimit && "shadow-md hover:shadow-lg"
+              )}
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -548,16 +586,12 @@ export default function AIAssistantPanel({
               )}
             </Button>
           </form>
-          {remainingQuestions <= 0 && (
-            <p className="text-xs text-destructive text-center mt-2">
-              Bạn đã hết lượt hỏi hôm nay. Vui lòng quay lại ngày mai.
-            </p>
-          )}
-          {remainingQuestions > 0 && (
-            <p className="text-[10px] text-muted-foreground text-center mt-2">
-              Nhấn Enter để gửi, Shift+Enter để xuống dòng
-            </p>
-          )}
+          <p className="text-[10px] text-muted-foreground text-center mt-2">
+            {remainingQuestions <= 0 
+              ? "Bạn đã hết lượt hỏi. Quay lại ngày mai nhé! 🌙"
+              : "Enter để gửi · Shift+Enter xuống dòng"
+            }
+          </p>
         </div>
       </SheetContent>
     </Sheet>
