@@ -535,8 +535,8 @@ export default function GroupDetail() {
                               </div>
                             </div>
                             
-                            {/* Right: Assignees (4 cols) */}
-                            <div className="col-span-4 flex flex-col">
+                            {/* Right: Assignees (3 cols) */}
+                            <div className="col-span-3 flex flex-col">
                               <div className="px-4 py-2.5 border-b bg-success/5">
                                 <div className="flex items-center gap-2">
                                   <Users className="w-4 h-4 text-success" />
