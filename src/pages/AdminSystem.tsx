@@ -30,7 +30,10 @@ export default function AdminSystem() {
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [showGuidePopover, setShowGuidePopover] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState('Hệ thống đang bảo trì, vui lòng quay lại sau.');
+  const [maintenanceDays, setMaintenanceDays] = useState(0);
+  const [customDays, setCustomDays] = useState('');
   const [maintenanceStart, setMaintenanceStart] = useState('');
+  const [maintenanceEnd, setMaintenanceEnd] = useState('');
   const [maintenanceEnd, setMaintenanceEnd] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
