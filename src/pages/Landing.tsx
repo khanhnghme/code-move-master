@@ -14,6 +14,10 @@ import introP1Workflow from '@/assets/intro-p1-workflow.png';
 import introP1Roles from '@/assets/intro-p1-roles.png';
 import introP1Features from '@/assets/intro-p1-features.png';
 import introP1Multiplatform from '@/assets/intro-p1-multiplatform.png';
+import introP2Kanban from '@/assets/intro-p2-kanban.png';
+import introP2Deadline from '@/assets/intro-p2-deadline.png';
+import introP2Submission from '@/assets/intro-p2-submission.png';
+import introP2Notes from '@/assets/intro-p2-notes.png';
 
 /* ─── Intro Images ─── */
 type IntroImages = Record<string, string>;
