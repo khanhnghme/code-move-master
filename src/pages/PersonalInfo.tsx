@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +17,7 @@ import {
   User, Mail, GraduationCap, BookOpen, Phone, Sparkles, FileText,
   Camera, Loader2, Save, Shield, Crown, UserCheck, Calendar,
   CheckCircle2, AlertCircle, Edit3, X, FolderKanban, HardDrive,
-  Lock, Unlock, Zap
+  Lock, Unlock, Zap, ArrowRight, Plus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -335,6 +336,39 @@ export default function PersonalInfo() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Create project CTA */}
+        <Link to="/groups" className="block">
+          <div className={`relative overflow-hidden rounded-xl border-2 border-dashed p-5 transition-all duration-300 ${
+            canCreateProject
+              ? 'border-primary/40 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 hover:border-primary hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.01] cursor-pointer group'
+              : 'border-muted-foreground/20 bg-muted/30 cursor-default'
+          }`}>
+            {canCreateProject && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            )}
+            <div className="relative flex items-center gap-4">
+              <div className={`p-3 rounded-xl ${
+                canCreateProject ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+              }`}>
+                <Plus className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <p className={`font-semibold text-base ${canCreateProject ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  {canCreateProject ? 'Tạo dự án mới' : 'Tạo dự án mới — Bạn không có quyền tạo'}
+                </p>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {canCreateProject
+                    ? 'Đi đến trang Project để tạo và quản lý dự án của bạn'
+                    : 'Liên hệ Admin để được nâng cấp quyền Thành viên Nâng cao'}
+                </p>
+              </div>
+              {canCreateProject && (
+                <ArrowRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+              )}
+            </div>
+          </div>
+        </Link>
 
         {/* Profile Completion */}
         <Card className="border-2 border-dashed">
