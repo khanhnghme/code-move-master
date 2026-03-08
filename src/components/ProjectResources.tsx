@@ -462,6 +462,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
       const { error } = await supabase.from('project_resources').update({ name: finalName }).eq('id', renameResource.id);
       if (error) throw error;
       toast({ title: 'Thành công', description: 'Đã đổi tên' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'RENAME_RESOURCE', actionType: 'resource',
+          description: `Đổi tên "${renameResource.name}" → "${finalName}"`,
+          groupId,
+        });
+      }
       setRenameResource(null);
       setNewFileName('');
       fetchResources();
