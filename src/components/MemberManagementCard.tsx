@@ -1117,6 +1117,7 @@ export default function MemberManagementCard({
         profile={profileToView}
         role={profileViewRole}
         isGroupCreator={profileViewIsCreator}
+        groupId={groupId}
       />
 
       {/* Excel Import Dialog */}
