@@ -650,6 +650,11 @@ export default function MemberManagement() {
               <Unlock className="w-3.5 h-3.5" /><span className="hidden sm:inline">Mở khóa</span>
             </Button>
           )}
+          {activeSubTab !== 'suspended' && (
+            <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs sm:text-sm" onClick={() => setBulkAction('promote')} disabled={selectedIds.size === 0}>
+              <Shield className="w-3.5 h-3.5" /><span className="hidden sm:inline">Nâng cấp</span>
+            </Button>
+          )}
           <Button size="sm" variant="destructive" className="gap-1.5 h-8 text-xs sm:text-sm" onClick={() => setBulkAction('delete')} disabled={selectedIds.size === 0}>
             <Trash2 className="w-3.5 h-3.5" /><span className="hidden sm:inline">Xóa</span>
           </Button>
