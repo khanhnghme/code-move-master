@@ -67,11 +67,10 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
         return;
       }
 
-      // Get member count, leader profile, task count in parallel
-      const [memberRes, leaderRes, taskRes, existingRes] = await Promise.all([
+      // Get member count, leader profile in parallel
+      const [memberRes, leaderRes, existingRes] = await Promise.all([
         supabase.from('group_members').select('id', { count: 'exact', head: true }).eq('group_id', group.id),
         supabase.from('profiles').select('full_name').eq('id', group.created_by).single(),
-        supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('group_id', group.id),
         supabase.from('group_members').select('id').eq('group_id', group.id).eq('user_id', user.id).maybeSingle(),
       ]);
 
@@ -80,7 +79,6 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
         ...group,
         memberCount: memberRes.count || 0,
         leaderName: leaderRes.data?.full_name || null,
-        taskCount: taskRes.count || 0,
       });
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
