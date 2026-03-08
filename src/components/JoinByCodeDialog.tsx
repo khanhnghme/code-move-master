@@ -247,13 +247,15 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
                       <div className="space-y-1">
                         <Progress
                           value={(groupPreview.memberCount / groupPreview.joinMemberLimit) * 100}
-                          className={`h-2 ${isFull ? '[&>div]:bg-destructive' : ''}`}
+                          className={`h-2 ${!alreadyMember && isFull ? '[&>div]:bg-destructive' : ''}`}
                         />
                         <div className="flex justify-between items-center">
-                          <span className={`text-xs font-medium ${isFull ? 'text-destructive' : 'text-muted-foreground'}`}>
-                            {isFull
-                              ? '🚫 Đã đầy — không nhận thêm thành viên'
-                              : `✅ Còn nhận ${groupPreview.joinMemberLimit - groupPreview.memberCount} thành viên`
+                          <span className={`text-xs font-medium ${!alreadyMember && isFull ? 'text-destructive' : 'text-muted-foreground'}`}>
+                            {alreadyMember
+                              ? '✅ Bạn đã là thành viên của project này'
+                              : isFull
+                                ? '🚫 Đã đầy — không nhận thêm thành viên'
+                                : `✅ Còn nhận ${groupPreview.joinMemberLimit - groupPreview.memberCount} thành viên`
                             }
                           </span>
                         </div>
@@ -286,7 +288,15 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
             </Card>
 
             {/* Status banner */}
-            {isFull && (
+            {alreadyMember ? (
+              <div className="flex items-center gap-2.5 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                <UserCheck className="w-5 h-5 text-primary shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-primary">Đã là thành viên</p>
+                  <p className="text-xs text-primary/80">Bạn đã tham gia project này rồi{isFull ? ', không cần tham gia lại.' : '.'}</p>
+                </div>
+              </div>
+            ) : isFull ? (
               <div className="flex items-center gap-2.5 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                 <XCircle className="w-5 h-5 text-destructive shrink-0" />
                 <div>
@@ -294,17 +304,7 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
                   <p className="text-xs text-destructive/80">Project đã đạt giới hạn {groupPreview.joinMemberLimit} thành viên, không nhận thêm thành viên mới.</p>
                 </div>
               </div>
-            )}
-
-            {!isFull && alreadyMember && (
-              <div className="flex items-center gap-2.5 p-3 rounded-lg bg-primary/10 border border-primary/20">
-                <UserCheck className="w-5 h-5 text-primary shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-primary">Đã là thành viên</p>
-                  <p className="text-xs text-primary/80">Bạn đã tham gia project này rồi.</p>
-                </div>
-              </div>
-            )}
+            ) : null}
 
             {canJoin && (
               <div className="flex items-center gap-2.5 p-3 rounded-lg bg-accent/10 border border-accent/20">
