@@ -515,15 +515,3 @@ export default function PersonalInfo() {
   );
 }
 
-function PermissionItem({ label, allowed }: { label: string; allowed: boolean }) {
-  return (
-    <div className="flex items-center gap-2 py-1.5">
-      {allowed ? (
-        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-      ) : (
-        <X className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-      )}
-      <span className={`text-sm ${allowed ? 'text-foreground' : 'text-muted-foreground'}`}>{label}</span>
-    </div>
-  );
-}
