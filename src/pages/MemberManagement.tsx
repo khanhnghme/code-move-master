@@ -465,8 +465,32 @@ export default function MemberManagement() {
     }
     setIsBulkProcessing(false); clearSelection(); setBulkAction(null); fetchMembers();
   };
+  const handleBulkPromote = async () => {
+    setIsBulkProcessing(true);
+    const ids = Array.from(selectedIds);
+    const promoted: string[] = [];
+    for (const id of ids) {
+      const member = members.find(m => m.id === id);
+      if (!member) continue;
+      const roles = memberRoles[id] || [];
+      if (roles.includes('leader') || roles.includes('admin')) continue; // already promoted
+      const { error } = await supabase.from('user_roles').insert({ user_id: id, role: 'leader' });
+      if (!error) promoted.push(member.full_name);
+    }
+    if (promoted.length > 0) {
+      await supabase.from('activity_logs').insert({
+        user_id: user!.id, user_name: currentProfile?.full_name || user?.email || 'Unknown',
+        action: 'BULK_PROMOTE_MEMBERS', action_type: 'member',
+        description: `Nâng cấp hàng loạt ${promoted.length} tài khoản lên Thành viên Nâng cao: ${promoted.join(', ')}`,
+      });
+      toast({ title: 'Đã nâng cấp hàng loạt', description: `${promoted.length} tài khoản đã được nâng lên Thành viên Nâng cao.` });
+    } else {
+      toast({ title: 'Không có thay đổi', description: 'Các tài khoản đã chọn đều đã là Thành viên Nâng cao hoặc Admin.', variant: 'destructive' });
+    }
+    setIsBulkProcessing(false); clearSelection(); setBulkAction(null); fetchMembers();
+  };
 
-  if (authLoading || isLoading) {
+
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
