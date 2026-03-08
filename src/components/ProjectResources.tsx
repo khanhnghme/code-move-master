@@ -359,10 +359,26 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
         const { error } = await (supabase.from('resource_folders' as any).update({ name: folderName.trim(), description: folderDescription || null }).eq('id', editingFolder.id) as any);
         if (error) throw error;
         toast({ title: 'Thành công', description: 'Đã cập nhật thư mục' });
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'UPDATE_FOLDER', actionType: 'resource',
+            description: `Cập nhật thư mục "${editingFolder.name}" → "${folderName.trim()}"`,
+            groupId,
+          });
+        }
       } else {
         const { error } = await (supabase.from('resource_folders' as any).insert({ group_id: groupId, name: folderName.trim(), description: folderDescription || null, created_by: userData.user.id }) as any);
         if (error) throw error;
         toast({ title: 'Thành công', description: 'Đã tạo thư mục mới' });
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'CREATE_FOLDER', actionType: 'resource',
+            description: `Tạo thư mục mới "${folderName.trim()}"`,
+            groupId,
+          });
+        }
       }
       setIsFolderDialogOpen(false);
       setFolderName('');
