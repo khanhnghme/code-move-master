@@ -17,6 +17,8 @@ interface ShareSettingsCardProps {
   showMembersPublic: boolean;
   showActivityPublic: boolean;
   showResourcesPublic?: boolean;
+  joinCode?: string | null;
+  allowJoinByCode?: boolean;
   onUpdate: () => void;
 }
 
