@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Send, AtSign, Hash, Loader2, User, ListTodo, Smile } from 'lucide-react';
+import { Send, AtSign, Hash, Loader2, User, ListTodo, Smile, Paperclip } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Member {
@@ -48,22 +48,28 @@ export default function MentionInput({
   isSending = false,
   className
 }: MentionInputProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [triggerType, setTriggerType] = useState<'@' | '#' | null>(null);
   const [triggerStart, setTriggerStart] = useState(-1);
 
+  // Auto-resize textarea
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 120) + 'px';
+    }
+  }, [value]);
+
   // Detect @ or # triggers
   useEffect(() => {
     const cursorPos = inputRef.current?.selectionStart || 0;
     const textBeforeCursor = value.substring(0, cursorPos);
     
-    // Find last @ or # before cursor
     const lastAtIndex = textBeforeCursor.lastIndexOf('@');
     const lastHashIndex = textBeforeCursor.lastIndexOf('#');
-    
     const lastTriggerIndex = Math.max(lastAtIndex, lastHashIndex);
     
     if (lastTriggerIndex === -1) {
@@ -75,14 +81,12 @@ export default function MentionInput({
     const trigger = textBeforeCursor[lastTriggerIndex] as '@' | '#';
     const searchText = textBeforeCursor.substring(lastTriggerIndex + 1).toLowerCase();
     
-    // Check if there's a space before the trigger (or it's at start)
     const charBeforeTrigger = lastTriggerIndex > 0 ? textBeforeCursor[lastTriggerIndex - 1] : ' ';
     if (charBeforeTrigger !== ' ' && charBeforeTrigger !== '\n') {
       setShowSuggestions(false);
       return;
     }
 
-    // Don't show suggestions if there's a space after trigger text
     if (searchText.includes(' ') && searchText.length > 20) {
       setShowSuggestions(false);
       return;
@@ -91,11 +95,9 @@ export default function MentionInput({
     setTriggerType(trigger);
     setTriggerStart(lastTriggerIndex);
 
-    // Generate suggestions
     const newSuggestions: Suggestion[] = [];
 
     if (trigger === '@') {
-      // Add @PhụTrách option
       if ('phụtrách'.includes(searchText) || 'phutrach'.includes(searchText) || searchText === '') {
         newSuggestions.push({
           type: 'user',
@@ -104,20 +106,16 @@ export default function MentionInput({
           sublabel: 'Người phụ trách task'
         });
       }
-
-      // Add matching members
       members.forEach(member => {
         if (member.name.toLowerCase().includes(searchText)) {
           newSuggestions.push({
             type: 'user',
             id: member.id,
             label: `@${member.name}`,
-            sublabel: undefined
           });
         }
       });
     } else if (trigger === '#') {
-      // Add matching tasks - display with stage order and task title
       tasks.forEach(task => {
         const displayLabel = `GĐ${task.stageOrder}`;
         if (
@@ -165,7 +163,6 @@ export default function MentionInput({
     onChange(newValue);
     setShowSuggestions(false);
 
-    // Focus and move cursor
     setTimeout(() => {
       if (inputRef.current) {
         inputRef.current.focus();
@@ -175,7 +172,7 @@ export default function MentionInput({
     }, 0);
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (showSuggestions && suggestions.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -199,19 +196,13 @@ export default function MentionInput({
     <div className={cn('relative', className)}>
       {/* Suggestions Popup */}
       {showSuggestions && suggestions.length > 0 && (
-        <Card className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden z-50 shadow-xl border-border/50 animate-scale-in">
+        <Card className="absolute bottom-full left-0 right-0 mb-2 overflow-hidden z-50 shadow-xl border-border/50 animate-in slide-in-from-bottom-2 fade-in-0 duration-200">
           <div className="p-2 border-b bg-muted/30">
             <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
               {triggerType === '@' ? (
-                <>
-                  <User className="w-3 h-3" />
-                  Chọn thành viên
-                </>
+                <><User className="w-3 h-3" /> Chọn thành viên</>
               ) : (
-                <>
-                  <ListTodo className="w-3 h-3" />
-                  Chọn task
-                </>
+                <><ListTodo className="w-3 h-3" /> Chọn task</>
               )}
             </span>
           </div>
@@ -230,28 +221,18 @@ export default function MentionInput({
               >
                 <div className={cn(
                   "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                  suggestion.type === 'user' 
-                    ? "bg-primary/10 text-primary" 
-                    : "bg-accent/10 text-accent"
+                  suggestion.type === 'user' ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent"
                 )}>
-                  {suggestion.type === 'user' ? (
-                    <AtSign className="w-4 h-4" />
-                  ) : (
-                    <Hash className="w-4 h-4" />
-                  )}
+                  {suggestion.type === 'user' ? <AtSign className="w-4 h-4" /> : <Hash className="w-4 h-4" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <span className="font-medium text-sm">{suggestion.label}</span>
                   {suggestion.sublabel && (
-                    <p className="text-muted-foreground text-xs truncate">
-                      {suggestion.sublabel}
-                    </p>
+                    <p className="text-muted-foreground text-xs truncate">{suggestion.sublabel}</p>
                   )}
                 </div>
                 {index === selectedIndex && (
-                  <Badge variant="secondary" className="text-[10px] shrink-0">
-                    Enter ↵
-                  </Badge>
+                  <Badge variant="secondary" className="text-[10px] shrink-0">Enter ↵</Badge>
                 )}
               </button>
             ))}
@@ -259,25 +240,20 @@ export default function MentionInput({
         </Card>
       )}
 
-      {/* Input Container */}
-      <div className="flex items-center gap-2 p-1 rounded-xl bg-background border shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
-        {/* Action Buttons */}
-        <div className="flex gap-0.5 pl-1">
+      {/* Input Bar */}
+      <div className="flex items-end gap-2 bg-background rounded-2xl border shadow-sm p-1.5 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40 transition-all">
+        {/* Left actions */}
+        <div className="flex items-center gap-0.5 pb-0.5">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             className={cn(
-              "h-8 w-8 rounded-lg transition-colors",
-              triggerType === '@' 
-                ? "bg-primary/10 text-primary" 
-                : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+              "h-8 w-8 rounded-full transition-colors",
+              triggerType === '@' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-primary hover:bg-primary/5"
             )}
-            onClick={() => {
-              onChange(value + '@');
-              inputRef.current?.focus();
-            }}
-            title="Nhắc đến thành viên (@)"
+            onClick={() => { onChange(value + '@'); inputRef.current?.focus(); }}
+            title="Tag (@)"
           >
             <AtSign className="w-4 h-4" />
           </Button>
@@ -286,42 +262,38 @@ export default function MentionInput({
             variant="ghost"
             size="icon"
             className={cn(
-              "h-8 w-8 rounded-lg transition-colors",
-              triggerType === '#' 
-                ? "bg-accent/10 text-accent" 
-                : "text-muted-foreground hover:text-accent hover:bg-accent/10"
+              "h-8 w-8 rounded-full transition-colors",
+              triggerType === '#' ? "bg-accent/10 text-accent" : "text-muted-foreground hover:text-accent hover:bg-accent/5"
             )}
-            onClick={() => {
-              onChange(value + '#');
-              inputRef.current?.focus();
-            }}
-            title="Tham chiếu task (#)"
+            onClick={() => { onChange(value + '#'); inputRef.current?.focus(); }}
+            title="Task (#)"
           >
             <Hash className="w-4 h-4" />
           </Button>
         </div>
 
-        {/* Text Input */}
-        <Input
+        {/* Textarea */}
+        <Textarea
           ref={inputRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 border-0 shadow-none focus-visible:ring-0 bg-transparent px-2"
+          className="flex-1 border-0 shadow-none focus-visible:ring-0 bg-transparent resize-none min-h-[36px] max-h-[120px] py-2 px-1 text-sm"
+          rows={1}
           disabled={isSending}
         />
 
-        {/* Send Button */}
+        {/* Send */}
         <Button
           onClick={onSend}
           disabled={!value.trim() || isSending}
           size="icon"
           className={cn(
-            "h-9 w-9 rounded-lg shrink-0 transition-all",
+            "h-9 w-9 rounded-full shrink-0 transition-all mb-0.5",
             value.trim() 
-              ? "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25" 
-              : "bg-muted text-muted-foreground"
+              ? "bg-primary hover:bg-primary/90 shadow-md shadow-primary/20 scale-100" 
+              : "bg-muted text-muted-foreground scale-95"
           )}
         >
           {isSending ? (
@@ -330,19 +302,6 @@ export default function MentionInput({
             <Send className="w-4 h-4" />
           )}
         </Button>
-      </div>
-
-      {/* Helper Text */}
-      <div className="flex items-center gap-3 mt-2 px-1">
-        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-          <AtSign className="w-3 h-3" /> Tag người
-        </span>
-        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-          <Hash className="w-3 h-3" /> Tham chiếu task
-        </span>
-        <span className="text-[10px] text-muted-foreground ml-auto">
-          Enter để gửi
-        </span>
       </div>
     </div>
   );
