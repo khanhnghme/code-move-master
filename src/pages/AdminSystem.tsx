@@ -90,16 +90,19 @@ export default function AdminSystem() {
   const handleSaveMaintenance = async () => {
     setSaving(true);
     try {
+      const now = new Date();
+      const endAt = maintenanceDays > 0 ? new Date(now.getTime() + maintenanceDays * 86400000).toISOString() : null;
       const { error } = await supabase
         .from('system_settings')
         .update({
           value: {
             enabled: maintenanceEnabled,
             message: maintenanceMessage,
-            start_at: maintenanceStart || null,
-            end_at: maintenanceEnd || null,
+            duration_days: maintenanceDays || null,
+            start_at: maintenanceEnabled ? now.toISOString() : null,
+            end_at: endAt,
           },
-          updated_at: new Date().toISOString(),
+          updated_at: now.toISOString(),
         })
         .eq('key', 'maintenance_mode');
 
