@@ -183,16 +183,6 @@ export default function AdminSystem() {
   };
 
   const handleToggleDrive = async (checked: boolean) => {
-    const hasCredentials = Boolean(driveApiKey.trim() && driveClientId.trim());
-    if (checked && !hasCredentials) {
-      toast({
-        title: 'Thiếu cấu hình Google Drive',
-        description: 'Chưa có API Key/Client ID trong cấu hình hệ thống.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setSavingDrive(true);
     try {
       const { error } = await supabase
@@ -201,8 +191,6 @@ export default function AdminSystem() {
           key: 'google_drive_config',
           value: {
             enabled: checked,
-            api_key: driveApiKey.trim(),
-            client_id: driveClientId.trim(),
           } as any,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'key' });
