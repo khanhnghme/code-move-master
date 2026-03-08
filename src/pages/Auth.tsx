@@ -22,7 +22,7 @@ export default function Auth() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 flex items-center justify-center p-4">
+      <main className="flex-1 overflow-y-auto flex items-start sm:items-center justify-center p-4">
         <AuthForm />
       </main>
 
