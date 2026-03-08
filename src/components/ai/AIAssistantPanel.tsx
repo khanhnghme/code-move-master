@@ -437,8 +437,9 @@ export default function AIAssistantPanel({
                         "w-full text-left px-3.5 py-3 rounded-xl border bg-card",
                         "hover:bg-accent/5 hover:border-primary/30 hover:shadow-sm",
                         "transition-all duration-200 text-sm flex items-center gap-3",
-                        "group active:scale-[0.98]"
+                        "group active:scale-[0.98] ai-suggestion-card"
                       )}
+                      style={{ animationDelay: `${idx * 80}ms` }}
                     >
                       <div className={cn(
                         "flex items-center justify-center w-8 h-8 rounded-lg bg-muted/80 shrink-0",
