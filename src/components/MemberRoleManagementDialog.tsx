@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { notifyRoleChanged } from '@/lib/notifications';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -163,6 +164,7 @@ export default function MemberRoleManagementDialog({
         metadata: { target_user_id: member.id, from_role: 'member', to_role: 'leader' },
       });
 
+      await notifyRoleChanged({ userIds: [member.id], adminName: currentProfile?.full_name || 'Admin', newRole: 'Thành viên Nâng cao', action: 'promote' });
       toast({ title: 'Đã nâng quyền', description: `${member.full_name} đã trở thành Thành viên Nâng cao.` });
       onRoleChanged();
       setShowPromoteConfirm(false);
@@ -211,6 +213,7 @@ export default function MemberRoleManagementDialog({
         metadata: { target_user_id: member.id, from_role: 'leader', to_role: 'member' },
       });
 
+      await notifyRoleChanged({ userIds: [member.id], adminName: currentProfile?.full_name || 'Admin', newRole: 'Thành viên', action: 'demote' });
       toast({ title: 'Đã hạ quyền', description: `${member.full_name} đã trở thành Thành viên.` });
       onRoleChanged();
       setShowDemoteConfirm(false);
