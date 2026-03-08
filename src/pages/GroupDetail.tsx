@@ -554,11 +554,15 @@ export default function GroupDetail() {
                                           </label>
                                           <p className="text-[11px] text-muted-foreground">{m.profiles?.student_id}</p>
                                         </div>
-                                        {m.role === 'leader' && (
+                                        {m.user_id === group?.created_by ? (
+                                          <span className="text-[10px] px-2 py-1 rounded-full bg-warning/20 text-warning font-semibold shrink-0">
+                                            Trưởng nhóm
+                                          </span>
+                                        ) : m.role === 'leader' ? (
                                           <span className="text-[10px] px-2 py-1 rounded-full bg-warning/20 text-warning font-semibold shrink-0">
                                             Phó nhóm
                                           </span>
-                                        )}
+                                        ) : null}
                                       </div>
                                     ))
                                   )}
