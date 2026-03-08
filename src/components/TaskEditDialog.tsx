@@ -174,6 +174,7 @@ export default function TaskEditDialog({
         deadline: deadline || null,
         stage_id: stageId || null,
         max_file_size: maxFileSize,
+        submission_method: submissionMethod,
       };
 
       // Handle extended deadline based on hours
