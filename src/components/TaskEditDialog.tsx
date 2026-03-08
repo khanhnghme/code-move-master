@@ -80,8 +80,7 @@ export default function TaskEditDialog({
   const isOverdue = isDeadlineOverdue(effectiveDeadline);
   const hasExtension = !!taskWithExtended?.extended_deadline;
   
-  const isLeaderOrAdmin = isLeader || isAdmin;
-  const canEditDetails = canEditProp && isLeaderOrAdmin;
+  const canEditDetails = canEditProp;
 
   // Calculate existing extension hours from task
   const getExistingExtensionHours = () => {
