@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn, FileText, Shield } from 'lucide-react';
+import { Loader2, Hash, Lock, Users, User, UserPlus, LogIn, FileText, Shield } from 'lucide-react';
 import { UEHLogo } from '@/components/UEHLogo';
 import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { z } from 'zod';
