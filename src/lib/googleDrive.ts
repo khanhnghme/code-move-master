@@ -134,10 +134,41 @@ export function openPicker(apiKey: string, accessToken: string): Promise<DriveFi
   });
 }
 
+function buildDriveFallbackUrl(fileId: string, mimeType?: string, pickerUrl?: string): string {
+  if (pickerUrl && pickerUrl.startsWith('http')) return pickerUrl;
+
+  switch (mimeType) {
+    case 'application/vnd.google-apps.document':
+      return `https://docs.google.com/document/d/${fileId}/edit`;
+    case 'application/vnd.google-apps.spreadsheet':
+      return `https://docs.google.com/spreadsheets/d/${fileId}/edit`;
+    case 'application/vnd.google-apps.presentation':
+      return `https://docs.google.com/presentation/d/${fileId}/edit`;
+    case 'application/vnd.google-apps.form':
+      return `https://docs.google.com/forms/d/${fileId}/edit`;
+    default:
+      return `https://drive.google.com/open?id=${fileId}`;
+  }
+}
+
+interface SetFilePublicAccessParams {
+  accessToken: string;
+  fileId: string;
+  mimeType?: string;
+  pickerUrl?: string;
+}
+
 // Set file sharing to "anyone with link can view"
-export async function setFilePublicAccess(accessToken: string, fileId: string): Promise<string> {
-  // Create "anyone" permission
-  await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+export async function setFilePublicAccess({
+  accessToken,
+  fileId,
+  mimeType,
+  pickerUrl,
+}: SetFilePublicAccessParams): Promise<string> {
+  const fallbackUrl = buildDriveFallbackUrl(fileId, mimeType, pickerUrl);
+
+  // Try to create "anyone" permission. If API refuses (403/404), keep fallback link.
+  await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions?supportsAllDrives=true`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
@@ -147,15 +178,19 @@ export async function setFilePublicAccess(accessToken: string, fileId: string): 
       role: 'reader',
       type: 'anyone',
     }),
-  });
+  }).catch(() => null);
 
-  // Get the webViewLink
   const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${fileId}?fields=webViewLink,webContentLink`,
+    `https://www.googleapis.com/drive/v3/files/${fileId}?fields=webViewLink,webContentLink&supportsAllDrives=true`,
     {
       headers: { 'Authorization': `Bearer ${accessToken}` },
     }
-  );
-  const data = await res.json();
-  return data.webViewLink || `https://drive.google.com/file/d/${fileId}/view?usp=sharing`;
+  ).catch(() => null as Response | null);
+
+  if (res?.ok) {
+    const data = await res.json();
+    return data.webViewLink || data.webContentLink || fallbackUrl;
+  }
+
+  return fallbackUrl;
 }
