@@ -688,6 +688,27 @@ export default function Landing() {
   const [introVisible, setIntroVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [pageDirection, setPageDirection] = useState<'next' | 'prev'>('next');
+  const [videoEnabled, setVideoEnabled] = useState(false);
+  const [videoOpacity, setVideoOpacity] = useState(0);
+  const [videoUrl, setVideoUrl] = useState('');
+
+  // Fetch video background settings
+  useEffect(() => {
+    const fetchVideoSettings = async () => {
+      const { data } = await supabase
+        .from('system_settings')
+        .select('value')
+        .eq('key', 'dashboard_video_bg')
+        .maybeSingle();
+      if (data?.value) {
+        const val = data.value as { enabled?: boolean; landing_opacity?: number; opacity?: number; url?: string };
+        setVideoEnabled(val.enabled ?? false);
+        setVideoOpacity(val.landing_opacity ?? val.opacity ?? 0.2);
+        setVideoUrl(val.url ?? '');
+      }
+    };
+    fetchVideoSettings();
+  }, []);
 
   const openIntro = () => {
     setCurrentPage(0);
