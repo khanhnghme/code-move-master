@@ -30,7 +30,7 @@ const tabs: NavTab[] = [
   { id: 'resources', label: 'Tài nguyên', icon: FolderOpen, showAlways: true, description: 'File & tài liệu' },
   { id: 'members', label: 'Thành viên', icon: Users, showAlways: true, description: 'Danh sách thành viên' },
   { id: 'scores', label: 'Điểm', icon: Award, showAlways: true, description: 'Điểm số & đánh giá' },
-  { id: 'logs', label: 'Nhật ký', icon: Activity, showAlways: true, description: 'Lịch sử hoạt động' },
+  { id: 'logs', label: 'Nhật ký', icon: Activity, showAlways: false, description: 'Lịch sử hoạt động' },
   { id: 'settings', label: 'Cài đặt', icon: Settings, showAlways: false, description: 'Cấu hình dự án' },
 ];
 
@@ -42,8 +42,9 @@ export default function ProjectNavigation({
   membersCount,
 }: ProjectNavigationProps) {
   const showSettings = isLeaderInGroup && isGroupCreator;
+  const showLogs = isLeaderInGroup && isGroupCreator;
   const visibleTabs = tabs.filter(tab => 
-    tab.showAlways || (tab.id === 'settings' && showSettings)
+    tab.showAlways || (tab.id === 'settings' && showSettings) || (tab.id === 'logs' && showLogs)
   );
 
   return (
