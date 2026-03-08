@@ -33,6 +33,9 @@ const ACTION_TYPES = [
   { value: 'stage', label: 'Giai đoạn' },
   { value: 'task', label: 'Task' },
   { value: 'resource', label: 'Tài nguyên' },
+  { value: 'score', label: 'Điểm số' },
+  { value: 'project', label: 'Dự án' },
+  { value: 'setting', label: 'Cài đặt' },
 ];
 
 const ACTIONS = [
