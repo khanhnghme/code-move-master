@@ -45,7 +45,7 @@ export default function ProjectTransferDialog({
   const [processing, setProcessing] = useState(false);
 
   // Fetch members for all groups when dialog opens
-  useState(() => {
+  useEffect(() => {
     if (open && ownedGroups.length > 0) {
       setLoading(true);
       Promise.all(
@@ -73,7 +73,7 @@ export default function ProjectTransferDialog({
         setLoading(false);
       });
     }
-  });
+  }, [open, ownedGroups.length]);
 
   const allGroupsAssigned = ownedGroups.every(g => transfers[g.id]);
 
