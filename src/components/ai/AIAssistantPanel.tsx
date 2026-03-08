@@ -33,6 +33,7 @@ const SUGGESTED_QUESTIONS = [
   "Công việc nào của tôi sắp đến hạn?",
   "Ai đang làm task nào?",
   "Tiến độ project hiện tại ra sao?",
+  "Có cuộc họp nào sắp tới không?",
 ];
 
 // Get usage key based on user and date
