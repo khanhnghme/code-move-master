@@ -55,6 +55,10 @@ export default function AdminSystem() {
   const [errorLoggingEnabled, setErrorLoggingEnabled] = useState(true);
   const [savingErrorLogging, setSavingErrorLogging] = useState(false);
 
+  // Intro images state
+  const [generatingIntroImages, setGeneratingIntroImages] = useState(false);
+  const [introImages, setIntroImages] = useState<Record<string, string> | null>(null);
+
   // Video background state
   const [videoBgEnabled, setVideoBgEnabled] = useState(false);
   const [videoBgLandingOpacity, setVideoBgLandingOpacity] = useState(20);
