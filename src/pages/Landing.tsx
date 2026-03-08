@@ -688,6 +688,27 @@ export default function Landing() {
   const [introVisible, setIntroVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [pageDirection, setPageDirection] = useState<'next' | 'prev'>('next');
+  const [videoEnabled, setVideoEnabled] = useState(false);
+  const [videoOpacity, setVideoOpacity] = useState(0);
+  const [videoUrl, setVideoUrl] = useState('');
+
+  // Fetch video background settings
+  useEffect(() => {
+    const fetchVideoSettings = async () => {
+      const { data } = await supabase
+        .from('system_settings')
+        .select('value')
+        .eq('key', 'dashboard_video_bg')
+        .maybeSingle();
+      if (data?.value) {
+        const val = data.value as { enabled?: boolean; landing_opacity?: number; opacity?: number; url?: string };
+        setVideoEnabled(val.enabled ?? false);
+        setVideoOpacity(val.landing_opacity ?? val.opacity ?? 0.2);
+        setVideoUrl(val.url ?? '');
+      }
+    };
+    fetchVideoSettings();
+  }, []);
 
   const openIntro = () => {
     setCurrentPage(0);
@@ -734,7 +755,26 @@ export default function Landing() {
   const pageTitles = ['Tổng quan', 'Task', 'Chấm điểm', 'Dự án', 'Nâng cao'];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col relative">
+      {/* Video Background */}
+      {videoEnabled && videoUrl && (
+        <>
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="fixed inset-0 w-full h-full object-cover pointer-events-none"
+            style={{ opacity: videoOpacity, zIndex: 0 }}
+            src={videoUrl}
+          />
+          <div
+            className="fixed inset-0 bg-background/60 pointer-events-none"
+            style={{ zIndex: 1 }}
+          />
+        </>
+      )}
+      <div className="relative" style={{ zIndex: 2 }}>
       {/* Header */}
       <header className="border-b bg-primary text-primary-foreground sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -952,6 +992,7 @@ export default function Landing() {
           from { width: 0; }
         }
       `}</style>
+      </div>
     </div>
   );
 }

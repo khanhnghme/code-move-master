@@ -56,7 +56,8 @@ export default function AdminSystem() {
 
   // Video background state
   const [videoBgEnabled, setVideoBgEnabled] = useState(false);
-  const [videoBgOpacity, setVideoBgOpacity] = useState(20);
+  const [videoBgLandingOpacity, setVideoBgLandingOpacity] = useState(20);
+  const [videoBgDashboardOpacity, setVideoBgDashboardOpacity] = useState(20);
   const [videoBgUrl, setVideoBgUrl] = useState('');
   const [savingVideo, setSavingVideo] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
@@ -102,9 +103,10 @@ export default function AdminSystem() {
       }
 
       if (videoRes.data?.value) {
-        const val = videoRes.data.value as { enabled?: boolean; opacity?: number; url?: string };
+        const val = videoRes.data.value as { enabled?: boolean; landing_opacity?: number; dashboard_opacity?: number; opacity?: number; url?: string };
         setVideoBgEnabled(val.enabled ?? false);
-        setVideoBgOpacity(Math.round((val.opacity ?? 0.2) * 100));
+        setVideoBgLandingOpacity(Math.round((val.landing_opacity ?? val.opacity ?? 0.2) * 100));
+        setVideoBgDashboardOpacity(Math.round((val.dashboard_opacity ?? val.opacity ?? 0.2) * 100));
         setVideoBgUrl(val.url ?? '');
       }
     } catch (err) {
@@ -488,10 +490,21 @@ export default function AdminSystem() {
                 </Tabs>
 
                 <div>
-                  <Label className="text-xs text-muted-foreground">Độ hiển thị: {videoBgOpacity}%</Label>
+                  <Label className="text-xs text-muted-foreground">Độ hiển thị trang Sảnh chính: {videoBgLandingOpacity}%</Label>
                   <Slider
-                    value={[videoBgOpacity]}
-                    onValueChange={(v) => setVideoBgOpacity(v[0])}
+                    value={[videoBgLandingOpacity]}
+                    onValueChange={(v) => setVideoBgLandingOpacity(v[0])}
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Độ hiển thị trang Dashboard: {videoBgDashboardOpacity}%</Label>
+                  <Slider
+                    value={[videoBgDashboardOpacity]}
+                    onValueChange={(v) => setVideoBgDashboardOpacity(v[0])}
                     min={0}
                     max={100}
                     step={5}
@@ -504,7 +517,7 @@ export default function AdminSystem() {
                   onClick={async () => {
                     setSavingVideo(true);
                     try {
-                      const value = { enabled: videoBgEnabled, opacity: videoBgOpacity / 100, url: videoBgUrl };
+                      const value = { enabled: videoBgEnabled, landing_opacity: videoBgLandingOpacity / 100, dashboard_opacity: videoBgDashboardOpacity / 100, url: videoBgUrl };
                       const { data: existing } = await supabase
                         .from('system_settings')
                         .select('id')

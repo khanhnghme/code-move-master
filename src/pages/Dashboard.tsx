@@ -44,9 +44,9 @@ export default function Dashboard() {
         .eq('key', 'dashboard_video_bg')
         .maybeSingle();
       if (data?.value) {
-        const val = data.value as { enabled?: boolean; opacity?: number; url?: string };
+        const val = data.value as { enabled?: boolean; dashboard_opacity?: number; opacity?: number; url?: string };
         setVideoEnabled(val.enabled ?? false);
-        setVideoOpacity(val.opacity ?? 0.2);
+        setVideoOpacity(val.dashboard_opacity ?? val.opacity ?? 0.2);
         setVideoUrl(val.url ?? '');
       }
     };
