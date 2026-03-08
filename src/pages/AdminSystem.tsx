@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2 } from 'lucide-react';
+import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle } from 'lucide-react';
+import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
