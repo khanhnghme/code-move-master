@@ -774,13 +774,39 @@ export default function MemberManagement() {
   const renderPendingTab = () => (
     <div className="space-y-4">
       <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="p-4 flex items-start gap-3">
-          <Info className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-          <div className="text-sm">
-            <p className="font-medium text-foreground">Duyệt tài khoản</p>
-            <p className="text-muted-foreground mt-1">
-              Các tài khoản do thành viên tự đăng ký sẽ xuất hiện tại đây. Admin cần duyệt hoặc từ chối trước khi họ có thể sử dụng hệ thống.
-            </p>
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <Info className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+            <div className="text-sm flex-1">
+              <p className="font-medium text-foreground">Duyệt tài khoản</p>
+              <p className="text-muted-foreground mt-1">
+                {autoApprove
+                  ? 'Chế độ tự động duyệt đang BẬT — tất cả tài khoản mới sẽ được duyệt ngay khi đăng ký.'
+                  : 'Các tài khoản do thành viên tự đăng ký sẽ xuất hiện tại đây. Admin cần duyệt hoặc từ chối trước khi họ có thể sử dụng hệ thống.'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border bg-background p-3">
+            <div className="flex items-center gap-2">
+              {autoApprove
+                ? <ToggleRight className="w-5 h-5 text-primary" />
+                : <ToggleLeft className="w-5 h-5 text-muted-foreground" />}
+              <div>
+                <p className="text-sm font-medium">Tự động duyệt tài khoản mới</p>
+                <p className="text-xs text-muted-foreground">
+                  {autoApprove ? 'Đang bật — tài khoản được duyệt ngay' : 'Đang tắt — cần duyệt thủ công'}
+                </p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant={autoApprove ? 'default' : 'outline'}
+              onClick={toggleAutoApprove}
+              disabled={autoApproveLoading}
+              className="shrink-0"
+            >
+              {autoApproveLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : autoApprove ? 'Tắt' : 'Bật'}
+            </Button>
           </div>
         </CardContent>
       </Card>
