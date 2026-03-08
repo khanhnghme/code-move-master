@@ -125,8 +125,8 @@ function NavTabButton({ tab, isActive, onClick, membersCount, isSettings }: NavT
             isSettings && isActive && "text-amber-200"
           )} />
           
-          {/* Label - hide on very small screens, show icon only */}
-          <span className="hidden xs:inline sm:inline">{tab.label}</span>
+          {/* Label - hide on mobile & tablet, show on desktop only */}
+          <span className="hidden lg:inline">{tab.label}</span>
           
           {/* Member count badge */}
           {membersCount !== undefined && (
