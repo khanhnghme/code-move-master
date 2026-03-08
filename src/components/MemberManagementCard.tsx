@@ -1093,7 +1093,7 @@ export default function MemberManagementCard({
             </Button>
             <Button 
               onClick={handleCreateMember} 
-              disabled={!newMemberFullName.trim() || !newMemberStudentId.trim() || !newMemberEmail.trim() || isCreatingMember} 
+              disabled={!newMemberFullName.trim() || !newMemberStudentId.trim() || isCreatingMember} 
               className="min-w-28"
             >
               {isCreatingMember ? (

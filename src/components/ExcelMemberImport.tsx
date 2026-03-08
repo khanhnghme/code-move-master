@@ -257,7 +257,7 @@ export default function ExcelMemberImport({
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">Email <span className="text-destructive">*</span></Label>
+                    <Label className="text-xs font-medium">Email <span className="text-muted-foreground text-[10px]">(tùy chọn)</span></Label>
                     <Select value={emailCol} onValueChange={setEmailCol}>
                       <SelectTrigger className="h-9"><SelectValue placeholder="Chọn cột" /></SelectTrigger>
                       <SelectContent>

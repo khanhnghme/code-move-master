@@ -563,7 +563,7 @@ export function MemberAuthForm() {
                 Tạo tài khoản
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                Sau khi tạo, tài khoản cần được Admin duyệt trước khi sử dụng.
+                Sau khi tạo, tài khoản cần được Admin duyệt. Khi đăng nhập lần đầu, bạn cần liên kết tài khoản Google.
               </p>
               <p className="text-sm text-center text-muted-foreground">
                 Đã có tài khoản?{' '}

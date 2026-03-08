@@ -258,6 +258,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Force Google link for users with placeholder email
+  const needsGoogleLink = !!(user && profile && profile.email?.endsWith('@teamworks.local') && !isAdmin);
+  if (needsGoogleLink) {
+    return (
+      <AuthContext.Provider value={contextValue}>
+        <ForceGoogleLinkScreen onSignOut={signOut} />
+      </AuthContext.Provider>
+    );
+  }
+
   return (
     <AuthContext.Provider value={contextValue}>
       {children}
