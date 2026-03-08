@@ -354,6 +354,11 @@ export default function MultiFileUploadSubmission({
   };
 
   const handlePreviewFile = (file: UploadedFile) => {
+    // Drive files: open the Drive URL directly
+    if (file.file_path.startsWith('drive://')) {
+      window.open(file.storage_name, '_blank');
+      return;
+    }
     const params = new URLSearchParams();
     params.set('path', file.file_path);
     params.set('name', file.file_name);
