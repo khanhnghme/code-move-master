@@ -1,77 +1,85 @@
 
 
-# Tích hợp Google Drive - Upload file lên Drive của người dùng
+# Tích hợp Google Drive Upload
 
-## Ý tưởng
+## Tổng quan
 
-Thay vì upload file lên server, người dùng sẽ đăng nhập Google, chọn/upload file lên **Google Drive cá nhân** của họ. Hệ thống chỉ lưu **link chia sẻ** — không tốn dung lượng server.
+Tạo luồng OAuth riêng cho Google Drive bên cạnh auth chính. User nhấn nút "Upload lên Google Drive" → đăng nhập Google (1 lần) → chọn/upload file lên Drive cá nhân → hệ thống lưu link chia sẻ.
 
-## Cách hoạt động
+## Yêu cầu từ Admin (1 lần duy nhất)
+
+Bạn cần tạo Google Cloud Project và cung cấp 2 key (đều là public key):
+1. **GOOGLE_API_KEY** — để dùng Google Picker widget
+2. **GOOGLE_CLIENT_ID** — để xin quyền Drive từ user
+
+Hướng dẫn:
+1. Vào https://console.cloud.google.com → Tạo project mới
+2. Enable **Google Picker API** và **Google Drive API**
+3. Tạo **API Key** (APIs & Services → Credentials → Create → API Key)
+4. Tạo **OAuth Client ID** (Type: Web Application, Authorized JS Origins: thêm URL preview và URL published của bạn)
+5. Cung cấp 2 key này cho hệ thống (lưu trong system_settings)
+
+## Kiến trúc kỹ thuật
 
 ```text
-User chọn file → Google Drive Picker mở lên → User chọn file từ Drive hoặc upload file mới lên Drive
-                                                          ↓
-                                          Hệ thống nhận link chia sẻ
-                                                          ↓
-                                          Lưu link vào DB (không lưu file)
+User nhấn "Upload lên Drive"
+       ↓
+Google Identity Services → Xin quyền drive.file
+       ↓
+Google Picker API mở → User chọn/upload file
+       ↓
+Picker trả về file metadata (id, name, url, size)
+       ↓
+Hệ thống set file sharing = "anyone with link"
+       ↓
+Lưu Google Drive link vào DB (0 bytes server storage)
 ```
 
-## Phương án kỹ thuật
+## Các file cần tạo/sửa
 
-### Google Picker API (Client-side)
+### 1. Tạo `src/lib/googleDrive.ts`
+- Helper load Google API scripts (gapi, google.accounts.oauth2)
+- Hàm `initGoogleDrive(apiKey, clientId)` 
+- Hàm `openPicker(accessToken)` → trả về file metadata
+- Hàm `setFilePublic(accessToken, fileId)` → set sharing permission
+- Cache access token trong session
 
-Google cung cấp **Picker API** — một widget cho phép người dùng:
-- Chọn file có sẵn trên Drive
-- Upload file mới lên Drive cá nhân
-- Trả về metadata (link, tên, loại file)
+### 2. Tạo `src/components/GoogleDriveUploadButton.tsx`
+- Button "Upload lên Google Drive" với icon Drive
+- Quản lý OAuth flow: lần đầu xin quyền, sau đó dùng cached token
+- Gọi Picker API → nhận file → set sharing → trả callback với link + metadata
+- Props: `onFileSelected(driveFile: { name, url, size, driveFileId })`
 
-**Yêu cầu:**
-1. **Google Cloud Project** với Picker API + Drive API enabled
-2. **OAuth Client ID** (loại Web Application) — đây là public key, lưu trong code được
-3. **API Key** cho Picker — cũng là public key
+### 3. Tạo `src/pages/AdminSystem.tsx` — thêm section cài đặt Google Drive
+- Form nhập Google API Key và Client ID
+- Lưu vào `system_settings` table (key: `google_drive_config`)
+- Toggle bật/tắt tính năng Google Drive upload
 
-### Các bước triển khai
+### 4. Sửa `src/components/MultiFileUploadSubmission.tsx`
+- Thêm nút "Upload qua Google Drive" bên cạnh nút upload file thông thường
+- Khi user chọn file từ Drive → thêm vào danh sách uploaded files với type `drive_link`
+- File từ Drive hiển thị icon Google Drive thay vì icon file thông thường
 
-1. **Tạo component `GoogleDrivePicker`**
-   - Load Google Picker API script
-   - Xử lý OAuth2 flow (xin quyền `drive.file` scope — chỉ truy cập file do app tạo/chọn)
-   - Hiển thị Picker widget
-   - Trả về file metadata (link, tên, kích thước)
+### 5. Sửa `src/components/ResourceUploadDialog.tsx`
+- Thêm tab thứ 4 "Google Drive" vào TabsList (thành 4 cols)
+- Tab mới chứa GoogleDriveUploadButton + hướng dẫn
+- File từ Drive → lưu như resource với `resource_type: 'drive_link'`
 
-2. **Tích hợp vào `MultiFileUploadSubmission`**
-   - Thêm tab/button "Upload qua Google Drive" bên cạnh upload trực tiếp
-   - Khi user chọn file từ Picker → lưu link như `submission_link`
+### 6. DB Migration
+- Thêm giá trị `google_drive_config` vào `system_settings` nếu chưa có
+- Không cần thêm cột mới — dùng `submission_link` / `link_url` hiện có để lưu Drive link
 
-3. **Tích hợp vào `ResourceUploadDialog`**
-   - Thêm tab "Google Drive" bên cạnh tab File và Link hiện tại
-   - File từ Drive → lưu như resource link
+## Trải nghiệm người dùng
 
-4. **Lưu trữ trong DB**
-   - Không cần thêm bảng mới
-   - Dùng trường `submission_link` / resource link hiện có
-   - Thêm metadata field để phân biệt nguồn (drive vs direct upload)
+1. Admin vào Cài đặt hệ thống → nhập Google API Key + Client ID (1 lần)
+2. User mở dialog nộp bài/tải tài nguyên → nhấn "Upload lên Google Drive"
+3. Lần đầu: popup Google đăng nhập + xin quyền "Quản lý file do app tạo" → User nhấn Allow
+4. Google Picker mở → User chọn file có sẵn hoặc upload file mới lên Drive
+5. Hệ thống tự động set file sharing public → lưu link vào DB
+6. Các lần sau: không cần đăng nhập lại (token cached trong session)
 
-### Giới hạn & Lưu ý
-
-- User cần đăng nhập Google (có thể dùng chung với Google Sign-in nếu có)
-- File phụ thuộc vào Drive của user — nếu user xóa file trên Drive, link sẽ hỏng
-- Cần user tự tạo Google Cloud Project và cung cấp Client ID + API Key (vì đây là public key nên an toàn)
-- Scope `drive.file` chỉ cho phép app truy cập file do chính app tạo/chọn, không truy cập toàn bộ Drive
-
-### Thay đổi cần làm
-
-| File | Thay đổi |
-|------|----------|
-| Tạo `src/components/GoogleDrivePicker.tsx` | Component wrapper cho Google Picker API |
-| `src/components/MultiFileUploadSubmission.tsx` | Thêm option "Upload qua Google Drive" |
-| `src/components/ResourceUploadDialog.tsx` | Thêm tab Google Drive |
-| Migration SQL | Thêm cột `source_type` vào bảng liên quan (phân biệt drive/direct) |
-
-## Câu hỏi cần xác nhận
-
-Trước khi triển khai, bạn cần:
-1. **Tạo Google Cloud Project** và enable Picker API + Drive API
-2. Cung cấp **Google API Key** và **OAuth Client ID** (cả hai đều là public key)
-
-Bạn có muốn tiến hành với phương án này không? Nếu bạn đã có Google Cloud Project, hãy cung cấp API Key và Client ID để bắt đầu.
+## Lưu ý bảo mật
+- API Key và Client ID đều là **public key** — an toàn lưu trong DB
+- Scope `drive.file` chỉ cho phép app truy cập file do chính app tạo/chọn
+- Không truy cập được toàn bộ Drive của user
 
