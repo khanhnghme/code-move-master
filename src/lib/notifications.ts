@@ -6,7 +6,8 @@ export type NotificationType =
   | 'task_updated' 
   | 'task_deadline'
   | 'task_verified'
-  | 'task_submitted';
+  | 'task_submitted'
+  | 'role_changed';
 
 interface NotificationPayload {
   userId: string;
