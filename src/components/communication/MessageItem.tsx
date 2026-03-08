@@ -122,19 +122,43 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
     }
   };
 
-  const handleTaskRefClick = async (taskId: string) => {
-    if (!taskId || !user) return;
+  const handleTaskRefClick = async (taskId?: string, displayText?: string) => {
+    if (!user || !groupId) return;
     
+    let resolvedTaskId = taskId;
+    
+    // If no taskId (legacy format like "GĐ2 – Soạn nội dung"), try to resolve from display text
+    if (!resolvedTaskId && displayText) {
+      // Extract stage number from "GĐN" pattern
+      const stageMatch = displayText.match(/GĐ(\d+)/);
+      const titleMatch = displayText.match(/–\s*(.+)/);
+      
+      if (titleMatch) {
+        const title = titleMatch[1].trim();
+        const { data: tasks } = await supabase
+          .from('tasks')
+          .select('id, title')
+          .eq('group_id', groupId)
+          .ilike('title', `%${title}%`)
+          .limit(1);
+        
+        if (tasks && tasks.length > 0) {
+          resolvedTaskId = tasks[0].id;
+        }
+      }
+    }
+    
+    if (!resolvedTaskId) return;
+
     // Fetch task data
     const { data: taskData } = await supabase
       .from('tasks')
       .select('*')
-      .eq('id', taskId)
+      .eq('id', resolvedTaskId)
       .single();
 
     if (!taskData) {
-      // Fallback to navigation
-      onTaskClick?.(taskId);
+      onTaskClick?.(resolvedTaskId);
       return;
     }
 
@@ -144,7 +168,7 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
     const { data: assignmentData } = await supabase
       .from('task_assignments')
       .select('id')
-      .eq('task_id', taskId)
+      .eq('task_id', resolvedTaskId)
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -311,7 +335,7 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
                         'font-medium cursor-pointer underline underline-offset-2 decoration-dotted',
                         isOwn ? 'text-primary-foreground/90' : 'text-accent hover:text-accent/80'
                       )}
-                      onClick={() => segment.taskId && handleTaskRefClick(segment.taskId)}
+                      onClick={() => handleTaskRefClick(segment.taskId, segment.content)}
                     >
                       {segment.content}
                     </span>
