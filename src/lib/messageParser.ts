@@ -142,11 +142,15 @@ export function renderMessageContent(
       });
     } else if (mention.type === 'task') {
       const taskTitle = taskTitleMap?.get(mention.taskId || '');
+      // For new format #[id](display), value already has display text
+      const displayContent = mention.taskId && mention.value !== mention.taskId
+        ? `#${mention.value}`
+        : `#${mention.value}${taskTitle ? ` – ${taskTitle}` : ''}`;
       segments.push({
         type: 'task-ref',
-        content: `#${mention.value}${taskTitle ? ` – ${taskTitle}` : ''}`,
+        content: displayContent,
         taskId: mention.taskId,
-        taskTitle
+        taskTitle: taskTitle || mention.value
       });
     }
 
