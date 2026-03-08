@@ -9,7 +9,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 import { useToast } from '@/hooks/use-toast';
-import { UEHLogo } from '@/components/UEHLogo';
 import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn } from 'lucide-react';
 import { UEHLogo } from '@/components/UEHLogo';
 import { z } from 'zod';
