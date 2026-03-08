@@ -51,22 +51,23 @@ import AIAssistantButton from '@/components/ai/AIAssistantButton';
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const isDark = theme === 'dark';
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
-          className="h-9 w-9 relative"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="h-9 w-9 relative border-primary/30 bg-accent/50 hover:bg-accent"
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
         >
-          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <Sun className="h-[1.1rem] w-[1.1rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
+          <Moon className="absolute h-[1.1rem] w-[1.1rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
           <span className="sr-only">Chuyển đổi giao diện</span>
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <p>{theme === 'dark' ? 'Chế độ sáng' : 'Chế độ tối'}</p>
+        <p>{isDark ? 'Chế độ sáng' : 'Chế độ tối'}</p>
       </TooltipContent>
     </Tooltip>
   );
