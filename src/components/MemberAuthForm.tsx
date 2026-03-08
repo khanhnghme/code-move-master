@@ -162,6 +162,14 @@ export function MemberAuthForm() {
   const [policyContent, setPolicyContent] = useState('');
   const [policyUpdatedAt, setPolicyUpdatedAt] = useState<string | null>(null);
 
+  // Resend countdown timer
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown(prev => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCountdown]);
+
   useEffect(() => {
     if (user && profile) {
       if (profile.is_approved) {
