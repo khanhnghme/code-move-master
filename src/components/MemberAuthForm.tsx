@@ -535,14 +535,20 @@ export function MemberAuthForm() {
                     return;
                   }
                   setForgotLoading(true);
-                  const { error } = await supabase.auth.updateUser({ password: newPassword });
-                  if (error) {
+                  try {
+                    const { data, error } = await supabase.functions.invoke('password-reset-otp', {
+                      body: { action: 'reset_password', email: forgotEmail, code: otpCode, new_password: newPassword },
+                    });
                     setForgotLoading(false);
-                    toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
-                  } else {
-                    await supabase.auth.signOut({ scope: 'local' });
+                    if (error || data?.error) {
+                      toast({ title: 'Lỗi', description: data?.error || error?.message || 'Không thể đặt lại mật khẩu', variant: 'destructive' });
+                    } else {
+                      await supabase.auth.signOut({ scope: 'local' });
+                      setForgotStep('done');
+                    }
+                  } catch {
                     setForgotLoading(false);
-                    setForgotStep('done');
+                    toast({ title: 'Lỗi hệ thống', description: 'Có lỗi xảy ra.', variant: 'destructive' });
                   }
                 }} className="space-y-4">
                   <p className="text-sm text-muted-foreground text-center">
@@ -580,14 +586,12 @@ export function MemberAuthForm() {
                   }
                   setForgotLoading(true);
                   try {
-                    const { error } = await supabase.auth.verifyOtp({
-                      email: forgotEmail,
-                      token: code,
-                      type: 'email',
+                    const { data, error } = await supabase.functions.invoke('password-reset-otp', {
+                      body: { action: 'verify_code', email: forgotEmail, code },
                     });
                     setForgotLoading(false);
-                    if (error) {
-                      toast({ title: 'Mã không hợp lệ', description: 'Mã xác minh không đúng hoặc đã hết hạn. Vui lòng thử lại.', variant: 'destructive' });
+                    if (error || data?.error) {
+                      toast({ title: 'Mã không hợp lệ', description: data?.error || 'Mã xác minh không đúng hoặc đã hết hạn.', variant: 'destructive' });
                     } else {
                       setForgotStep('newpass');
                     }
@@ -630,7 +634,9 @@ export function MemberAuthForm() {
                     </button>
                     <button type="button" className="text-muted-foreground hover:underline text-xs" onClick={async () => {
                       setForgotLoading(true);
-                      await supabase.auth.signInWithOtp({ email: forgotEmail });
+                      await supabase.functions.invoke('password-reset-otp', {
+                        body: { action: 'send_code', email: forgotEmail },
+                      });
                       setForgotLoading(false);
                       toast({ title: 'Đã gửi lại mã', description: 'Mã mới đã được gửi đến email của bạn.' });
                     }}>
@@ -665,13 +671,19 @@ export function MemberAuthForm() {
                       toast({ title: 'Không khớp', description: 'Email không khớp với MSSV đã đăng ký.', variant: 'destructive' });
                       return;
                     }
-                    const { error } = await supabase.auth.signInWithOtp({ email: registeredEmail });
+                    const { data, error } = await supabase.functions.invoke('password-reset-otp', {
+                      body: { action: 'send_code', email: registeredEmail },
+                    });
                     setForgotLoading(false);
-                    if (error) {
-                      toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+                    if (error || data?.error) {
+                      toast({ title: 'Lỗi', description: data?.error || error?.message, variant: 'destructive' });
                     } else {
                       setForgotEmail(registeredEmail);
                       setForgotStep('otp');
+                      // Show dev code in toast for testing (remove in production)
+                      if (data?._dev_code) {
+                        toast({ title: 'Mã xác minh (Dev)', description: `Mã: ${data._dev_code}`, duration: 30000 });
+                      }
                     }
                   } catch {
                     setForgotLoading(false);

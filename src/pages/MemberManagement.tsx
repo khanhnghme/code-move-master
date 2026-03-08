@@ -773,43 +773,57 @@ export default function MemberManagement() {
   // ====== RENDER PENDING TAB ======
   const renderPendingTab = () => (
     <div className="space-y-4">
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-            <div className="text-sm flex-1">
-              <p className="font-medium text-foreground">Duyệt tài khoản</p>
-              <p className="text-muted-foreground mt-1">
-                {autoApprove
-                  ? 'Chế độ tự động duyệt đang BẬT — tất cả tài khoản mới sẽ được duyệt ngay khi đăng ký.'
-                  : 'Các tài khoản do thành viên tự đăng ký sẽ xuất hiện tại đây. Admin cần duyệt hoặc từ chối trước khi họ có thể sử dụng hệ thống.'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center justify-between rounded-lg border bg-background p-3">
-            <div className="flex items-center gap-2">
-              {autoApprove
-                ? <ToggleRight className="w-5 h-5 text-primary" />
-                : <ToggleLeft className="w-5 h-5 text-muted-foreground" />}
-              <div>
-                <p className="text-sm font-medium">Tự động duyệt tài khoản mới</p>
-                <p className="text-xs text-muted-foreground">
-                  {autoApprove ? 'Đang bật — tài khoản được duyệt ngay' : 'Đang tắt — cần duyệt thủ công'}
-                </p>
+      {/* Auto-approve toggle - visual card */}
+      <Card className={`transition-all duration-300 ${autoApprove ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10' : 'border-border'}`}>
+        <CardContent className="p-0">
+          <button
+            type="button"
+            onClick={toggleAutoApprove}
+            disabled={autoApproveLoading}
+            className="w-full flex items-center gap-4 p-4 text-left hover:bg-muted/30 transition-colors rounded-xl disabled:opacity-60"
+          >
+            {/* Visual indicator */}
+            <div className={`relative w-14 h-8 rounded-full transition-colors duration-300 shrink-0 ${autoApprove ? 'bg-primary' : 'bg-muted-foreground/20'}`}>
+              <div className={`absolute top-1 w-6 h-6 rounded-full bg-background shadow-md transition-all duration-300 flex items-center justify-center ${autoApprove ? 'left-7' : 'left-1'}`}>
+                {autoApproveLoading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />
+                ) : autoApprove ? (
+                  <Check className="w-3.5 h-3.5 text-primary" />
+                ) : (
+                  <X className="w-3 h-3 text-muted-foreground" />
+                )}
               </div>
             </div>
-            <Button
-              size="sm"
-              variant={autoApprove ? 'default' : 'outline'}
-              onClick={toggleAutoApprove}
-              disabled={autoApproveLoading}
-              className="shrink-0"
-            >
-              {autoApproveLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : autoApprove ? 'Tắt' : 'Bật'}
-            </Button>
-          </div>
+
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm">Tự động duyệt tài khoản mới</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {autoApprove
+                  ? 'Đang BẬT — Mọi tài khoản đăng ký sẽ được duyệt và kích hoạt ngay lập tức'
+                  : 'Đang TẮT — Admin cần duyệt thủ công từng tài khoản đăng ký mới'}
+              </p>
+            </div>
+
+            {/* Status badge */}
+            <Badge variant={autoApprove ? 'default' : 'secondary'} className={`shrink-0 ${autoApprove ? 'bg-primary' : ''}`}>
+              {autoApprove ? 'BẬT' : 'TẮT'}
+            </Badge>
+          </button>
         </CardContent>
       </Card>
+
+      {/* Info note when auto-approve is off */}
+      {!autoApprove && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="p-3 flex items-start gap-2.5">
+            <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              Các tài khoản do thành viên tự đăng ký sẽ xuất hiện tại đây. Admin cần duyệt hoặc từ chối trước khi họ có thể sử dụng hệ thống.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {pendingMembers.length === 0 ? (
         <Card>
