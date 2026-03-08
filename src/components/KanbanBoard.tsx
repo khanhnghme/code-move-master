@@ -188,6 +188,15 @@ export default function KanbanBoard({
         await supabase.from('submission_history').delete().eq('task_id', taskRef.id);
         const { error } = await supabase.from('tasks').delete().eq('id', taskRef.id);
         if (error) throw error;
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'DELETE_TASK', actionType: 'task',
+            description: `Xóa task "${taskRef.title}"`,
+            groupId,
+            metadata: { task_id: taskRef.id, task_title: taskRef.title },
+          });
+        }
         onRefresh();
       },
       onUndo: () => {
