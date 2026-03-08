@@ -836,7 +836,7 @@ export default function Landing() {
               <div key={currentPage} className="p-6 h-full" style={{
                 animation: pageDirection === 'next' ? 'slide-in-from-right 0.35s ease-out both' : 'slide-in-from-left 0.35s ease-out both',
               }}>
-                <PageComponent />
+                <PageComponent images={introImages} />
               </div>
             </div>
 
