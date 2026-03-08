@@ -375,8 +375,8 @@ export default function MemberDetailDialog({
                             )}
                             <span className="text-sm font-medium">{g.name}</span>
                           </div>
-                          <Badge variant={g.role === 'leader' ? 'default' : 'secondary'} className="text-xs">
-                            {projectRoleLabel[g.role] || g.role}
+                          <Badge variant={g.is_creator ? 'default' : g.role === 'leader' ? 'default' : 'secondary'} className={`text-xs ${g.is_creator ? 'bg-accent/15 text-accent border-accent/30' : ''}`}>
+                            {getGroupRoleLabel(g.role, g.is_creator)}
                           </Badge>
                         </div>
                       ))}
