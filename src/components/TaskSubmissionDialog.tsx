@@ -904,7 +904,7 @@ export default function TaskSubmissionDialog({
                     {/* Layout - File Upload & Links */}
                     <div className={`grid gap-4 ${allowFileUpload && allowLinkSubmission ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
                       {/* Method 1: File Upload */}
-                      <div className={`rounded-xl border-2 overflow-hidden flex flex-col ${
+                      {allowFileUpload && <div className={`rounded-xl border-2 overflow-hidden flex flex-col ${
                         storageUsage.isOverLimit 
                           ? 'border-destructive/40 bg-gradient-to-br from-destructive/5 to-background opacity-80' 
                           : 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-background'
