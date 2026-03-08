@@ -48,48 +48,58 @@ function PolicyCheckbox({
 }) {
   return (
     <div className="space-y-1">
-      <div className="flex items-start gap-2">
+      <div className="flex items-center gap-2">
         <Checkbox
           id="policy-agree"
           checked={checked}
           onCheckedChange={(v) => onCheckedChange(v === true)}
-          className="mt-0.5"
+          className="shrink-0"
         />
-        <div className="flex-1">
-          <label htmlFor="policy-agree" className="text-sm cursor-pointer leading-tight">
-            Tôi đồng ý với{' '}
-            <Dialog>
-              <DialogTrigger asChild>
-                <button type="button" className="text-primary hover:underline font-medium inline-flex items-center gap-1">
-                  <FileText className="w-3 h-3" />
-                  Chính sách hệ thống
-                </button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Chính sách hệ thống</DialogTitle>
-                </DialogHeader>
+        <label htmlFor="policy-agree" className="text-sm cursor-pointer leading-none flex items-center gap-1 flex-wrap">
+          <span>Tôi đồng ý với</span>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button type="button" className="text-primary hover:underline font-medium">
+                Chính sách hệ thống
+              </button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[95vw] w-[1280px] h-[720px] max-h-[90vh] p-0 overflow-hidden flex flex-col">
+              <DialogHeader className="px-5 py-3 border-b bg-primary/5 shrink-0">
+                <div className="flex items-center gap-3">
+                  <UEHLogo width={40} />
+                  <div>
+                    <DialogTitle className="text-lg font-bold">Chính sách hệ thống - Teamworks UEH</DialogTitle>
+                    <p className="text-xs text-muted-foreground">
+                      Vui lòng đọc kỹ các điều khoản trước khi sử dụng hệ thống
+                      {policyUpdatedAt && (
+                        <> · Cập nhật lần cuối: <span className="font-medium">{format(new Date(policyUpdatedAt), "HH:mm dd/MM/yyyy", { locale: vi })}</span></>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </DialogHeader>
+              <div className="flex-1 overflow-y-auto p-6">
                 <div className="prose prose-sm dark:prose-invert max-w-none">
                   {policyContent ? (
                     <ReactMarkdown>{policyContent}</ReactMarkdown>
                   ) : (
-                    <p className="text-muted-foreground">Chưa có nội dung chính sách.</p>
+                    <p className="text-muted-foreground text-center py-10">Chưa có nội dung chính sách.</p>
                   )}
                 </div>
-                {policyUpdatedAt && (
-                  <p className="text-xs text-muted-foreground mt-4 pt-3 border-t">
+              </div>
+              {policyUpdatedAt && (
+                <div className="px-5 py-3 border-t bg-muted/30 shrink-0">
+                  <p className="text-xs text-muted-foreground">
                     Cập nhật lần cuối: {format(new Date(policyUpdatedAt), "HH:mm 'ngày' dd/MM/yyyy", { locale: vi })}
                   </p>
-                )}
-              </DialogContent>
-            </Dialog>
-          </label>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
           {policyUpdatedAt && (
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              Cập nhật lần cuối: {format(new Date(policyUpdatedAt), "HH:mm dd/MM/yyyy", { locale: vi })}
-            </p>
+            <span className="text-[11px] text-muted-foreground">(Cập nhật: {format(new Date(policyUpdatedAt), "HH:mm dd/MM/yyyy", { locale: vi })})</span>
           )}
-        </div>
+        </label>
       </div>
       {error && <p className="text-sm text-destructive ml-6">{error}</p>}
     </div>
