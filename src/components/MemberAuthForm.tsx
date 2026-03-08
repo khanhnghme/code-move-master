@@ -671,13 +671,19 @@ export function MemberAuthForm() {
                       toast({ title: 'Không khớp', description: 'Email không khớp với MSSV đã đăng ký.', variant: 'destructive' });
                       return;
                     }
-                    const { error } = await supabase.auth.signInWithOtp({ email: registeredEmail });
+                    const { data, error } = await supabase.functions.invoke('password-reset-otp', {
+                      body: { action: 'send_code', email: registeredEmail },
+                    });
                     setForgotLoading(false);
-                    if (error) {
-                      toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+                    if (error || data?.error) {
+                      toast({ title: 'Lỗi', description: data?.error || error?.message, variant: 'destructive' });
                     } else {
                       setForgotEmail(registeredEmail);
                       setForgotStep('otp');
+                      // Show dev code in toast for testing (remove in production)
+                      if (data?._dev_code) {
+                        toast({ title: 'Mã xác minh (Dev)', description: `Mã: ${data._dev_code}`, duration: 30000 });
+                      }
                     }
                   } catch {
                     setForgotLoading(false);
