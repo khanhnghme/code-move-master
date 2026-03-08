@@ -311,7 +311,7 @@ export default function AIAssistantPanel({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent 
         side="right" 
-        className="w-full sm:max-w-2xl p-0 flex flex-col h-full border-l-0 shadow-2xl"
+        className="w-full sm:max-w-2xl p-0 flex flex-col h-full border-l-0 shadow-2xl data-[state=open]:animate-slide-in-right data-[state=closed]:animate-slide-out-right"
       >
         {/* Header */}
         <SheetHeader className="px-5 py-4 border-b bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground relative overflow-hidden">
