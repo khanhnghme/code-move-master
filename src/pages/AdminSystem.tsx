@@ -394,6 +394,81 @@ export default function AdminSystem() {
                 </p>
               </CardContent>
             </Card>
+
+            {/* Video Background */}
+            <Card className="border border-border">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-lg bg-accent/10">
+                      <Video className="w-4 h-4 text-accent" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        Video nền Dashboard
+                        <Badge variant={videoBgEnabled ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
+                          {videoBgEnabled ? 'BẬT' : 'TẮT'}
+                        </Badge>
+                      </CardTitle>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={videoBgEnabled}
+                    onCheckedChange={setVideoBgEnabled}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">URL video</Label>
+                  <Input
+                    placeholder="https://example.com/video.mp4"
+                    value={videoBgUrl}
+                    onChange={(e) => setVideoBgUrl(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Độ hiển thị: {videoBgOpacity}%</Label>
+                  <Slider
+                    value={[videoBgOpacity]}
+                    onValueChange={(v) => setVideoBgOpacity(v[0])}
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
+                <Button
+                  className="w-full gap-2"
+                  disabled={savingVideo}
+                  onClick={async () => {
+                    setSavingVideo(true);
+                    try {
+                      const value = { enabled: videoBgEnabled, opacity: videoBgOpacity / 100, url: videoBgUrl };
+                      const { data: existing } = await supabase
+                        .from('system_settings')
+                        .select('id')
+                        .eq('key', 'dashboard_video_bg')
+                        .maybeSingle();
+                      if (existing) {
+                        await supabase.from('system_settings').update({ value, updated_at: new Date().toISOString() }).eq('key', 'dashboard_video_bg');
+                      } else {
+                        await supabase.from('system_settings').insert({ key: 'dashboard_video_bg', value });
+                      }
+                      toast({ title: 'Đã lưu cài đặt video nền' });
+                    } catch {
+                      toast({ title: 'Lỗi', description: 'Không thể lưu', variant: 'destructive' });
+                    } finally {
+                      setSavingVideo(false);
+                    }
+                  }}
+                >
+                  <Save className="w-4 h-4" />
+                  Lưu cài đặt video
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
