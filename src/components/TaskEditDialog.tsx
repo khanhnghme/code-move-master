@@ -155,6 +155,7 @@ export default function TaskEditDialog({
       
       const taskWithSize = task as Task & { max_file_size?: number };
       if (maxFileSize !== (taskWithSize.max_file_size || 10 * 1024 * 1024)) changes.push('giới hạn upload');
+      if ((task as any).submission_method !== submissionMethod) changes.push('cách nộp bài');
       
       const existingHours = getExistingExtensionHours();
       const newHours = showExtendSection ? extensionHours : 0;
