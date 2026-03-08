@@ -133,8 +133,12 @@ export function MemberAuthForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState('login');
+  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'forgot'>('login');
   const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [forgotIdentifier, setForgotIdentifier] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
 
   // Login fields
   const [identifier, setIdentifier] = useState('');
