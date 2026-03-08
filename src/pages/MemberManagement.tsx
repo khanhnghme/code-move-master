@@ -53,6 +53,7 @@ import {
   X,
   Check,
   Filter,
+  Star,
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
 import { exportMembersToExcel, getRoleDisplayName } from '@/lib/excelExport';
