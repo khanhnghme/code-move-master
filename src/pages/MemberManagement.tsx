@@ -233,6 +233,43 @@ export default function MemberManagement() {
     if (!error && data) setPendingMembers(data as Profile[]);
   };
 
+  const fetchAutoApprove = async () => {
+    const { data } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'auto_approve_accounts')
+      .maybeSingle();
+    if (data?.value) {
+      const val = data.value as { enabled?: boolean };
+      setAutoApprove(val.enabled ?? false);
+    }
+  };
+
+  const toggleAutoApprove = async () => {
+    const newValue = !autoApprove;
+    setAutoApproveLoading(true);
+    const { error } = await supabase
+      .from('system_settings')
+      .upsert({
+        key: 'auto_approve_accounts',
+        value: { enabled: newValue },
+        updated_by: user?.id,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'key' });
+    setAutoApproveLoading(false);
+    if (error) {
+      toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setAutoApprove(newValue);
+    toast({
+      title: newValue ? 'Đã bật tự động duyệt' : 'Đã tắt tự động duyệt',
+      description: newValue
+        ? 'Tất cả tài khoản mới sẽ được duyệt ngay khi đăng ký.'
+        : 'Tài khoản mới sẽ cần Admin duyệt thủ công.',
+    });
+  };
+
   const handleApprovePending = async (member: Profile) => {
     const { error } = await supabase.from('profiles').update({ is_approved: true }).eq('id', member.id);
     if (error) { toast({ title: 'Lỗi', description: error.message, variant: 'destructive' }); return; }
