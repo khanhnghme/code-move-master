@@ -229,7 +229,12 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
               </CardContent>
             </Card>
 
-            {alreadyMember ? (
+            {groupPreview.joinMemberLimit && groupPreview.memberCount >= groupPreview.joinMemberLimit ? (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
+                <Users className="w-4 h-4 shrink-0" />
+                <span className="text-sm font-medium">Project đã đạt giới hạn {groupPreview.joinMemberLimit} thành viên</span>
+              </div>
+            ) : alreadyMember ? (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20 text-warning">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span className="text-sm font-medium">Bạn đã là thành viên của project này</span>
