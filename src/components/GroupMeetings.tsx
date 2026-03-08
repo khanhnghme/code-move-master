@@ -20,6 +20,7 @@ interface GroupMeetingsProps {
 }
 
 export default function GroupMeetings({ groupId, groupName, stages, members, isLeader }: GroupMeetingsProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [meetings, setMeetings] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<Record<string, any[]>>({});
   const [isLoading, setIsLoading] = useState(true);
