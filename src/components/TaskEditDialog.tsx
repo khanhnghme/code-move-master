@@ -102,6 +102,7 @@ export default function TaskEditDialog({
       setAssignees(task.task_assignments?.map(a => a.user_id) || []);
       const taskWithSize = task as Task & { max_file_size?: number };
       setMaxFileSize(taskWithSize.max_file_size || 10 * 1024 * 1024);
+      setSubmissionMethod((task as any).submission_method || 'both');
       
       const existingHours = getExistingExtensionHours();
       setExtensionHours(existingHours);
