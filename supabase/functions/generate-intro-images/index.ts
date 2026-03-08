@@ -86,8 +86,8 @@ serve(async (req) => {
       if (!response.ok) {
         if (response.status === 429) {
           // Wait and retry once
-          console.log(`Rate limited on ${item.key}, waiting 10s...`);
-          await new Promise(r => setTimeout(r, 10000));
+          console.log(`Rate limited on ${item.key}, waiting 20s...`);
+          await new Promise(r => setTimeout(r, 20000));
           const retry = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
             headers: {
