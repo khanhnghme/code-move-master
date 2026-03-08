@@ -14,6 +14,10 @@ import introP1Workflow from '@/assets/intro-p1-workflow.png';
 import introP1Roles from '@/assets/intro-p1-roles.png';
 import introP1Features from '@/assets/intro-p1-features.png';
 import introP1Multiplatform from '@/assets/intro-p1-multiplatform.png';
+import introP2Kanban from '@/assets/intro-p2-kanban.png';
+import introP2Deadline from '@/assets/intro-p2-deadline.png';
+import introP2Submission from '@/assets/intro-p2-submission.png';
+import introP2Notes from '@/assets/intro-p2-notes.png';
 
 /* ─── Intro Images ─── */
 type IntroImages = Record<string, string>;
@@ -109,88 +113,51 @@ function Page1Overview({ images }: { images: IntroImages }) {
 
 function Page2Tasks({ images }: { images: IntroImages }) {
   return (
-    <div className="h-full flex flex-col gap-4">
-      <div className="h-[38%] min-h-[180px] flex-shrink-0" style={{ animation: 'fade-in 0.5s ease-out both' }}>
-        <IntroHeroImage
-          imageUrl={images.page2}
-          fallbackGradient="bg-gradient-to-br from-primary/15 via-blue-500/10 to-accent/10"
-          alt="Quản lý Task với Kanban Board"
-        />
-      </div>
-
-      <div className="space-y-1">
+    <div className="h-full flex flex-col gap-3">
+      {/* Title */}
+      <div className="text-center flex-shrink-0">
         <h3 className="text-2xl font-bold text-foreground">Quản lý Task</h3>
-        <p className="text-sm text-muted-foreground">Phân công, theo dõi và hoàn thành công việc hiệu quả</p>
+        <p className="text-xs text-muted-foreground">Phân công, theo dõi và hoàn thành công việc hiệu quả</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
-        {/* Mini Kanban */}
-        <div className="bg-muted/20 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Kanban Board — Kéo thả trạng thái</p>
-          <div className="grid grid-cols-4 gap-1.5">
-            {[
-              { status: 'TODO', color: 'border-muted-foreground/30', items: 2 },
-              { status: 'DOING', color: 'border-primary/40', items: 1 },
-              { status: 'DONE', color: 'border-green-500/40', items: 1 },
-              { status: 'VERIFIED', color: 'border-accent/40', items: 1 },
-            ].map((col, ci) => (
-              <div key={ci} className={`rounded-lg border-2 ${col.color} bg-background/50 p-1.5`}>
-                <span className="text-[8px] font-bold uppercase text-foreground/60 block mb-1">{col.status}</span>
-                {Array.from({ length: col.items }).map((_, i) => (
-                  <div key={i} className="bg-muted/60 rounded h-4 mb-1" />
-                ))}
-              </div>
-            ))}
-          </div>
+      {/* Image grid */}
+      <div className="flex gap-3 flex-1 min-h-0">
+        {/* Left: Hero task image */}
+        <div className="w-[35%] flex-shrink-0 rounded-xl overflow-hidden" style={{ animation: 'fade-in 0.4s ease-out both' }}>
+          <img src={introPage2} alt="Quản lý Task" className="w-full h-full object-cover rounded-xl" />
         </div>
 
-        {/* Deadline */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            <Clock className="w-3 h-3 inline mr-1" />Timeline Deadline
-          </p>
-          <div className="space-y-2">
-            {[
-              { task: 'Phân tích yêu cầu', bar: 100, done: true },
-              { task: 'Thiết kế mockup', bar: 65, done: false },
-              { task: 'Viết báo cáo', bar: 20, done: false },
-            ].map((t, i) => (
-              <div key={i} className="space-y-0.5">
-                <span className="text-[10px] text-foreground">{t.task}</span>
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${t.done ? 'bg-green-500' : 'bg-primary'}`} style={{ width: `${t.bar}%` }} />
-                </div>
-              </div>
-            ))}
+        {/* Right: Grid of feature images */}
+        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0">
+          {/* Kanban */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative" style={{ animation: 'fade-in 0.4s ease-out 100ms both' }}>
+            <img src={introP2Kanban} alt="Kanban Board" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Kanban Board</p>
+            </div>
           </div>
-        </div>
 
-        {/* Submission types */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3 md:col-span-2" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            <Upload className="w-3 h-3 inline mr-1" />Hình thức nộp bài
-          </p>
-          <div className="flex gap-3">
-            <div className="flex-1 bg-background rounded-lg border border-border/50 p-2 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-primary flex-shrink-0" />
-              <div>
-                <p className="text-[10px] font-semibold text-foreground">Nộp bằng Link</p>
-                <p className="text-[9px] text-muted-foreground">Google Docs, Drive, GitHub...</p>
-              </div>
+          {/* Deadline */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
+            <img src={introP2Deadline} alt="Deadline & Timeline" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Deadline & Timeline</p>
             </div>
-            <div className="flex-1 bg-background rounded-lg border border-border/50 p-2 flex items-center gap-2">
-              <Upload className="w-4 h-4 text-primary flex-shrink-0" />
-              <div>
-                <p className="text-[10px] font-semibold text-foreground">Upload File</p>
-                <p className="text-[9px] text-muted-foreground">.docx .pdf .zip — Max 10MB</p>
-              </div>
+          </div>
+
+          {/* Submission */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
+            <img src={introP2Submission} alt="Nộp bài đa hình thức" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Nộp bài đa hình thức</p>
             </div>
-            <div className="flex-1 bg-background rounded-lg border border-border/50 p-2 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-primary flex-shrink-0" />
-              <div>
-                <p className="text-[10px] font-semibold text-foreground">Lịch sử nộp</p>
-                <p className="text-[9px] text-muted-foreground">Lưu mọi lần nộp, so sánh</p>
-              </div>
+          </div>
+
+          {/* Notes & Comments */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
+            <img src={introP2Notes} alt="Ghi chú & Bình luận" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Ghi chú & Bình luận</p>
             </div>
           </div>
         </div>
