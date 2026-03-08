@@ -11,11 +11,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUserPresence } from '@/hooks/useUserPresence';
 import UserPresenceIndicator from '@/components/UserPresenceIndicator';
 import FirstTimeOnboarding from '@/components/FirstTimeOnboarding';
+import { getSystemRoleLabel } from '@/lib/roleLabels';
 import {
   FolderKanban,
   ArrowRight,
   Loader2,
   Sparkles,
+  Shield,
+  Star,
+  User,
 } from 'lucide-react';
 import type { Group } from '@/types/database';
 
@@ -68,9 +72,24 @@ export default function Dashboard() {
   };
 
   const getRoleBadge = () => {
-    if (isAdmin) return <Badge className="bg-destructive/20 text-destructive">Admin</Badge>;
-    if (isLeader) return <Badge className="bg-warning/20 text-warning">Leader</Badge>;
-    return <Badge variant="secondary">Member</Badge>;
+    if (isAdmin) return (
+      <Badge className="bg-destructive/20 text-destructive border-destructive/30 gap-1">
+        <Shield className="w-3 h-3" />
+        Quản trị viên
+      </Badge>
+    );
+    if (isLeader) return (
+      <Badge className="bg-warning/20 text-warning border-warning/30 gap-1">
+        <Star className="w-3 h-3" />
+        Thành viên Nâng cao
+      </Badge>
+    );
+    return (
+      <Badge variant="secondary" className="gap-1">
+        <User className="w-3 h-3" />
+        Thành viên
+      </Badge>
+    );
   };
 
   if (isLoading) {
