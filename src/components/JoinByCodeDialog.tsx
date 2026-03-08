@@ -304,11 +304,11 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
             )}
 
             {canJoin && (
-              <div className="flex items-center gap-2.5 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <div className="flex items-center gap-2.5 p-3 rounded-lg bg-accent/10 border border-accent/20">
+                <CheckCircle2 className="w-5 h-5 text-accent shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Sẵn sàng tham gia</p>
-                  <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80">
+                  <p className="text-sm font-semibold text-accent">Sẵn sàng tham gia</p>
+                  <p className="text-xs text-muted-foreground">
                     {groupPreview.joinMemberLimit != null
                       ? `Còn ${groupPreview.joinMemberLimit - groupPreview.memberCount} chỗ trống`
                       : 'Project không giới hạn số lượng thành viên'
