@@ -389,6 +389,16 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
         role={memberRole}
         groupId={groupId}
       />
+
+      <TaskSubmissionDialog
+        task={taskToView}
+        isOpen={taskDialogOpen}
+        onClose={() => { setTaskDialogOpen(false); setTaskToView(null); }}
+        onSave={() => { setTaskDialogOpen(false); setTaskToView(null); }}
+        isAssignee={isTaskAssignee}
+        isLeaderInGroup={isLeaderInGroup}
+        viewOnly={!isTaskAssignee && !isLeaderInGroup}
+      />
     </>
   );
 }
