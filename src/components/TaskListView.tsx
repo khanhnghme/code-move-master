@@ -951,7 +951,16 @@ export default function TaskListView({
         .update({ status: bulkStatus as any })
         .in('id', Array.from(selectedTaskIds));
       if (error) throw error;
+      const statusLabels: Record<string, string> = { TODO: 'Chờ thực hiện', IN_PROGRESS: 'Đang thực hiện', DONE: 'Hoàn thành', VERIFIED: 'Đã duyệt' };
       toast({ title: 'Thành công', description: `Đã cập nhật trạng thái ${selectedTaskIds.size} task` });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'BATCH_STATUS_CHANGE', actionType: 'task',
+          description: `Đổi trạng thái hàng loạt ${selectedTaskIds.size} task thành "${statusLabels[bulkStatus] || bulkStatus}"`,
+          groupId,
+        });
+      }
       clearSelection();
       onRefresh();
     } catch (error: any) {
