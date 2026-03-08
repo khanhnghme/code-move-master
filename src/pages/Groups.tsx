@@ -355,8 +355,8 @@ export default function Groups() {
               if (!open) resetForm();
             }}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button size="lg" className="gap-2 bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-105 transition-all duration-300 text-base px-6">
+                  <Plus className="w-5 h-5" />
                   Tạo dự án mới
                 </Button>
               </DialogTrigger>
