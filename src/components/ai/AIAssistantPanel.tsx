@@ -314,10 +314,10 @@ export default function AIAssistantPanel({
         className="w-full sm:max-w-2xl p-0 flex flex-col h-full border-l-0 shadow-2xl data-[state=open]:animate-slide-in-right data-[state=closed]:animate-slide-out-right"
       >
         {/* Header */}
-        <SheetHeader className="px-5 py-4 border-b bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground relative overflow-hidden">
+        <SheetHeader className="px-5 py-4 border-b bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground relative overflow-hidden animate-fade-in">
           {/* Decorative shapes */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 ai-decor-spin" />
+          <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2 ai-decor-spin-reverse" />
           
           <div className="relative flex items-center justify-between">
             <SheetTitle className="flex items-center gap-3 text-primary-foreground">
