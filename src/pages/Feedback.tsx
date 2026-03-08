@@ -259,11 +259,13 @@ export default function FeedbackPage() {
         feedback_id: feedbackId,
         user_id: user!.id,
         content,
+        reply_to_id: replyTo?.feedback_id === feedbackId ? replyTo.id : null,
       });
 
       if (error) throw error;
 
       setNewComment(prev => ({ ...prev, [feedbackId]: '' }));
+      setReplyTo(null);
       fetchComments(feedbackId);
       // Update comment count
       setFeedbacks(prev =>
