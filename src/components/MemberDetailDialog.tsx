@@ -20,6 +20,7 @@ interface GroupInfo {
   name: string;
   role: string;
   image_url: string | null;
+  is_creator: boolean;
 }
 
 interface ActivityInfo {
@@ -106,13 +107,14 @@ export default function MemberDetailDialog({
   const fetchGroups = async (userId: string) => {
     const { data } = await supabase
       .from('group_members')
-      .select('group_id, role, groups(name, image_url)')
+      .select('group_id, role, groups(name, image_url, created_by)')
       .eq('user_id', userId);
     setGroups((data || []).map((d: any) => ({
       id: d.group_id,
       name: d.groups?.name || 'Unknown',
       role: d.role,
       image_url: d.groups?.image_url || null,
+      is_creator: d.groups?.created_by === userId,
     })));
   };
 
@@ -177,9 +179,15 @@ export default function MemberDetailDialog({
     'admin': 'Admin', 'leader': 'Thành viên Nâng cao', 'member': 'Thành viên'
   };
 
-  // Project role labels (for group_members)
-  const projectRoleLabel: Record<string, string> = {
-    'admin': 'Admin', 'leader': 'Phó nhóm', 'member': 'Thành viên'
+  // Use centralized role label utility
+  const getGroupRoleLabel = (role: string, isCreator: boolean) => {
+    if (isCreator) return 'Trưởng nhóm';
+    switch (role) {
+      case 'admin': return 'Admin';
+      case 'leader': return 'Phó nhóm';
+      case 'member': return 'Thành viên';
+      default: return role;
+    }
   };
 
   const taskStats = {
@@ -367,8 +375,8 @@ export default function MemberDetailDialog({
                             )}
                             <span className="text-sm font-medium">{g.name}</span>
                           </div>
-                          <Badge variant={g.role === 'leader' ? 'default' : 'secondary'} className="text-xs">
-                            {projectRoleLabel[g.role] || g.role}
+                          <Badge variant={g.is_creator ? 'default' : g.role === 'leader' ? 'default' : 'secondary'} className={`text-xs ${g.is_creator ? 'bg-accent/15 text-accent border-accent/30' : ''}`}>
+                            {getGroupRoleLabel(g.role, g.is_creator)}
                           </Badge>
                         </div>
                       ))}
