@@ -68,6 +68,7 @@ export default function TaskEditDialog({
   const [stageId, setStageId] = useState<string>('');
   const [assignees, setAssignees] = useState<string[]>([]);
   const [maxFileSize, setMaxFileSize] = useState<number>(10 * 1024 * 1024);
+  const [submissionMethod, setSubmissionMethod] = useState<SubmissionMethod>('both');
   const [extensionHours, setExtensionHours] = useState<number>(0);
   const [showExtendSection, setShowExtendSection] = useState(false);
   const [showAssigneesExpanded, setShowAssigneesExpanded] = useState(false);
