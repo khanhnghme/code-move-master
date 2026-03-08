@@ -178,7 +178,7 @@ export default function MentionInput({
     } else if (suggestion.type === 'task') {
       const task = tasks.find(t => t.id === suggestion.id);
       const displayLabel = task ? `GĐ${task.stageOrder}` : suggestion.id.substring(0, 4);
-      insertText = `#${displayLabel} – ${task?.title || ''} `;
+      insertText = `#[${suggestion.id}](${displayLabel} – ${task?.title || ''}) `;
     }
 
     const newValue = beforeTrigger + insertText + afterCursor;
