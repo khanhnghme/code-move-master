@@ -453,6 +453,13 @@ export function MemberAuthForm() {
                   />
                 </div>
                 {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                <button
+                  type="button"
+                  className="text-xs font-medium text-foreground hover:underline"
+                  onClick={() => { setActiveTab('forgot'); setErrors({}); }}
+                >
+                  Quên mật khẩu?
+                </button>
               </div>
 
               {/* Policy checkbox - checked by default for login */}
@@ -468,25 +475,16 @@ export function MemberAuthForm() {
                 {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                 Đăng nhập
               </Button>
-              <div className="flex items-center justify-between text-sm">
+              <p className="text-sm text-center text-muted-foreground">
+                Chưa có tài khoản?{' '}
                 <button
                   type="button"
                   className="text-primary hover:underline font-medium"
-                  onClick={() => { setActiveTab('forgot'); setErrors({}); }}
+                  onClick={() => { setActiveTab('register'); setErrors({}); }}
                 >
-                  Quên mật khẩu?
+                  Đăng ký ngay
                 </button>
-                <span className="text-muted-foreground">
-                  Chưa có tài khoản?{' '}
-                  <button
-                    type="button"
-                    className="text-primary hover:underline font-medium"
-                    onClick={() => { setActiveTab('register'); setErrors({}); }}
-                  >
-                    Đăng ký
-                  </button>
-                </span>
-              </div>
+              </p>
             </form>
           ) : activeTab === 'forgot' ? (
             <div className="space-y-4">
