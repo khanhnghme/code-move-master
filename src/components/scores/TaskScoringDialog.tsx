@@ -306,6 +306,14 @@ export default function TaskScoringDialog({
         title: 'Đã chấm điểm cho tất cả thành viên',
         description: `${assignedMembers.length} thành viên đã được chấm ${newScore} điểm`
       });
+      if (user && profile && task) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'SCORE_TASK_GROUP', actionType: 'score',
+          description: `Chấm điểm nhóm task "${task.title}": ${newScore} điểm cho ${assignedMembers.length} thành viên${groupAdjustment !== 0 ? ` (điều chỉnh ${groupAdjustment > 0 ? '+' : ''}${groupAdjustment})` : ''}`,
+          groupId: task.group_id,
+        });
+      }
       onScoreUpdated();
       onClose();
     } catch (error: any) {
