@@ -1351,6 +1351,53 @@ export default function MemberManagementCard({
           return { success, failed, errors };
         }}
       />
+
+      {/* Leave Project Confirmation Dialog */}
+      <AlertDialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <LogOut className="w-5 h-5 text-destructive" />
+              Rời khỏi project?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>Bạn có chắc muốn rời khỏi project này? Hành động này sẽ:</p>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                <li>Xóa bạn khỏi danh sách thành viên</li>
+                <li>Hủy tất cả nhiệm vụ được giao cho bạn</li>
+              </ul>
+              {leaveInfo.canLeave && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-sm">
+                  <Clock className="w-4 h-4 text-primary shrink-0" />
+                  <span>
+                    Còn <strong className="text-primary">{formatHoursLeft(leaveInfo.hoursLeft)}</strong> để có thể tự rời project
+                  </span>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLeaving}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLeaveProject}
+              disabled={isLeaving}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isLeaving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Đang rời...
+                </>
+              ) : (
+                <>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Rời project
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
