@@ -821,7 +821,7 @@ export default function MemberManagementCard({
                 </ScrollArea>
 
                 {/* Role Selection */}
-                {isGroupCreator ? (
+                {canManageProjectRoles ? (
                   <div className="space-y-2 mb-4">
                     <Label className="text-sm font-medium">Vai trò trong Project</Label>
                     <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as 'member' | 'leader')}>
