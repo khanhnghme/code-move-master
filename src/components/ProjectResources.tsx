@@ -492,6 +492,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
         ? folders.find(f => f.id === moveTarget)?.name || 'thư mục'
         : 'ngoài thư mục';
       toast({ title: 'Thành công', description: `Đã di chuyển "${moveResource.name}" vào ${targetName}` });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'MOVE_RESOURCE', actionType: 'resource',
+          description: `Di chuyển "${moveResource.name}" vào ${targetName}`,
+          groupId,
+        });
+      }
       setMoveResource(null);
       fetchResources();
     } catch (error: any) {
