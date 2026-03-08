@@ -50,7 +50,7 @@ interface GroupInfoCardProps {
 
 export default function GroupInfoCard({ group, canEdit, onUpdate }: GroupInfoCardProps) {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
