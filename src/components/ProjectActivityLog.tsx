@@ -51,9 +51,10 @@ const DEFAULT_FILTERS: ActivityFilters = {
   dateTo: undefined,
 };
 
-export default function ProjectActivityLog({ groupId, groupName = 'Project', isLeader = false, isAdmin = false }: ProjectActivityLogProps) {
+export default function ProjectActivityLog({ groupId, groupName = 'Project', isLeader = false, isAdmin = false, isGroupCreator = false }: ProjectActivityLogProps) {
   const { user, profile } = useAuth();
   const canManage = isLeader || isAdmin;
+  const canManageLogs = isGroupCreator || isAdmin; // Only creator/admin can toggle logging & delete logs
 
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
