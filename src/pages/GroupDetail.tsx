@@ -465,8 +465,8 @@ export default function GroupDetail() {
                         {/* Content - 2 columns */}
                         <div className="flex-1 overflow-hidden">
                           <div className="grid grid-cols-12 h-full">
-                            {/* Left: Form (8 cols) */}
-                            <div className="col-span-8 p-4 border-r flex flex-col gap-3 overflow-y-auto">
+                            {/* Left: Form (9 cols) */}
+                            <div className="col-span-9 p-4 border-r flex flex-col gap-3 overflow-y-auto">
                               {/* Title */}
                               <div>
                                 <Label className="text-xs font-semibold mb-1.5 block">
