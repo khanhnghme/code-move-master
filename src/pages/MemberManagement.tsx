@@ -490,7 +490,7 @@ export default function MemberManagement() {
     setIsBulkProcessing(false); clearSelection(); setBulkAction(null); fetchMembers();
   };
 
-
+  if (authLoading || isLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
