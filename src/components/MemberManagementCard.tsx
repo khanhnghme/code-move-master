@@ -172,6 +172,7 @@ export default function MemberManagementCard({
   }, [leaveCountdownActive, leaveCountdown]);
 
 
+  const getRoleBadge = (role: string, memberId?: string) => {
     // Check if this member is the group creator (Trưởng nhóm)
     const isCreator = memberId ? memberId === groupCreatorId : false;
     
