@@ -656,7 +656,15 @@ export default function GroupDetail() {
               <TaskListView stages={stages} tasks={tasks} members={members} isLeaderInGroup={isLeaderInGroup} groupId={group.id} groupSlug={group.slug} onRefresh={fetchGroupData} onEditTask={setEditingTask} onCreateTask={(stageId) => { setNewTaskStageId(stageId); setIsTaskDialogOpen(true); }} onEditStage={setEditingStage} onDeleteStage={setStageToDelete} onToggleStageHidden={handleToggleStageHidden} />
             </TabsContent>
 
-            <TabsContent value="members" className="mt-6">
+            <TabsContent value="meetings" className="mt-6">
+              <GroupMeetings
+                groupId={group.id}
+                groupName={group.name}
+                stages={stages}
+                members={members}
+                isLeader={isLeaderInGroup}
+              />
+            </TabsContent>
               <MemberManagementCard members={members} availableProfiles={availableProfiles} isLeaderInGroup={isLeaderInGroup} isGroupCreator={isGroupCreator} groupId={group.id} currentUserId={user?.id || ''} groupCreatorId={group.created_by} onRefresh={fetchGroupData} />
             </TabsContent>
 
