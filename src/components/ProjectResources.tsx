@@ -398,15 +398,35 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
     setDeleteFolder(null);
 
     deleteWithUndo({
-      description: `Đã xóa thư mục "${folderRef.name}" (các file được chuyển về gốc)`,
+      description: `Đã xóa thư mục "${folderRef.name}" và toàn bộ file bên trong`,
       onDelete: async () => {
-        await (supabase.from('project_resources').update({ folder_id: null } as any).eq('folder_id', folderRef.id) as any);
+        // Get all files in this folder
+        const { data: folderFiles } = await supabase
+          .from('project_resources')
+          .select('id, storage_name, resource_type, name')
+          .eq('folder_id', folderRef.id);
+
+        // Delete storage files
+        if (folderFiles && folderFiles.length > 0) {
+          const storageFiles = folderFiles
+            .filter(f => f.resource_type === 'file' && f.storage_name)
+            .map(f => f.storage_name!);
+          if (storageFiles.length > 0) {
+            await supabase.storage.from('project-resources').remove(storageFiles);
+          }
+          // Delete DB records for files
+          await supabase.from('project_resources').delete().in('id', folderFiles.map(f => f.id));
+        }
+
+        // Delete folder itself
         await (supabase.from('resource_folders' as any).delete().eq('id', folderRef.id) as any);
+
         if (user && profile) {
+          const fileNames = folderFiles?.map(f => f.name).join(', ') || '';
           await logActivity({
             userId: user.id, userName: profile.full_name,
             action: 'DELETE_FOLDER', actionType: 'resource',
-            description: `Xóa thư mục "${folderRef.name}" (các file được chuyển về gốc)`,
+            description: `Xóa thư mục "${folderRef.name}" cùng ${folderFiles?.length || 0} file${fileNames ? ': ' + fileNames : ''}`,
             groupId,
           });
         }
