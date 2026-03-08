@@ -25,6 +25,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 import type { Group } from '@/types/database';
+import VideoParticles from '@/components/VideoParticles';
 
 export default function Dashboard() {
   const { user, profile, mustChangePassword, refreshProfile, isLeader, isAdmin } = useAuth();

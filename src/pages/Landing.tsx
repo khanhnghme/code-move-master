@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import uehLogo from '@/assets/ueh-logo-new.png';
+import VideoParticles from '@/components/VideoParticles';
 
 /* ─── Visual Page Components ─── */
 
