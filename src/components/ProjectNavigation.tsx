@@ -50,12 +50,9 @@ export default function ProjectNavigation({
   return (
     <div className="w-full border-b border-border/40 sticky top-16 z-40 bg-gradient-to-b from-muted/80 to-background backdrop-blur-sm shadow-sm">
       <div className="max-w-[1600px] mx-auto px-2 sm:px-4 md:px-8">
-        <nav className="flex items-center py-2">
-          {/* Left spacer - matches header logo width */}
-          <div className="w-[160px] shrink-0 hidden lg:block" />
-          
-          {/* Center: tabs - scrollable on mobile */}
-          <div className="flex-1 overflow-x-auto scrollbar-hide -mx-2 px-2">
+        <nav className="flex items-center justify-center py-2">
+          {/* Center: tabs - scrollable on mobile/tablet */}
+          <div className="overflow-x-auto scrollbar-hide -mx-2 px-2">
             <div className="inline-flex items-center bg-background/80 border border-border/50 rounded-full px-1.5 py-1 shadow-sm min-w-max">
               <TooltipProvider delayDuration={300}>
                 <div className="flex items-center gap-0.5">
