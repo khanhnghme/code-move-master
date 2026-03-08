@@ -1030,6 +1030,26 @@ export default function TaskListView({
               {showHidden ? 'Đang hiện ẩn' : `${hiddenTasksCount + hiddenStagesCount} ẩn`}
             </Button>
           )}
+
+          {/* Auto-collapse completed stages toggle */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={autoCollapseCompleted ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 text-xs gap-1.5"
+                  onClick={toggleAutoCollapse}
+                >
+                  <FolderCheck className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{autoCollapseCompleted ? 'Đang gọn' : 'Gọn xong'}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Tự động thu gọn giai đoạn đã hoàn thành 100%</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
           <Select value={filterStage} onValueChange={setFilterStage}>
             <SelectTrigger className="w-44 h-8 text-xs bg-background">
