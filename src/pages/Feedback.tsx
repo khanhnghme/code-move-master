@@ -103,6 +103,7 @@ export default function FeedbackPage() {
   const [loadingComments, setLoadingComments] = useState<Record<string, boolean>>({});
   const [newComment, setNewComment] = useState<Record<string, string>>({});
   const [postingComment, setPostingComment] = useState<Record<string, boolean>>({});
+  const [replyTo, setReplyTo] = useState<FeedbackComment | null>(null);
 
   // Delete state
   const [feedbackToDelete, setFeedbackToDelete] = useState<Feedback | null>(null);
