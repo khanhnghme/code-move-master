@@ -432,7 +432,7 @@ export default function TaskEditDialog({
                         ><X className="w-3 h-3" /></Button>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Input type="number" min={1} value={extensionHours || '''}
+                        <Input type="number" min={1} value={extensionHours || ''}
                           onChange={(e) => setExtensionHours(Math.max(0, parseInt(e.target.value) || 0))}
                           placeholder="Giờ" className="h-7 w-16 text-xs" />
                         <span className="text-[10px] text-muted-foreground">giờ</span>
