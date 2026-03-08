@@ -2557,6 +2557,10 @@ FOR DELETE USING (is_admin(auth.uid()));
 | 26 | feedbacks | self/admin | self | self/admin | ❌ |
 | 27 | feedback_comments | self/admin | self/admin | ❌ | ❌ |
 | 28 | system_error_logs | admin | all | ❌ | admin |
+| 29 | system_settings | all | admin | admin | admin |
+| 30 | meetings | member/admin | leader | leader | leader |
+| 31 | meeting_attendance | member/admin | leader | leader/self | leader |
+| 32 | meeting_messages | member/admin | member (self) | ❌ | self/leader |
 
 ---
 
