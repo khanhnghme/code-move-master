@@ -277,119 +277,42 @@ function Page4Project({ images }: { images: IntroImages }) {
 }
 
 function Page5Advanced({ images }: { images: IntroImages }) {
+  const features = [
+    { img: introP5Ai, label: 'AI Assistant' },
+    { img: introP5Notifications, label: 'Thông báo realtime' },
+    { img: introP5Backup, label: 'Sao lưu & Bảo mật' },
+    { img: introP5Meeting, label: 'Họp video trực tuyến' },
+  ];
+
   return (
-    <div className="h-full flex flex-col gap-4">
-      <div className="h-[38%] min-h-[180px] flex-shrink-0" style={{ animation: 'fade-in 0.5s ease-out both' }}>
-        <IntroHeroImage
-          imageUrl={images.page5}
-          fallbackGradient="bg-gradient-to-br from-accent/15 via-primary/10 to-purple-500/10"
-          alt="Tính năng nâng cao AI và bảo mật"
-        />
-      </div>
-
-      <div className="space-y-1">
+    <div className="h-full flex flex-col gap-3">
+      {/* Title */}
+      <div className="text-center flex-shrink-0">
         <h3 className="text-2xl font-bold text-foreground">Tính năng nâng cao</h3>
-        <p className="text-sm text-muted-foreground">Công cụ hỗ trợ chuyên nghiệp</p>
+        <p className="text-xs text-muted-foreground">Công cụ hỗ trợ chuyên nghiệp</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
-        {/* Chat */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            <MessageSquare className="w-3 h-3 inline mr-1" />Giao tiếp nhóm
-          </p>
-          <div className="bg-background rounded-lg border border-border/50 p-2 space-y-1.5">
-            <div className="flex gap-1.5 items-start">
-              <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                <span className="text-[7px] text-primary-foreground font-bold">A</span>
-              </div>
-              <div className="bg-primary/10 rounded-lg px-2 py-1">
-                <p className="text-[9px] text-foreground">Cập nhật tiến độ tuần này nhé!</p>
-              </div>
-            </div>
-            <div className="flex gap-1.5 items-start flex-row-reverse">
-              <div className="w-4 h-4 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-                <span className="text-[7px] font-bold">B</span>
-              </div>
-              <div className="bg-muted rounded-lg px-2 py-1">
-                <p className="text-[9px] text-foreground">Em đã hoàn thành ✅</p>
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-3 mt-1.5">
-            <span className="text-[9px] text-muted-foreground flex items-center gap-1"><Bell className="w-2.5 h-2.5" />Thông báo realtime</span>
-            <span className="text-[9px] text-muted-foreground flex items-center gap-1"><MessageSquare className="w-2.5 h-2.5" />@mention</span>
-          </div>
+      {/* Image grid */}
+      <div className="flex gap-3 flex-1 min-h-0">
+        {/* Left: Hero image */}
+        <div className="w-[35%] flex-shrink-0 rounded-xl overflow-hidden" style={{ animation: 'fade-in 0.5s ease-out both' }}>
+          <img src={introPage5} alt="Tính năng nâng cao" className="w-full h-full object-cover rounded-xl" />
         </div>
 
-        {/* AI */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            <Zap className="w-3 h-3 inline mr-1" />AI Assistant
-          </p>
-          <div className="bg-background rounded-lg border border-border/50 p-2 space-y-1.5">
-            <div className="flex gap-1.5 items-start flex-row-reverse">
-              <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                <span className="text-[7px] text-primary-foreground font-bold">?</span>
-              </div>
-              <div className="bg-muted rounded-lg px-2 py-1">
-                <p className="text-[9px] text-foreground">Nhóm mình tiến độ thế nào?</p>
-              </div>
-            </div>
-            <div className="flex gap-1.5 items-start">
-              <div className="w-4 h-4 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
-                <Zap className="w-2 h-2 text-white" />
-              </div>
-              <div className="bg-primary/5 border border-primary/10 rounded-lg px-2 py-1 flex-1">
-                <p className="text-[9px] text-foreground leading-relaxed">
-                  📊 Hoàn thành <span className="font-bold text-primary">8/12 tasks</span> (67%)
-                  <br />⚠️ <span className="text-destructive font-bold">2 tasks trễ</span>
-                </p>
+        {/* Right: 2x2 feature grid */}
+        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0">
+          {features.map((f, i) => (
+            <div
+              key={i}
+              className="relative rounded-xl overflow-hidden border border-border/40 bg-muted/20"
+              style={{ animation: `fade-in 0.4s ease-out ${100 + i * 100}ms both` }}
+            >
+              <img src={f.img} alt={f.label} className="w-full h-full object-cover" />
+              <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+                <p className="text-xs font-semibold text-foreground">{f.label}</p>
               </div>
             </div>
-          </div>
-          <p className="text-[9px] text-muted-foreground mt-1.5">Powered by Gemini AI</p>
-        </div>
-
-        {/* Export + Security */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3 md:col-span-2" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                <FileText className="w-3 h-3 inline mr-1" />Xuất báo cáo
-              </p>
-              <div className="space-y-1">
-                {[
-                  { type: 'PDF', icon: '📄', name: 'Nhật ký hoạt động' },
-                  { type: 'Excel', icon: '📊', name: 'Bảng điểm chi tiết' },
-                  { type: 'ZIP', icon: '📦', name: 'Minh chứng dự án' },
-                ].map((r, i) => (
-                  <div key={i} className="flex items-center gap-2 py-1">
-                    <span className="text-sm">{r.icon}</span>
-                    <span className="text-[10px] font-medium text-foreground flex-1">{r.name}</span>
-                    <span className="text-[8px] font-bold bg-muted px-1.5 py-0.5 rounded">{r.type}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                <Lock className="w-3 h-3 inline mr-1" />Bảo mật
-              </p>
-              <div className="space-y-1">
-                {[
-                  'Row Level Security',
-                  'Role-based Access',
-                  'Activity Logging',
-                ].map((s, i) => (
-                  <div key={i} className="flex items-center gap-1.5 py-0.5">
-                    <CheckCircle2 className="w-3 h-3 text-green-500 flex-shrink-0" />
-                    <span className="text-[10px] text-foreground">{s}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>
