@@ -395,6 +395,55 @@ export default function FeedbackPage() {
     }
   };
 
+  const handleReaction = async (feedbackId: string, reaction: 'useful' | 'not_useful') => {
+    if (!user) return;
+    const feedback = feedbacks.find(f => f.id === feedbackId);
+    if (!feedback) return;
+
+    try {
+      if (feedback.my_reaction === reaction) {
+        // Remove reaction
+        await supabase
+          .from('feedback_reactions')
+          .delete()
+          .eq('feedback_id', feedbackId)
+          .eq('user_id', user.id);
+        setFeedbacks(prev => prev.map(f => f.id === feedbackId ? {
+          ...f,
+          my_reaction: null,
+          useful_count: reaction === 'useful' ? Math.max(0, (f.useful_count || 0) - 1) : f.useful_count,
+          not_useful_count: reaction === 'not_useful' ? Math.max(0, (f.not_useful_count || 0) - 1) : f.not_useful_count,
+        } : f));
+      } else if (feedback.my_reaction) {
+        // Switch reaction
+        await supabase
+          .from('feedback_reactions')
+          .update({ reaction })
+          .eq('feedback_id', feedbackId)
+          .eq('user_id', user.id);
+        setFeedbacks(prev => prev.map(f => f.id === feedbackId ? {
+          ...f,
+          my_reaction: reaction,
+          useful_count: reaction === 'useful' ? (f.useful_count || 0) + 1 : Math.max(0, (f.useful_count || 0) - 1),
+          not_useful_count: reaction === 'not_useful' ? (f.not_useful_count || 0) + 1 : Math.max(0, (f.not_useful_count || 0) - 1),
+        } : f));
+      } else {
+        // New reaction
+        await supabase
+          .from('feedback_reactions')
+          .insert({ feedback_id: feedbackId, user_id: user.id, reaction });
+        setFeedbacks(prev => prev.map(f => f.id === feedbackId ? {
+          ...f,
+          my_reaction: reaction,
+          useful_count: reaction === 'useful' ? (f.useful_count || 0) + 1 : f.useful_count,
+          not_useful_count: reaction === 'not_useful' ? (f.not_useful_count || 0) + 1 : f.not_useful_count,
+        } : f));
+      }
+    } catch (error) {
+      console.error('Error handling reaction:', error);
+    }
+  };
+
   const formatTime = (dateStr: string) => {
     return format(new Date(dateStr), "dd/MM/yyyy 'lúc' HH:mm", { locale: vi });
   };
