@@ -140,7 +140,7 @@ export default function ExcelMemberImport({
     };
   }).filter(r => r.fullName || r.studentId || r.email);
 
-  const isMappingValid = nameCol && studentIdCol && nameCol !== studentIdCol && (!emailCol || (emailCol !== nameCol && emailCol !== studentIdCol));
+  const isMappingValid = nameCol && studentIdCol && emailCol && nameCol !== studentIdCol && nameCol !== emailCol && studentIdCol !== emailCol;
 
   const handleProceedToAction = () => setStep('action');
 
@@ -157,8 +157,8 @@ export default function ExcelMemberImport({
         if (!row.fullName && !row.studentId && !row.email) {
           return { row, status: 'missing_field', message: 'Thiếu tất cả thông tin' };
         }
-        if (action === 'add' && !row.fullName) {
-          return { row, status: 'missing_field', message: 'Thiếu họ tên' };
+        if (action === 'add' && (!row.fullName || !row.email)) {
+          return { row, status: 'missing_field', message: `Thiếu ${!row.fullName ? 'họ tên' : 'email'}` };
         }
         return { row, status: 'ok' };
       }));
@@ -257,7 +257,7 @@ export default function ExcelMemberImport({
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">Email <span className="text-muted-foreground text-[10px]">(tùy chọn)</span></Label>
+                    <Label className="text-xs font-medium">Email <span className="text-destructive">*</span></Label>
                     <Select value={emailCol} onValueChange={setEmailCol}>
                       <SelectTrigger className="h-9"><SelectValue placeholder="Chọn cột" /></SelectTrigger>
                       <SelectContent>

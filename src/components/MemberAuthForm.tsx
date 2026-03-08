@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { lovable } from '@/integrations/lovable/index';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Hash, Lock, Users, User, UserPlus, LogIn, FileText, Shield } from 'lucide-react';
+import { Loader2, Hash, Lock, Users, Mail, User, UserPlus, LogIn, FileText, Shield } from 'lucide-react';
 import { UEHLogo } from '@/components/UEHLogo';
 import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { z } from 'zod';
@@ -29,7 +28,12 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   studentId: z.string().min(1, 'Vui lòng nhập MSSV').max(20, 'MSSV tối đa 20 ký tự'),
   fullName: z.string().min(1, 'Vui lòng nhập họ tên').max(100, 'Họ tên tối đa 100 ký tự'),
+  email: z.string().email('Email không hợp lệ').max(255, 'Email tối đa 255 ký tự'),
   password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
+  confirmPassword: z.string().min(6, 'Xác nhận mật khẩu tối thiểu 6 ký tự'),
+}).refine(data => data.password === data.confirmPassword, {
+  message: 'Mật khẩu xác nhận không khớp',
+  path: ['confirmPassword'],
 });
 
 function PolicyCheckbox({
@@ -140,7 +144,9 @@ export function MemberAuthForm() {
   // Register fields
   const [regStudentId, setRegStudentId] = useState('');
   const [regFullName, setRegFullName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [regPolicyAgreed, setRegPolicyAgreed] = useState(false);
 
   // Policy
@@ -299,7 +305,9 @@ export function MemberAuthForm() {
     const result = registerSchema.safeParse({
       studentId: regStudentId,
       fullName: regFullName,
+      email: regEmail,
       password: regPassword,
+      confirmPassword: regConfirmPassword,
     });
 
     if (!result.success) {
@@ -323,12 +331,16 @@ export function MemberAuthForm() {
         return;
       }
 
-      const placeholderEmail = `${regStudentId.trim().toLowerCase()}@teamworks.local`;
-      const { error } = await signUp(placeholderEmail, regPassword, regStudentId.trim(), regFullName.trim());
+      const { error } = await signUp(regEmail.trim(), regPassword, regStudentId.trim(), regFullName.trim());
 
       if (error) {
         setIsLoading(false);
-        toast({ title: 'Đăng ký thất bại', description: error.message, variant: 'destructive' });
+        const msg = error.message?.toLowerCase() || '';
+        if (msg.includes('already registered') || msg.includes('already exists')) {
+          toast({ title: 'Email đã tồn tại', description: 'Email này đã được sử dụng. Vui lòng dùng email khác.', variant: 'destructive' });
+        } else {
+          toast({ title: 'Đăng ký thất bại', description: error.message, variant: 'destructive' });
+        }
       } else {
         await supabase.auth.signOut({ scope: 'local' });
         setIsLoading(false);
@@ -367,7 +379,9 @@ export function MemberAuthForm() {
                 setActiveTab('login');
                 setRegStudentId('');
                 setRegFullName('');
+                setRegEmail('');
                 setRegPassword('');
+                setRegConfirmPassword('');
               }}
             >
               Quay lại đăng nhập
@@ -447,46 +461,6 @@ export function MemberAuthForm() {
                 {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                 Đăng nhập
               </Button>
-
-              <div className="relative my-3">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">hoặc</span>
-                </div>
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full gap-2"
-                disabled={isLoading}
-                onClick={async () => {
-                  setIsLoading(true);
-                  try {
-                    const { error } = await lovable.auth.signInWithOAuth("google", {
-                      redirect_uri: window.location.origin,
-                    });
-                    if (error) {
-                      toast({ title: 'Lỗi', description: (error as Error).message, variant: 'destructive' });
-                      setIsLoading(false);
-                    }
-                  } catch (err: any) {
-                    toast({ title: 'Lỗi', description: err.message, variant: 'destructive' });
-                    setIsLoading(false);
-                  }
-                }}
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                </svg>
-                Đăng nhập bằng Google
-              </Button>
-
               <p className="text-sm text-center text-muted-foreground">
                 Chưa có tài khoản?{' '}
                 <button
@@ -533,6 +507,22 @@ export function MemberAuthForm() {
                 {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
               </div>
               <div className="space-y-2">
+                <Label htmlFor="reg-email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="reg-email"
+                    type="email"
+                    placeholder="email@example.com"
+                    className="pl-10"
+                    value={regEmail}
+                    onChange={(e) => setRegEmail(e.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="reg-password">Mật khẩu</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -547,6 +537,22 @@ export function MemberAuthForm() {
                   />
                 </div>
                 {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-confirm-password">Xác nhận mật khẩu</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="reg-confirm-password"
+                    type="password"
+                    placeholder="Nhập lại mật khẩu"
+                    className="pl-10"
+                    value={regConfirmPassword}
+                    onChange={(e) => setRegConfirmPassword(e.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
               </div>
 
               {/* Policy checkbox - unchecked by default for register */}
@@ -563,7 +569,7 @@ export function MemberAuthForm() {
                 Tạo tài khoản
               </Button>
               <p className="text-xs text-muted-foreground text-center">
-                Sau khi tạo, tài khoản cần được Admin duyệt. Khi đăng nhập lần đầu, bạn cần liên kết tài khoản Google.
+                Sau khi tạo, tài khoản cần được Admin duyệt trước khi sử dụng.
               </p>
               <p className="text-sm text-center text-muted-foreground">
                 Đã có tài khoản?{' '}
