@@ -282,6 +282,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
         ? folders.find(f => f.id === batchMoveTarget)?.name || 'thư mục'
         : 'ngoài thư mục';
       toast({ title: 'Thành công', description: `Đã di chuyển ${selectedIds.size} tài nguyên vào ${targetName}` });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'BATCH_MOVE_RESOURCES', actionType: 'resource',
+          description: `Di chuyển hàng loạt ${selectedIds.size} tài nguyên vào ${targetName}`,
+          groupId,
+        });
+      }
       clearSelection();
       setBatchMoveDialogOpen(false);
       fetchResources();
