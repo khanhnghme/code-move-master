@@ -193,7 +193,7 @@ export default function MemberManagementCard({
     }
     setIsAddingMember(true);
 
-    const finalRole = isLeaderInGroup ? selectedRole : 'member';
+    const finalRole = isGroupCreator ? selectedRole : 'member';
 
     try {
       const memberInserts = Array.from(selectedUserIds).map(uid => ({
@@ -817,7 +817,7 @@ export default function MemberManagementCard({
                 </ScrollArea>
 
                 {/* Role Selection */}
-                {isLeaderInGroup ? (
+                {isGroupCreator ? (
                   <div className="space-y-2 mb-4">
                     <Label className="text-sm font-medium">Vai trò trong Project</Label>
                     <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as 'member' | 'leader')}>

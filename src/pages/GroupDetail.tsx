@@ -167,6 +167,9 @@ export default function GroupDetail() {
       
       setGroup(groupData as ExtendedGroup);
       const resolvedGroupId = groupData.id;
+      
+      // Check if current user is the group creator (Trưởng nhóm) - set early, outside membersData check
+      setIsGroupCreator(groupData.created_by === user?.id || isAdmin);
 
       const { data: stagesData } = await supabase.from('stages').select('*').eq('group_id', resolvedGroupId).order('order_index');
       if (stagesData) setStages(stagesData);
@@ -179,8 +182,6 @@ export default function GroupDetail() {
         setMembers(membersData.map(m => ({ ...m, profiles: profilesMap.get(m.user_id) })) as GroupMember[]);
         const myMembership = membersData.find(m => m.user_id === user?.id);
         setIsLeaderInGroup(myMembership?.role === 'leader' || myMembership?.role === 'admin' || isAdmin);
-        // Check if current user is the group creator (Trưởng nhóm)
-        setIsGroupCreator(groupData?.created_by === user?.id || isAdmin);
       }
 
       const { data: tasksData } = await supabase.from('tasks').select('*').eq('group_id', resolvedGroupId).order('created_at', { ascending: false });
