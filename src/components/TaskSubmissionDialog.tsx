@@ -130,15 +130,16 @@ export default function TaskSubmissionDialog({
   const [taskScore, setTaskScore] = useState<TaskScore | null>(null);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
 
-  // Storage usage check
-  const storageUsage = useStorageUsage(user?.id, profile?.storage_limit_mb);
+  // Storage usage check - admin bypasses storage limit
+  const storageUsage = useStorageUsage(user?.id, isAdmin ? null : profile?.storage_limit_mb);
+  const isStorageBlocked = storageUsage.isOverLimit && !isAdmin;
 
   // Get max file size and submission method from task
   const taskWithSize = task as (Task & { max_file_size?: number }) | null;
   const maxFileSize = taskWithSize?.max_file_size || DEFAULT_MAX_FILE_SIZE;
   const submissionMethod: string = (task as any)?.submission_method || 'both';
-  const allowFileUpload = submissionMethod === 'both' || submissionMethod === 'file_only';
-  const allowLinkSubmission = submissionMethod === 'both' || submissionMethod === 'link_only';
+  const allowFileUpload = (submissionMethod === 'both' || submissionMethod === 'file_only') && !isStorageBlocked;
+  const allowLinkSubmission = submissionMethod === 'both' || submissionMethod === 'link_only' || isStorageBlocked;
 
   // Handle extended deadline
   const taskWithExtended = task as (Task & { extended_deadline?: string; extended_at?: string }) | null;
