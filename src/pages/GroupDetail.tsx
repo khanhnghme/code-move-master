@@ -674,7 +674,7 @@ export default function GroupDetail() {
             )}
 
             {isLeaderInGroup && (group.created_by === user?.id || isAdmin) && (
-              <TabsContent value="settings" className="mt-6 space-y-6">
+              <TabsContent value="settings" className="mt-6 space-y-4">
                 <ShareSettingsCard
                   groupId={group.id}
                   isPublic={group.is_public || false}
@@ -686,11 +686,24 @@ export default function GroupDetail() {
                   allowJoinByCode={(group as any).allow_join_by_code || false}
                   onUpdate={fetchGroupData}
                 />
-                <ProjectEvidenceExport groupId={group.id} project={group} />
-                <Card>
-                  <CardHeader><CardTitle className="text-destructive flex items-center gap-2"><Trash2 className="w-5 h-5" />Xóa project</CardTitle><CardDescription>Hành động này không thể hoàn tác.</CardDescription></CardHeader>
-                  <CardContent><Button variant="destructive" onClick={() => setIsDeleteGroupDialogOpen(true)}><Trash2 className="w-4 h-4 mr-2" />Xóa project này</Button></CardContent>
-                </Card>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <ProjectEvidenceExport groupId={group.id} project={group} />
+                  <Card className="border border-destructive/20">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base text-destructive flex items-center gap-2">
+                        <Trash2 className="w-4 h-4" />
+                        Vùng nguy hiểm
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 pt-0">
+                      <p className="text-sm text-muted-foreground">Xóa project và toàn bộ dữ liệu. Hành động này không thể hoàn tác.</p>
+                      <Button variant="destructive" size="sm" onClick={() => setIsDeleteGroupDialogOpen(true)}>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Xóa project này
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
             )}
           </div>
