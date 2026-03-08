@@ -240,8 +240,13 @@ export default function GroupInfoCard({ group, canEdit, onUpdate }: GroupInfoCar
             Thông tin học phần
           </CardTitle>
           {canEdit && (
-            <Button variant="ghost" size="sm" onClick={handleOpenEdit}>
-              <Pencil className="w-4 h-4 mr-1" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleOpenEdit}
+              className="gap-1.5 text-xs h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+            >
+              <Pencil className="w-3.5 h-3.5" />
               Chỉnh sửa
             </Button>
           )}
