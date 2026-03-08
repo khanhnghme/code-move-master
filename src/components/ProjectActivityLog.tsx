@@ -39,6 +39,7 @@ interface ProjectActivityLogProps {
   groupName?: string;
   isLeader?: boolean;
   isAdmin?: boolean;
+  isGroupCreator?: boolean;
 }
 
 const DEFAULT_FILTERS: ActivityFilters = {
@@ -50,9 +51,10 @@ const DEFAULT_FILTERS: ActivityFilters = {
   dateTo: undefined,
 };
 
-export default function ProjectActivityLog({ groupId, groupName = 'Project', isLeader = false, isAdmin = false }: ProjectActivityLogProps) {
+export default function ProjectActivityLog({ groupId, groupName = 'Project', isLeader = false, isAdmin = false, isGroupCreator = false }: ProjectActivityLogProps) {
   const { user, profile } = useAuth();
   const canManage = isLeader || isAdmin;
+  const canManageLogs = isGroupCreator || isAdmin; // Only creator/admin can toggle logging & delete logs
 
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -319,8 +321,8 @@ export default function ProjectActivityLog({ groupId, groupName = 'Project', isL
             </CardTitle>
             
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Logging toggle - only for canManage */}
-              {canManage && (
+              {/* Logging toggle - only for group creator/admin */}
+              {canManageLogs && (
                 <div className="flex items-center gap-2 border rounded-md px-3 py-1.5">
                   <Label htmlFor="logging-toggle" className="text-xs text-muted-foreground cursor-pointer">
                     Ghi nhật ký
@@ -334,16 +336,16 @@ export default function ProjectActivityLog({ groupId, groupName = 'Project', isL
                 </div>
               )}
 
-              {/* Select mode toggle */}
-              {canManage && !isSelectMode && logs.length > 0 && (
+              {/* Select mode toggle - only for group creator/admin */}
+              {canManageLogs && !isSelectMode && logs.length > 0 && (
                 <Button variant="outline" size="sm" onClick={() => setIsSelectMode(true)} className="gap-1.5">
                   <CheckSquare className="w-4 h-4" />
                   <span className="hidden sm:inline">Chọn</span>
                 </Button>
               )}
 
-              {/* Delete all */}
-              {canManage && logs.length > 0 && !isSelectMode && (
+              {/* Delete all - only for group creator/admin */}
+              {canManageLogs && logs.length > 0 && !isSelectMode && (
                 <Button variant="outline" size="sm" onClick={() => setConfirmDeleteAll(true)} className="gap-1.5 text-destructive hover:text-destructive">
                   <Trash2 className="w-4 h-4" />
                   <span className="hidden sm:inline">Xóa tất cả</span>
