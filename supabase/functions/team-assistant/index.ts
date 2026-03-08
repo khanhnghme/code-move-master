@@ -262,6 +262,9 @@ ${upcomingMeetings.length > 0
 Tên: ${context.currentUser.name}
 Vai trò: ${context.currentUser.role === 'leader' ? 'Trưởng nhóm' : 'Thành viên'}
 Công việc được giao: ${context.currentUser.assignedTasks.length > 0 ? context.currentUser.assignedTasks.join(', ') : 'Chưa có'}
+
+--- ĐIỂM QUÁ TRÌNH CỦA BẠN (CHỈ RIÊNG BẠN) ---
+${buildUserScoresSection(context.currentUser)}
 `;
 }
 
