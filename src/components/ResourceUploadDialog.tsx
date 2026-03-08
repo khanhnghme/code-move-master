@@ -32,9 +32,7 @@ import {
   Info,
   CheckCircle2,
   AlertCircle,
-  HardDrive,
 } from 'lucide-react';
-import GoogleDriveUploadButton, { type DriveFileResult } from '@/components/GoogleDriveUploadButton';
 
 const CATEGORIES = [
   { value: 'general', label: 'Tài liệu chung', color: 'bg-blue-500/10 text-blue-600 border-blue-200' },
@@ -469,7 +467,7 @@ export default function ResourceUploadDialog({
 
         <div className="flex-1 overflow-hidden flex flex-col px-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-4 shrink-0 my-3">
+            <TabsList className="grid w-full grid-cols-3 shrink-0 my-3">
               <TabsTrigger value="file" className="gap-2">
                 <Upload className="w-4 h-4" />
                 Tải file
@@ -490,10 +488,6 @@ export default function ResourceUploadDialog({
                 {pendingFiles.filter(f => f.source === 'folder').length > 0 && (
                   <Badge variant="secondary" className="ml-1 text-[10px] px-1.5">{pendingFiles.filter(f => f.source === 'folder').length}</Badge>
                 )}
-              </TabsTrigger>
-              <TabsTrigger value="drive" className="gap-2">
-                <HardDrive className="w-4 h-4" />
-                Google Drive
               </TabsTrigger>
             </TabsList>
 
@@ -770,47 +764,6 @@ export default function ResourceUploadDialog({
                     Chưa chọn thư mục nào.
                   </div>
                 )}
-              </TabsContent>
-
-              {/* === GOOGLE DRIVE TAB === */}
-              <TabsContent value="drive" className="flex-1 mt-0 flex flex-col overflow-hidden data-[state=inactive]:hidden">
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/5 border border-blue-200/50 mb-3 shrink-0">
-                  <Info className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <p className="font-medium text-foreground">Upload qua Google Drive</p>
-                    <p>• File được lưu trên <strong>Google Drive cá nhân</strong> của bạn (15GB miễn phí).</p>
-                    <p>• Hệ thống chỉ lưu link chia sẻ — <strong>không tốn dung lượng hệ thống</strong>.</p>
-                    <p>• Lần đầu cần đăng nhập Google và cấp quyền cho ứng dụng.</p>
-                  </div>
-                </div>
-
-                <div className="flex-1 flex flex-col items-center justify-center gap-4">
-                  <GoogleDriveUploadButton
-                    variant="outline"
-                    size="lg"
-                    className="gap-3 px-8 py-6 text-base"
-                    onFilesSelected={async (driveFiles) => {
-                      const { data: userData } = await supabase.auth.getUser();
-                      if (!userData.user) return;
-
-                      for (const df of driveFiles) {
-                        setPendingLinks(prev => [...prev, {
-                          id: genId(),
-                          name: df.name,
-                          url: df.url,
-                          category: globalCategory,
-                          status: 'pending',
-                        }]);
-                      }
-                      toast({ title: 'Google Drive', description: `Đã thêm ${driveFiles.length} file từ Drive` });
-                    }}
-                  >
-                    Chọn file từ Google Drive
-                  </GoogleDriveUploadButton>
-                  <p className="text-xs text-muted-foreground text-center max-w-md">
-                    Nhấn nút trên để mở Google Picker. Bạn có thể chọn file có sẵn hoặc tải file mới lên Drive.
-                  </p>
-                </div>
               </TabsContent>
             </div>
           </Tabs>

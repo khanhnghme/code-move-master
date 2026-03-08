@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Wrench, AlertTriangle, FileText, Clock, Edit, CheckCircle2, HelpCircle, Bug, HardDrive, Eye, EyeOff } from 'lucide-react';
+import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle, Bug } from 'lucide-react';
 import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -51,10 +51,6 @@ export default function AdminSystem() {
   // Error logging state
   const [errorLoggingEnabled, setErrorLoggingEnabled] = useState(true);
   const [savingErrorLogging, setSavingErrorLogging] = useState(false);
-
-  // Google Drive state
-  const [driveEnabled, setDriveEnabled] = useState(false);
-  const [savingDrive, setSavingDrive] = useState(false);
   useEffect(() => {
     if (!isLoading && !isAdmin) {
       navigate('/dashboard');
@@ -65,11 +61,10 @@ export default function AdminSystem() {
 
   const fetchSettings = async () => {
     try {
-      const [maintenanceRes, policyRes, errorLoggingRes, driveRes] = await Promise.all([
+      const [maintenanceRes, policyRes, errorLoggingRes] = await Promise.all([
         supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
-        supabase.from('system_settings').select('*').eq('key', 'google_drive_config').maybeSingle(),
       ]);
 
       if (maintenanceRes.data?.value) {
@@ -93,11 +88,6 @@ export default function AdminSystem() {
       if (errorLoggingRes.data?.value) {
         const val = errorLoggingRes.data.value as { enabled?: boolean };
         setErrorLoggingEnabled(val.enabled ?? true);
-      }
-
-      if (driveRes.data?.value) {
-        const val = driveRes.data.value as { enabled?: boolean };
-        setDriveEnabled(val.enabled ?? false);
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
@@ -179,30 +169,6 @@ export default function AdminSystem() {
       toast({ title: 'Lỗi', description: 'Không thể lưu chính sách', variant: 'destructive' });
     } finally {
       setSavingPolicy(false);
-    }
-  };
-
-  const handleToggleDrive = async (checked: boolean) => {
-    setSavingDrive(true);
-    try {
-      const { error } = await supabase
-        .from('system_settings')
-        .upsert({
-          key: 'google_drive_config',
-          value: {
-            enabled: checked,
-          } as any,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'key' });
-
-      if (error) throw error;
-
-      setDriveEnabled(checked);
-      toast({ title: checked ? 'Đã bật Google Drive' : 'Đã tắt Google Drive' });
-    } catch {
-      toast({ title: 'Lỗi', description: 'Không thể cập nhật cài đặt Google Drive', variant: 'destructive' });
-    } finally {
-      setSavingDrive(false);
     }
   };
 
@@ -409,39 +375,6 @@ export default function AdminSystem() {
                   {errorLoggingEnabled
                     ? 'Tự động ghi lại các lỗi runtime, promise rejection và console error.'
                     : 'Không ghi lỗi — lỗi chỉ hiện trong console trình duyệt.'}
-                </p>
-              </CardContent>
-            </Card>
-            {/* Google Drive */}
-            <Card className="border border-border">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <HardDrive className="w-4 h-4 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        Google Drive
-                        <Badge variant={driveEnabled ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
-                          {driveEnabled ? 'BẬT' : 'TẮT'}
-                        </Badge>
-                      </CardTitle>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={driveEnabled}
-                    disabled={savingDrive}
-                    onCheckedChange={handleToggleDrive}
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0 space-y-2">
-                <p className="text-xs text-muted-foreground">
-                  Cho phép thành viên upload file lên Google Drive cá nhân thay vì dùng dung lượng hệ thống.
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  API Key và OAuth Client ID được quản lý nội bộ qua hệ thống bảo mật.
                 </p>
               </CardContent>
             </Card>
