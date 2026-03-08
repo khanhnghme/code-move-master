@@ -72,6 +72,7 @@ import { notifyTaskSubmitted, notifyTaskVerified } from '@/lib/notifications';
 import TaskComments from './communication/TaskComments';
 import CompactTaskNotes from './CompactTaskNotes';
 import UserAvatar from './UserAvatar';
+import { useStorageUsage } from '@/hooks/useStorageUsage';
 import { CountdownTimer } from './CountdownTimer';
 import ResourceLinkRenderer from './ResourceLinkRenderer';
 
