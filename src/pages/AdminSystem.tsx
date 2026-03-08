@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle } from 'lucide-react';
+import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle, Bug } from 'lucide-react';
 import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -48,6 +48,9 @@ export default function AdminSystem() {
   const [policyDialogOpen, setPolicyDialogOpen] = useState(false);
   const [editPolicyContent, setEditPolicyContent] = useState('');
 
+  // Error logging state
+  const [errorLoggingEnabled, setErrorLoggingEnabled] = useState(true);
+  const [savingErrorLogging, setSavingErrorLogging] = useState(false);
   useEffect(() => {
     if (!isLoading && !isAdmin) {
       navigate('/dashboard');
@@ -58,9 +61,10 @@ export default function AdminSystem() {
 
   const fetchSettings = async () => {
     try {
-      const [maintenanceRes, policyRes] = await Promise.all([
+      const [maintenanceRes, policyRes, errorLoggingRes] = await Promise.all([
         supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
+        supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
       ]);
 
       if (maintenanceRes.data?.value) {
@@ -79,6 +83,11 @@ export default function AdminSystem() {
         const val = policyRes.data.value as { content?: string; updated_at?: string };
         setPolicyContent(val.content ?? '');
         setPolicyUpdatedAt(val.updated_at ?? null);
+      }
+
+      if (errorLoggingRes.data?.value) {
+        const val = errorLoggingRes.data.value as { enabled?: boolean };
+        setErrorLoggingEnabled(val.enabled ?? true);
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
@@ -326,6 +335,64 @@ export default function AdminSystem() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Error Logging Toggle */}
+        <Card className="border-2 border-dashed border-destructive/30">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <Bug className="w-5 h-5 text-destructive" />
+              </div>
+              <div className="flex-1">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  Ghi lỗi hệ thống
+                  <Badge variant={errorLoggingEnabled ? 'default' : 'secondary'} className="text-xs">
+                    {errorLoggingEnabled ? 'ĐANG BẬT' : 'ĐÃ TẮT'}
+                  </Badge>
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Tự động ghi lại các lỗi runtime, promise rejection và console error vào cơ sở dữ liệu.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              <div className="flex items-center gap-2">
+                <Bug className={`w-4 h-4 ${errorLoggingEnabled ? 'text-destructive' : 'text-muted-foreground'}`} />
+                <div>
+                  <p className="font-medium text-sm">Trạng thái ghi lỗi</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {errorLoggingEnabled ? 'Đang ghi lại tất cả lỗi' : 'Không ghi lỗi — lỗi sẽ chỉ hiện trong console'}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={errorLoggingEnabled}
+                disabled={savingErrorLogging}
+                onCheckedChange={async (checked) => {
+                  setSavingErrorLogging(true);
+                  try {
+                    const { error } = await supabase
+                      .from('system_settings')
+                      .update({ value: { enabled: checked }, updated_at: new Date().toISOString() })
+                      .eq('key', 'error_logging');
+                    if (error) throw error;
+                    setErrorLoggingEnabled(checked);
+                    toast({
+                      title: checked ? 'Đã bật ghi lỗi' : 'Đã tắt ghi lỗi',
+                      description: checked ? 'Hệ thống sẽ tự động ghi lại các lỗi.' : 'Hệ thống sẽ không ghi lỗi vào cơ sở dữ liệu.',
+                    });
+                  } catch {
+                    toast({ title: 'Lỗi', description: 'Không thể cập nhật cài đặt', variant: 'destructive' });
+                  } finally {
+                    setSavingErrorLogging(false);
+                  }
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Maintenance Confirm Dialog */}
