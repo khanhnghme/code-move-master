@@ -19,6 +19,7 @@ interface ShareSettingsCardProps {
   showResourcesPublic?: boolean;
   joinCode?: string | null;
   allowJoinByCode?: boolean;
+  joinMemberLimit?: number | null;
   onUpdate: () => void;
 }
 
