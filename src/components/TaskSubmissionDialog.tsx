@@ -885,8 +885,24 @@ export default function TaskSubmissionDialog({
                 {/* Scrollable Content Area */}
                 <ScrollArea className="flex-1">
                   <div className="p-4 space-y-4">
-                    {/* Two Column Layout - File Upload & Links */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Submission Method Info Banner */}
+                    {submissionMethod !== 'both' && (
+                      <div className={`flex items-center gap-2 text-xs rounded-lg px-3 py-2 ${
+                        submissionMethod === 'file_only' 
+                          ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
+                          : 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                      }`}>
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                        <span className="font-medium">
+                          {submissionMethod === 'file_only' 
+                            ? 'Task này chỉ cho phép nộp bằng cách tải file lên' 
+                            : 'Task này chỉ cho phép nộp bằng cách dán liên kết'}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Layout - File Upload & Links */}
+                    <div className={`grid gap-4 ${allowFileUpload && allowLinkSubmission ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
                       {/* Method 1: File Upload */}
                       <div className={`rounded-xl border-2 overflow-hidden flex flex-col ${
                         storageUsage.isOverLimit 
