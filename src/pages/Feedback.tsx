@@ -602,7 +602,11 @@ export default function FeedbackPage() {
                               {comments[feedback.id]?.length > 0 && (
                                 <ScrollArea className="max-h-[300px]">
                                   <div className="space-y-3 pr-4">
-                                    {comments[feedback.id].map(comment => (
+                                    {comments[feedback.id].map(comment => {
+                                      const repliedComment = comment.reply_to_id
+                                        ? comments[feedback.id]?.find(c => c.id === comment.reply_to_id)
+                                        : null;
+                                      return (
                                       <div
                                         key={comment.id}
                                         className={`flex gap-3 p-3 rounded-lg bg-muted/50 ${
@@ -629,9 +633,30 @@ export default function FeedbackPage() {
                                               </Badge>
                                             )}
                                           </div>
+                                          {/* Reply quote */}
+                                          {repliedComment && (
+                                            <div className="mt-1 mb-1 pl-3 border-l-2 border-primary/40 bg-primary/5 rounded-r-md py-1.5 px-2">
+                                              <span className="text-xs font-medium text-primary">
+                                                ↩ {repliedComment.user_name}
+                                              </span>
+                                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                                {repliedComment.content}
+                                              </p>
+                                            </div>
+                                          )}
                                           <p className="text-sm mt-1 whitespace-pre-wrap">
                                             {comment.content}
                                           </p>
+                                          {/* Reply button */}
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 px-2 text-xs text-muted-foreground hover:text-primary mt-1 -ml-2"
+                                            onClick={() => setReplyTo(comment)}
+                                          >
+                                            <Reply className="w-3 h-3 mr-1" />
+                                            Trả lời
+                                          </Button>
                                         </div>
                                         {(comment.user_id === user?.id || isAdmin) && (
                                           <Button
@@ -644,7 +669,8 @@ export default function FeedbackPage() {
                                           </Button>
                                         )}
                                       </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 </ScrollArea>
                               )}
