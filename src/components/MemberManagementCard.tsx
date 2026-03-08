@@ -1065,16 +1065,28 @@ export default function MemberManagementCard({
               />
             </div>
 
-            {/* Role info - fixed for Phó nhóm */}
+            {/* Role info */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Vai trò trong Project</Label>
-              <div className="h-11 flex items-center px-3 bg-muted/50 rounded-md border border-border">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <UserCheck className="w-4 h-4" />
-                  Thành viên
+              {canManageProjectRoles ? (
+                <Select value={newMemberRole} onValueChange={(v) => setNewMemberRole(v as 'member' | 'leader')}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="member">Thành viên</SelectItem>
+                    <SelectItem value="leader">Phó nhóm</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="h-11 flex items-center px-3 bg-muted/50 rounded-md border border-border">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <UserCheck className="w-4 h-4" />
+                    Thành viên
+                  </div>
                 </div>
-              </div>
-              {!isGroupCreator && (
+              )}
+              {!canManageProjectRoles && (
                 <p className="text-xs text-muted-foreground italic">
                   Vai trò mặc định: Member (Phó nhóm không có quyền thay đổi)
                 </p>
