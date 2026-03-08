@@ -747,12 +747,33 @@ export default function TaskListView({
 }: TaskListViewProps) {
   const { toast } = useToast();
   const { user, profile } = useAuth();
+  const [, setSearchParams] = useSearchParams();
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set(stages.map(s => s.id)));
   const [filterStage, setFilterStage] = useState<string>('all');
   const [showHidden, setShowHidden] = useState(false);
   const [taskFilters, setTaskFilters] = useState<TaskFiltersType>(defaultTaskFilters);
+  const [meetingsByTaskId, setMeetingsByTaskId] = useState<Record<string, any>>({});
+  
+  // Fetch meetings for this group to show on meeting tasks
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      const { data } = await (supabase.from('meetings') as any)
+        .select('id, task_id, status, jitsi_room_name')
+        .eq('group_id', groupId);
+      if (data) {
+        const map: Record<string, any> = {};
+        data.forEach((m: any) => { if (m.task_id) map[m.task_id] = m; });
+        setMeetingsByTaskId(map);
+      }
+    };
+    fetchMeetings();
+  }, [groupId, tasks]);
+
+  const handleJoinMeeting = useCallback((meetingId: string) => {
+    setSearchParams({ tab: 'meetings', meeting: meetingId });
+  }, [setSearchParams]);
   
   // Multi-select state
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
