@@ -1,0 +1,1 @@
+ALTER TABLE public.project_messages ADD COLUMN reply_to uuid REFERENCES public.project_messages(id) ON DELETE SET NULL;

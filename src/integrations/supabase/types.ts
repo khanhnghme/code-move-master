@@ -864,6 +864,7 @@ export type Database = {
           created_at: string
           group_id: string
           id: string
+          reply_to: string | null
           source_task_id: string | null
           source_type: string
           updated_at: string
@@ -874,6 +875,7 @@ export type Database = {
           created_at?: string
           group_id: string
           id?: string
+          reply_to?: string | null
           source_task_id?: string | null
           source_type?: string
           updated_at?: string
@@ -884,6 +886,7 @@ export type Database = {
           created_at?: string
           group_id?: string
           id?: string
+          reply_to?: string | null
           source_task_id?: string | null
           source_type?: string
           updated_at?: string
@@ -895,6 +898,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "project_messages"
             referencedColumns: ["id"]
           },
           {
