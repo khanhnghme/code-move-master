@@ -69,14 +69,18 @@
 | 11 | **Tài liệu nhóm** | Upload, tổ chức thư mục | `ProjectResources.tsx` |
 | 12 | **Thông báo** | Realtime, mention @user | `NotificationBell.tsx` |
 | 13 | **Trò chuyện** | Chat nhóm, liên kết task | `Communication.tsx`, `TaskComments.tsx` |
-| 14 | **AI Assistant** | Trợ lý AI tra cứu thông tin | `AIAssistantButton.tsx`, `AIAssistantPanel.tsx` |
+| 14 | **AI Assistant** | Trợ lý AI tra cứu thông tin (tasks, meetings, scores) | `AIAssistantButton.tsx`, `AIAssistantPanel.tsx` |
 | 15 | **Xuất báo cáo** | PDF/Excel: nhật ký, bảng điểm | `ProjectEvidenceExport.tsx` |
 | 16 | **Chia sẻ công khai** | Public link, tùy chọn hiển thị | `ShareSettingsCard.tsx`, `PublicProjectView.tsx` |
-| 17 | **Quản lý Admin** | Quản lý user, backup/restore | `AdminUsers.tsx`, `AdminBackup.tsx` |
+| 17 | **Quản lý Admin** | Quản lý user, backup/restore, hệ thống | `AdminUsers.tsx`, `AdminBackup.tsx`, `AdminSystem.tsx` |
 | 18 | **Tạm đình chỉ** | Suspend/unsuspend thành viên | `SuspendMemberDialog.tsx`, `SuspendedScreen.tsx` |
 | 19 | **Import Excel** | Nhập danh sách thành viên từ Excel | `ExcelMemberImport.tsx` |
 | 20 | **Error Logging** | Ghi nhận lỗi hệ thống tự động | `SystemErrorLogs.tsx`, `errorLogger.ts` |
 | 21 | **Xem trước file** | Preview file trực tiếp trong app | `FilePreview.tsx` |
+| 22 | **Họp nhóm** | Tạo/quản lý buổi họp, Jitsi video call, điểm danh, chat phòng họp | `GroupMeetings.tsx`, `CreateMeetingDialog.tsx`, `MeetingRoom.tsx` |
+| 23 | **Chế độ bảo trì** | Bật/tắt bảo trì theo lịch, hiển thị cho non-admin | `MaintenanceScreen.tsx`, `AdminSystem.tsx` |
+| 24 | **Chính sách hệ thống** | Soạn policy Markdown, bắt buộc đồng ý khi đăng nhập/đăng ký | `MemberAuthForm.tsx` |
+| 25 | **Chuyển nhượng dự án** | Chuyển quyền sở hữu project cho thành viên khác | `ProjectTransferDialog.tsx` |
 
 ### 1.3 Đối tượng sử dụng - Chi tiết quyền
 
