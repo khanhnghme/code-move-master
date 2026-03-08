@@ -423,7 +423,7 @@ export default function MemberManagementCard({
   // Bulk delete members
   const handleBulkDeleteMembers = async () => {
     if (selectedMemberIds.size === 0) return;
-    const selectedMembers = members.filter(m => selectedMemberIds.has(m.id));
+    const selectedMembers = members.filter(m => selectedMemberIds.has(m.id) && canDeleteMember(m));
     const count = selectedMembers.length;
     clearMemberSelection();
     setBulkMemberAction(null);
