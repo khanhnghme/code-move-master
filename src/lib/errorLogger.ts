@@ -16,12 +16,43 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let isProcessing = false;
 let isInitialized = false;
 
+// Cached setting — checked periodically
+let errorLoggingEnabled = true;
+let lastSettingCheck = 0;
+const SETTING_CHECK_INTERVAL = 30000; // 30s
+
+async function checkErrorLoggingSetting(): Promise<boolean> {
+  const now = Date.now();
+  if (now - lastSettingCheck < SETTING_CHECK_INTERVAL) return errorLoggingEnabled;
+  lastSettingCheck = now;
+  try {
+    const { data } = await supabase
+      .from('system_settings')
+      .select('value')
+      .eq('key', 'error_logging')
+      .maybeSingle();
+    if (data?.value) {
+      const val = data.value as { enabled?: boolean };
+      errorLoggingEnabled = val.enabled ?? true;
+    }
+  } catch { /* ignore */ }
+  return errorLoggingEnabled;
+}
+
 function getErrorKey(entry: ErrorLogEntry): string {
   return `${entry.error_type}::${entry.error_message.slice(0, 200)}`;
 }
 
 async function flushErrors() {
   if (isProcessing || RECENT_ERRORS.size === 0) return;
+  
+  // Check if logging is enabled before flushing
+  const enabled = await checkErrorLoggingSetting();
+  if (!enabled) {
+    RECENT_ERRORS.clear();
+    return;
+  }
+
   isProcessing = true;
 
   const batch = Array.from(RECENT_ERRORS.entries());
@@ -29,7 +60,6 @@ async function flushErrors() {
 
   try {
     for (const [, { entry, count }] of batch) {
-      // Try to find existing log with same error_type + message
       const { data: existing } = await (supabase as any)
         .from('system_error_logs')
         .select('id, occurrence_count')
@@ -39,7 +69,6 @@ async function flushErrors() {
         .limit(1);
 
       if (existing && existing.length > 0) {
-        // Update existing: increment count + update timestamp
         await (supabase as any)
           .from('system_error_logs')
           .update({
@@ -51,7 +80,6 @@ async function flushErrors() {
           })
           .eq('id', existing[0].id);
       } else {
-        // Insert new entry
         await (supabase as any)
           .from('system_error_logs')
           .insert({
@@ -125,6 +153,9 @@ export function logError(entry: ErrorLogEntry) {
 export function initGlobalErrorHandler() {
   if (isInitialized) return;
   isInitialized = true;
+
+  // Pre-fetch the setting
+  checkErrorLoggingSetting();
 
   window.addEventListener('error', (event) => {
     logError({

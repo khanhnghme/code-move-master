@@ -335,6 +335,64 @@ export default function AdminSystem() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Error Logging Toggle */}
+        <Card className="border-2 border-dashed border-destructive/30">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <Bug className="w-5 h-5 text-destructive" />
+              </div>
+              <div className="flex-1">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  Ghi lỗi hệ thống
+                  <Badge variant={errorLoggingEnabled ? 'default' : 'secondary'} className="text-xs">
+                    {errorLoggingEnabled ? 'ĐANG BẬT' : 'ĐÃ TẮT'}
+                  </Badge>
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Tự động ghi lại các lỗi runtime, promise rejection và console error vào cơ sở dữ liệu.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              <div className="flex items-center gap-2">
+                <Bug className={`w-4 h-4 ${errorLoggingEnabled ? 'text-destructive' : 'text-muted-foreground'}`} />
+                <div>
+                  <p className="font-medium text-sm">Trạng thái ghi lỗi</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {errorLoggingEnabled ? 'Đang ghi lại tất cả lỗi' : 'Không ghi lỗi — lỗi sẽ chỉ hiện trong console'}
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={errorLoggingEnabled}
+                disabled={savingErrorLogging}
+                onCheckedChange={async (checked) => {
+                  setSavingErrorLogging(true);
+                  try {
+                    const { error } = await supabase
+                      .from('system_settings')
+                      .update({ value: { enabled: checked }, updated_at: new Date().toISOString() })
+                      .eq('key', 'error_logging');
+                    if (error) throw error;
+                    setErrorLoggingEnabled(checked);
+                    toast({
+                      title: checked ? 'Đã bật ghi lỗi' : 'Đã tắt ghi lỗi',
+                      description: checked ? 'Hệ thống sẽ tự động ghi lại các lỗi.' : 'Hệ thống sẽ không ghi lỗi vào cơ sở dữ liệu.',
+                    });
+                  } catch {
+                    toast({ title: 'Lỗi', description: 'Không thể cập nhật cài đặt', variant: 'destructive' });
+                  } finally {
+                    setSavingErrorLogging(false);
+                  }
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Maintenance Confirm Dialog */}
