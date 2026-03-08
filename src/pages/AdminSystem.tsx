@@ -67,10 +67,11 @@ export default function AdminSystem() {
 
   const fetchSettings = async () => {
     try {
-      const [maintenanceRes, policyRes, errorLoggingRes] = await Promise.all([
+      const [maintenanceRes, policyRes, errorLoggingRes, driveRes] = await Promise.all([
         supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
+        supabase.from('system_settings').select('*').eq('key', 'google_drive_config').maybeSingle(),
       ]);
 
       if (maintenanceRes.data?.value) {
