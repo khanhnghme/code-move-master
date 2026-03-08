@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { logActivity } from '@/lib/activityLogger';
-import { Loader2, KeyRound, Users, Calendar, ArrowLeft, CheckCircle2, ShieldAlert, UserCheck, XCircle } from 'lucide-react';
+import { Loader2, KeyRound, Users, Calendar, ArrowLeft, CheckCircle2, UserCheck, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
@@ -48,6 +48,17 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
     setAlreadyMember(false);
   };
 
+  const fetchJoinStats = async (groupId: string) => {
+    const { data } = await (supabase as any)
+      .rpc('get_group_member_count_for_join', { _group_id: groupId })
+      .maybeSingle();
+
+    return {
+      memberCount: Number(data?.member_count ?? 0),
+      joinMemberLimit: data?.join_member_limit ?? null,
+    };
+  };
+
   const handleLookup = async () => {
     if (!user) return;
     if (code.length !== 4 || !/^\d{4}$/.test(code)) {
@@ -69,8 +80,8 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
         return;
       }
 
-      const [memberRes, leaderRes, existingRes] = await Promise.all([
-        supabase.from('group_members').select('id', { count: 'exact', head: true }).eq('group_id', group.id),
+      const [stats, leaderRes, existingRes] = await Promise.all([
+        fetchJoinStats(group.id),
         supabase.from('profiles').select('full_name').eq('id', group.created_by).single(),
         supabase.from('group_members').select('id').eq('group_id', group.id).eq('user_id', user.id).maybeSingle(),
       ]);
@@ -78,9 +89,9 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
       setAlreadyMember(!!existingRes.data);
       setGroupPreview({
         ...group,
-        memberCount: memberRes.count || 0,
+        memberCount: stats.memberCount,
         leaderName: leaderRes.data?.full_name || null,
-        joinMemberLimit: (group as any).join_member_limit ?? null,
+        joinMemberLimit: stats.joinMemberLimit ?? (group as any).join_member_limit ?? null,
       });
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
@@ -100,6 +111,12 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
 
       if (joinError) {
         if (joinError.message?.includes('giới hạn')) {
+          const stats = await fetchJoinStats(groupPreview.id);
+          setGroupPreview((prev) => prev ? {
+            ...prev,
+            memberCount: stats.memberCount,
+            joinMemberLimit: stats.joinMemberLimit,
+          } : prev);
           toast({ title: 'Không thể tham gia', description: 'Project đã đạt giới hạn thành viên', variant: 'destructive' });
         } else {
           throw joinError;
@@ -287,11 +304,11 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
             )}
 
             {canJoin && (
-              <div className="flex items-center gap-2.5 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <div className="flex items-center gap-2.5 p-3 rounded-lg bg-accent/10 border border-accent/20">
+                <CheckCircle2 className="w-5 h-5 text-accent shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Sẵn sàng tham gia</p>
-                  <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80">
+                  <p className="text-sm font-semibold text-accent">Sẵn sàng tham gia</p>
+                  <p className="text-xs text-muted-foreground">
                     {groupPreview.joinMemberLimit != null
                       ? `Còn ${groupPreview.joinMemberLimit - groupPreview.memberCount} chỗ trống`
                       : 'Project không giới hạn số lượng thành viên'

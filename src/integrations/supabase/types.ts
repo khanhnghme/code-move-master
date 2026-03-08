@@ -1596,6 +1596,13 @@ export type Database = {
         Args: { _student_id: string }
         Returns: string
       }
+      get_group_member_count_for_join: {
+        Args: { _group_id: string }
+        Returns: {
+          join_member_limit: number
+          member_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
