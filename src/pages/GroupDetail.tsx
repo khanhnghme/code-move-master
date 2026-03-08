@@ -663,6 +663,7 @@ export default function GroupDetail() {
                 stages={stages}
                 members={members}
                 isLeader={isLeaderInGroup}
+                onRefreshTasks={fetchGroupData}
               />
             </TabsContent>
 

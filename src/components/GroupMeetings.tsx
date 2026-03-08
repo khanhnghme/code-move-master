@@ -27,9 +27,10 @@ interface GroupMeetingsProps {
   stages: Stage[];
   members: GroupMember[];
   isLeader: boolean;
+  onRefreshTasks?: () => void;
 }
 
-export default function GroupMeetings({ groupId, groupName, stages, members, isLeader }: GroupMeetingsProps) {
+export default function GroupMeetings({ groupId, groupName, stages, members, isLeader, onRefreshTasks }: GroupMeetingsProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -116,9 +117,11 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
         }
 
         fetchMeetings();
+        onRefreshTasks?.();
       },
       onUndo: () => {
         fetchMeetings();
+        onRefreshTasks?.();
       },
     });
   }, [user, groupId]);
@@ -164,9 +167,11 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
         }
 
         fetchMeetings();
+        onRefreshTasks?.();
       },
       onUndo: () => {
         fetchMeetings();
+        onRefreshTasks?.();
       },
     });
   }, [selectedIds, meetings, user, groupId]);
@@ -443,7 +448,7 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
         groupName={groupName}
         stages={stages}
         members={members}
-        onCreated={fetchMeetings}
+        onCreated={() => { fetchMeetings(); onRefreshTasks?.(); }}
       />
     </div>
   );
