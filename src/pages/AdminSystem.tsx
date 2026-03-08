@@ -74,12 +74,11 @@ export default function AdminSystem() {
 
   const fetchSettings = async () => {
     try {
-      const [maintenanceRes, policyRes, errorLoggingRes, videoRes, introImagesRes] = await Promise.all([
+      const [maintenanceRes, policyRes, errorLoggingRes, videoRes] = await Promise.all([
         supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'dashboard_video_bg').maybeSingle(),
-        supabase.from('system_settings').select('*').eq('key', 'intro_images').maybeSingle(),
       ]);
 
       if (maintenanceRes.data?.value) {
