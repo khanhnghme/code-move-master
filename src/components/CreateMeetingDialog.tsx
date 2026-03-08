@@ -207,7 +207,7 @@ export default function CreateMeetingDialog({
           <div className="p-3 rounded-lg bg-muted/50 border border-border/50 text-sm text-muted-foreground">
             <p>📋 Task <strong>"Họp: {title || '...'}"</strong> sẽ được tạo tự động</p>
             <p>👥 Tất cả {members.length} thành viên sẽ được gán vào task</p>
-            <p>🔗 Thành viên sẽ tham gia qua link phòng họp bên ngoài</p>
+            <p>🎥 {externalLink.trim() ? 'Thành viên sẽ tham gia qua link phòng họp bên ngoài' : 'Phòng họp video sẽ được nhúng trực tiếp trong app'}</p>
           </div>
         </div>
 
