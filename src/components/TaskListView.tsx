@@ -66,6 +66,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/activityLogger';
 import type { Task, Stage, GroupMember } from '@/types/database';
 import { formatDeadlineVN, isDeadlineOverdue, parseLocalDateTime } from '@/lib/datetime';
 import TaskSubmissionDialog from './TaskSubmissionDialog';

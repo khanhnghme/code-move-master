@@ -28,6 +28,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/activityLogger';
 import { MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react';
 import type { Stage } from '@/types/database';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';

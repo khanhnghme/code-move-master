@@ -35,6 +35,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/activityLogger';
 import type { Task, Stage, GroupMember, Profile } from '@/types/database';
 import { formatDateVN, isDeadlineOverdue } from '@/lib/datetime';
 

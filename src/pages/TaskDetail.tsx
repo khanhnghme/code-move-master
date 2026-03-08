@@ -11,6 +11,7 @@ import UserAvatar from '@/components/UserAvatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logActivity } from '@/lib/activityLogger';
 import { formatDeadlineVN } from '@/lib/datetime';
 import { ArrowLeft, Loader2, ExternalLink, Calendar, Clock, Save } from 'lucide-react';
 import type { Task, TaskAssignment, Profile, TaskStatus } from '@/types/database';

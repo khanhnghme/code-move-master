@@ -36,6 +36,7 @@ import type { Group, GroupMember, Task, Profile, Stage } from '@/types/database'
 import { DeadlineHourPicker } from '@/components/DeadlineHourPicker';
 import { notifyTaskAssigned } from '@/lib/notifications';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';
+import { logActivity } from '@/lib/activityLogger';
 
 interface ExtendedGroup extends Group {
   class_code: string | null;
