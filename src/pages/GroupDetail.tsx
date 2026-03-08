@@ -83,7 +83,7 @@ export default function GroupDetail() {
     'resources',
     'scores',
     'logs',
-    ...((isLeaderInGroup && group?.created_by === user?.id) || isAdmin ? ['settings'] : [])
+    ...(isLeaderInGroup && group?.created_by === user?.id ? ['settings'] : [])
   ];
   
   // Sync local tab state with navigation context
@@ -680,7 +680,7 @@ export default function GroupDetail() {
               />
             </TabsContent>
 
-            {((isLeaderInGroup && group.created_by === user?.id) || isAdmin) && (
+            {isLeaderInGroup && group.created_by === user?.id && (
               <TabsContent value="settings" className="mt-6 space-y-6">
                 <ShareSettingsCard
                   groupId={group.id}
