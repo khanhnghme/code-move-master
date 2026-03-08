@@ -38,10 +38,6 @@ export default function CreateMeetingDialog({
 
   const handleCreate = async () => {
     if (!title.trim() || !scheduledAt) return;
-    if (!externalLink.trim()) {
-      toast({ title: 'Thiếu link họp', description: 'Vui lòng nhập link phòng họp (Zoom, Google Meet, v.v.)', variant: 'destructive' });
-      return;
-    }
     setIsCreating(true);
 
     try {
@@ -151,14 +147,14 @@ export default function CreateMeetingDialog({
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Link2 className="w-4 h-4 text-primary" />
-              Link phòng họp <span className="text-destructive">*</span>
+              Link phòng họp (tuỳ chọn)
             </Label>
             <Input
               value={externalLink}
               onChange={e => setExternalLink(e.target.value)}
-              placeholder="VD: https://meet.google.com/abc-defg-hij hoặc Zoom link"
+              placeholder="Để trống để dùng phòng họp tích hợp (JaaS)"
             />
-            <p className="text-[11px] text-muted-foreground">Hỗ trợ Google Meet, Zoom, Microsoft Teams, hoặc bất kỳ link nào</p>
+            <p className="text-[11px] text-muted-foreground">Để trống → dùng phòng họp nhúng trực tiếp trong app. Hoặc nhập link Google Meet, Zoom...</p>
           </div>
 
           <div className="space-y-2">
@@ -211,13 +207,13 @@ export default function CreateMeetingDialog({
           <div className="p-3 rounded-lg bg-muted/50 border border-border/50 text-sm text-muted-foreground">
             <p>📋 Task <strong>"Họp: {title || '...'}"</strong> sẽ được tạo tự động</p>
             <p>👥 Tất cả {members.length} thành viên sẽ được gán vào task</p>
-            <p>🔗 Thành viên sẽ tham gia qua link phòng họp bên ngoài</p>
+            <p>🎥 {externalLink.trim() ? 'Thành viên sẽ tham gia qua link phòng họp bên ngoài' : 'Phòng họp video sẽ được nhúng trực tiếp trong app'}</p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
-          <Button onClick={handleCreate} disabled={isCreating || !title.trim() || !scheduledAt || !externalLink.trim()}>
+          <Button onClick={handleCreate} disabled={isCreating || !title.trim() || !scheduledAt}>
             {isCreating ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Đang tạo...</> : 'Tạo cuộc họp'}
           </Button>
         </DialogFooter>

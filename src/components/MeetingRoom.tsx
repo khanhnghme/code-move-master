@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import type { GroupMember } from '@/types/database';
 
+const JAAS_APP_ID = 'vpaas-magic-cookie-32897196ce344000a13727f619440fe0';
+
 interface MeetingRoomProps {
   meeting: any;
   members: GroupMember[];
@@ -254,57 +256,24 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
 
       {/* Main content area */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Main area - meeting info + join button */}
-        <div className="flex-1 min-w-0 flex items-center justify-center">
+        {/* Main area - embedded Jitsi or meeting info */}
+        <div className="flex-1 min-w-0 flex flex-col">
           {isActive ? (
-            <div className="text-center space-y-6 max-w-md px-6">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-                <Video className="w-10 h-10 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-1">{meeting.title}</h3>
-                {meeting.description && (
-                  <p className="text-sm text-muted-foreground mb-3">{meeting.description}</p>
-                )}
-                <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" />
-                    {new Date(meeting.scheduled_at).toLocaleString('vi-VN')}
-                  </span>
-                  <span>{meeting.duration_minutes} phút</span>
-                </div>
-              </div>
-
-              {meeting.external_link ? (
-                <Button size="lg" className="gap-2 text-base px-8" onClick={handleOpenMeetingLink}>
-                  <ExternalLink className="w-5 h-5" />
-                  Tham gia phòng họp
-                </Button>
-              ) : (
-                <p className="text-sm text-muted-foreground">Chưa có link phòng họp</p>
-              )}
-
-              {meeting.external_link && (
-                <p className="text-xs text-muted-foreground">
-                  Phòng họp sẽ mở trong tab mới • {getLinkPlatform(meeting.external_link)}
-                </p>
-              )}
-
-              <div className="flex items-center justify-center gap-2 text-sm">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                <span className={presentCount > 0 ? 'font-medium text-green-600' : 'text-muted-foreground'}>
-                  {presentCount}/{members.length} đã điểm danh
-                </span>
-              </div>
-            </div>
+            <JitsiEmbed
+              roomName={`${JAAS_APP_ID}/${meeting.jitsi_room_name}`}
+              displayName={profile?.full_name || user?.email || 'User'}
+              email={user?.email || ''}
+            />
           ) : (
-            <div className="text-center space-y-4">
-              <VideoOff className="w-16 h-16 mx-auto text-muted-foreground/40" />
-              <div>
-                <p className="font-semibold text-lg">Cuộc họp đã kết thúc</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {presentCount}/{members.length} thành viên đã tham gia
-                </p>
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <VideoOff className="w-16 h-16 mx-auto text-muted-foreground/40" />
+                <div>
+                  <p className="font-semibold text-lg">Cuộc họp đã kết thúc</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {presentCount}/{members.length} thành viên đã tham gia
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -396,17 +365,64 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
   );
 }
 
-function getLinkPlatform(url: string): string {
-  if (!url) return '';
-  try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    if (hostname.includes('meet.google') || hostname.includes('hangouts.google')) return 'Google Meet';
-    if (hostname.includes('zoom.us') || hostname.includes('zoom.com')) return 'Zoom';
-    if (hostname.includes('teams.microsoft') || hostname.includes('teams.live')) return 'Microsoft Teams';
-    if (hostname.includes('discord')) return 'Discord';
-    if (hostname.includes('jit.si') || hostname.includes('jitsi')) return 'Jitsi Meet';
-    return hostname;
-  } catch {
-    return '';
-  }
+function JitsiEmbed({ roomName, displayName, email }: { roomName: string; displayName: string; email: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const apiRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Load JaaS external API script
+    const scriptId = 'jaas-external-api';
+    let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+    
+    const initJitsi = () => {
+      if (apiRef.current) {
+        apiRef.current.dispose();
+      }
+      if (!containerRef.current) return;
+
+      apiRef.current = new (window as any).JitsiMeetExternalAPI('8x8.vc', {
+        roomName,
+        parentNode: containerRef.current,
+        userInfo: {
+          displayName,
+          email,
+        },
+        configOverrides: {
+          startWithAudioMuted: true,
+          startWithVideoMuted: false,
+          disableDeepLinking: true,
+          prejoinPageEnabled: true,
+        },
+        interfaceConfigOverrides: {
+          SHOW_JITSI_WATERMARK: false,
+          SHOW_WATERMARK_FOR_GUESTS: false,
+          MOBILE_APP_PROMO: false,
+        },
+      });
+    };
+
+    if (!script) {
+      script = document.createElement('script');
+      script.id = scriptId;
+      script.src = `https://8x8.vc/${JAAS_APP_ID}/external_api.js`;
+      script.async = true;
+      script.onload = initJitsi;
+      document.head.appendChild(script);
+    } else if ((window as any).JitsiMeetExternalAPI) {
+      initJitsi();
+    } else {
+      script.addEventListener('load', initJitsi);
+    }
+
+    return () => {
+      if (apiRef.current) {
+        apiRef.current.dispose();
+        apiRef.current = null;
+      }
+    };
+  }, [roomName, displayName, email]);
+
+  return <div ref={containerRef} className="w-full h-full" />;
 }
