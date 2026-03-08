@@ -1170,14 +1170,18 @@ export default function MemberManagementCard({
           if (action === 'add') {
             for (const row of rows) {
               try {
-                // Find existing profile by email
-                const existingProfile = availableProfiles.find(p => p.email.toLowerCase() === row.email.toLowerCase());
+                // Find existing profile by studentId or email
+                const existingProfile = availableProfiles.find(p => 
+                  (row.studentId && p.student_id === row.studentId) ||
+                  (row.email && p.email.toLowerCase() === row.email.toLowerCase())
+                );
                 let userId = existingProfile?.id;
 
                 if (!userId) {
-                  // Create new system account
+                  // Create new system account with placeholder email
+                  const emailForCreate = row.email || `${row.studentId.toLowerCase()}@teamworks.local`;
                   const { data, error } = await supabase.functions.invoke('manage-users', {
-                    body: { action: 'create_member', email: row.email, student_id: row.studentId, full_name: row.fullName },
+                    body: { action: 'create_member', email: emailForCreate, student_id: row.studentId, full_name: row.fullName },
                   });
                   if (error || data?.error) throw new Error(data?.error || error?.message);
                   userId = data?.user?.id;
