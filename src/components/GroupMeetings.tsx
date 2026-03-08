@@ -448,7 +448,7 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
         groupName={groupName}
         stages={stages}
         members={members}
-        onCreated={fetchMeetings}
+        onCreated={() => { fetchMeetings(); onRefreshTasks?.(); }}
       />
     </div>
   );
