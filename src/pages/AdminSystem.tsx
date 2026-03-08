@@ -96,10 +96,8 @@ export default function AdminSystem() {
       }
 
       if (driveRes.data?.value) {
-        const val = driveRes.data.value as { enabled?: boolean; api_key?: string; client_id?: string };
+        const val = driveRes.data.value as { enabled?: boolean };
         setDriveEnabled(val.enabled ?? false);
-        setDriveApiKey(val.api_key ?? '');
-        setDriveClientId(val.client_id ?? '');
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
