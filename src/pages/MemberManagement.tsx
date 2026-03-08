@@ -84,7 +84,7 @@ export default function MemberManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isBulkProcessing, setIsBulkProcessing] = useState(false);
-  const [bulkAction, setBulkAction] = useState<'delete' | 'suspend' | 'unsuspend' | null>(null);
+  const [bulkAction, setBulkAction] = useState<'delete' | 'suspend' | 'unsuspend' | 'promote' | null>(null);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [isExcelImportOpen, setIsExcelImportOpen] = useState(false);
   
@@ -465,6 +465,30 @@ export default function MemberManagement() {
     }
     setIsBulkProcessing(false); clearSelection(); setBulkAction(null); fetchMembers();
   };
+  const handleBulkPromote = async () => {
+    setIsBulkProcessing(true);
+    const ids = Array.from(selectedIds);
+    const promoted: string[] = [];
+    for (const id of ids) {
+      const member = members.find(m => m.id === id);
+      if (!member) continue;
+      const roles = memberRoles[id] || [];
+      if (roles.includes('leader') || roles.includes('admin')) continue; // already promoted
+      const { error } = await supabase.from('user_roles').insert({ user_id: id, role: 'leader' });
+      if (!error) promoted.push(member.full_name);
+    }
+    if (promoted.length > 0) {
+      await supabase.from('activity_logs').insert({
+        user_id: user!.id, user_name: currentProfile?.full_name || user?.email || 'Unknown',
+        action: 'BULK_PROMOTE_MEMBERS', action_type: 'member',
+        description: `Nâng cấp hàng loạt ${promoted.length} tài khoản lên Thành viên Nâng cao: ${promoted.join(', ')}`,
+      });
+      toast({ title: 'Đã nâng cấp hàng loạt', description: `${promoted.length} tài khoản đã được nâng lên Thành viên Nâng cao.` });
+    } else {
+      toast({ title: 'Không có thay đổi', description: 'Các tài khoản đã chọn đều đã là Thành viên Nâng cao hoặc Admin.', variant: 'destructive' });
+    }
+    setIsBulkProcessing(false); clearSelection(); setBulkAction(null); fetchMembers();
+  };
 
   if (authLoading || isLoading) {
     return (
@@ -624,6 +648,11 @@ export default function MemberManagement() {
           {activeSubTab !== 'suspended' && (
             <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs sm:text-sm" onClick={() => setBulkAction('unsuspend')} disabled={selectedIds.size === 0}>
               <Unlock className="w-3.5 h-3.5" /><span className="hidden sm:inline">Mở khóa</span>
+            </Button>
+          )}
+          {activeSubTab !== 'suspended' && (
+            <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs sm:text-sm" onClick={() => setBulkAction('promote')} disabled={selectedIds.size === 0}>
+              <Shield className="w-3.5 h-3.5" /><span className="hidden sm:inline">Nâng cấp</span>
             </Button>
           )}
           <Button size="sm" variant="destructive" className="gap-1.5 h-8 text-xs sm:text-sm" onClick={() => setBulkAction('delete')} disabled={selectedIds.size === 0}>
@@ -968,11 +997,13 @@ export default function MemberManagement() {
               {bulkAction === 'delete' && 'Xác nhận xóa hàng loạt'}
               {bulkAction === 'suspend' && 'Xác nhận khóa hàng loạt'}
               {bulkAction === 'unsuspend' && 'Xác nhận mở khóa hàng loạt'}
+              {bulkAction === 'promote' && 'Xác nhận nâng cấp hàng loạt'}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {bulkAction === 'delete' && (<>Bạn sắp xóa <span className="font-semibold">{selectedIds.size}</span> tài khoản khỏi hệ thống.<br /><br /><span className="text-destructive font-medium">Thao tác này không thể hoàn tác!</span></>)}
               {bulkAction === 'suspend' && (<>Bạn sắp tạm khóa <span className="font-semibold">{selectedIds.size}</span> tài khoản (mặc định 1 ngày).</>)}
               {bulkAction === 'unsuspend' && (<>Bạn sắp mở khóa <span className="font-semibold">{selectedIds.size}</span> tài khoản.</>)}
+              {bulkAction === 'promote' && (<>Bạn sắp nâng cấp <span className="font-semibold">{selectedIds.size}</span> tài khoản lên <span className="font-semibold">Thành viên Nâng cao</span>. Các tài khoản đã là Thành viên Nâng cao hoặc Admin sẽ được bỏ qua.</>)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -982,6 +1013,7 @@ export default function MemberManagement() {
                 if (bulkAction === 'delete') handleBulkDelete();
                 else if (bulkAction === 'suspend') handleBulkSuspend();
                 else if (bulkAction === 'unsuspend') handleBulkUnsuspend();
+                else if (bulkAction === 'promote') handleBulkPromote();
               }}
               className={bulkAction === 'delete' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
               disabled={isBulkProcessing}
