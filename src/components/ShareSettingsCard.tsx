@@ -42,6 +42,7 @@ export default function ShareSettingsCard({
   showResourcesPublic = true,
   joinCode,
   allowJoinByCode = false,
+  joinMemberLimit = null,
   onUpdate,
 }: ShareSettingsCardProps) {
   const { toast } = useToast();
