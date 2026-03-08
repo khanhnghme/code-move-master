@@ -56,7 +56,7 @@ function PolicyCheckbox({
           id="policy-agree"
           checked={checked}
           onCheckedChange={(v) => onCheckedChange(v === true)}
-          className="shrink-0"
+          className="shrink-0 h-[18px] w-[18px] rounded-md border-2 border-muted-foreground/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary transition-all duration-200"
         />
         <label htmlFor="policy-agree" className="text-xs cursor-pointer leading-none flex items-center gap-1 whitespace-nowrap">
           <span>Tôi đồng ý với</span>
