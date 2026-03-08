@@ -1,247 +1,77 @@
 
-# Quy tắc hệ thống
 
-## 🔴 QUY TẮC BẮT BUỘC: Cơ chế hoàn tác xóa (Undo Delete)
+# Tích hợp Google Drive - Upload file lên Drive của người dùng
 
-**Áp dụng cho TOÀN BỘ hệ thống, bao gồm các tính năng tương lai.**
+## Ý tưởng
 
-- Mọi thao tác xóa dữ liệu đều PHẢI sử dụng `deleteWithUndo()` từ `src/lib/deleteWithUndo.ts`
-- Hiển thị toast "Đã xóa" kèm nút **Hoàn tác** với đếm ngược **5 giây**
-- Trong 5 giây, người dùng nhấn Hoàn tác → khôi phục ngay lập tức
-- Sau 5 giây → xóa vĩnh viễn
-- **KHÔNG BAO GIỜ** xóa trực tiếp mà không qua cơ chế undo
+Thay vì upload file lên server, người dùng sẽ đăng nhập Google, chọn/upload file lên **Google Drive cá nhân** của họ. Hệ thống chỉ lưu **link chia sẻ** — không tốn dung lượng server.
 
-### Cách sử dụng:
-```ts
-import { deleteWithUndo } from '@/lib/deleteWithUndo';
-
-deleteWithUndo({
-  description: 'Đã xóa task "Tên task"',
-  onDelete: async () => {
-    await supabase.from('tasks').delete().eq('id', taskId);
-  },
-  onUndo: () => {
-    // Khôi phục lại UI state nếu đã ẩn item trước đó
-  },
-});
-```
-
----
-
-# Kế hoạch: Xuất Minh chứng Dự án (Evidence Export)
-
-## Tổng quan
-
-Thêm chức năng **"Xuất Minh chứng"** trong tab **Cài đặt** của project, cho phép Leader xuất toàn bộ dữ liệu dự án thành file PDF chuyên nghiệp với cấu trúc chương/mục rõ ràng và thương hiệu UEH.
-
-## Cấu trúc Báo cáo Minh chứng
+## Cách hoạt động
 
 ```text
-+-------------------------------------------------------+
-|                    [UEH LOGO]                          |
-|                    UEH UNIVERSITY                      |
-|                                                       |
-|        BAO CAO MINH CHUNG DU AN                       |
-|           [Ten Du An]                                 |
-|                                                       |
-|   Lop: [Ma lop]    |    GV HD: [Ten GV]               |
-|   Ngay xuat: dd/MM/yyyy HH:mm                         |
-+-------------------------------------------------------+
-
-CHUONG 1: THONG TIN CHUNG
-  1.1 Thong tin du an
-  1.2 Thong tin giang vien
-  1.3 Thong tin nhom
-
-CHUONG 2: DANH SACH THANH VIEN
-  [Bang: STT | MSSV | Ho ten | Vai tro | Ngay tham gia]
-
-CHUONG 3: TIEN DO THUC HIEN
-  3.1 Thong ke tong quan
-  3.2 Tien do theo giai doan
-    3.2.1 Giai doan 1: [Ten]
-      - Task 1: [Trang thai] | [Deadline] | [Assignees]
-      - Task 2: ...
-    3.2.2 Giai doan 2: [Ten]
-      ...
-
-CHUONG 4: CHI TIET CONG VIEC
-  [Bang: STT | Task | Giai doan | Trang thai | Deadline | Nguoi thuc hien | Ngay hoan thanh]
-
-CHUONG 5: DIEM QUA TRINH
-  5.1 Diem theo giai doan
-  5.2 Diem tong ket
-  [Bang: STT | MSSV | Ho ten | Diem GD1 | Diem GD2 | ... | Diem TB]
-
-CHUONG 6: TAI NGUYEN DU AN
-  [Bang: STT | Ten file | Danh muc | Nguoi upload | Ngay upload | Kich thuoc]
-
-CHUONG 7: NHAT KY HOAT DONG
-  [Bang: STT | Ngay | Gio | Nguoi thuc hien | Hanh dong | Mo ta]
-
-+-------------------------------------------------------+
-|   UEH UNIVERSITY           Trang X / Y        dd/MM/yyyy|
-+-------------------------------------------------------+
+User chọn file → Google Drive Picker mở lên → User chọn file từ Drive hoặc upload file mới lên Drive
+                                                          ↓
+                                          Hệ thống nhận link chia sẻ
+                                                          ↓
+                                          Lưu link vào DB (không lưu file)
 ```
 
-## Thiết kế Giao diện
+## Phương án kỹ thuật
 
-### Card trong Tab Cài đặt
+### Google Picker API (Client-side)
 
-```text
-+--------------------------------------------------+
-| [FileText Icon]  Xuất Minh chứng                  |
-| Xuất toàn bộ dữ liệu dự án ra file PDF           |
-|                                                   |
-| [ ] Thông tin thành viên                          |
-| [ ] Chi tiết công việc (Tasks)                    |
-| [ ] Điểm quá trình                                |
-| [ ] Tài nguyên dự án                              |
-| [ ] Nhật ký hoạt động                             |
-|                                                   |
-| [======= Đang tải dữ liệu... =======] (khi xuất)  |
-|                                                   |
-|                    [Xuất PDF] (Button UEH teal)   |
-+--------------------------------------------------+
-```
+Google cung cấp **Picker API** — một widget cho phép người dùng:
+- Chọn file có sẵn trên Drive
+- Upload file mới lên Drive cá nhân
+- Trả về metadata (link, tên, loại file)
 
-## Chi tiết Kỹ thuật
+**Yêu cầu:**
+1. **Google Cloud Project** với Picker API + Drive API enabled
+2. **OAuth Client ID** (loại Web Application) — đây là public key, lưu trong code được
+3. **API Key** cho Picker — cũng là public key
 
-### 1. File mới cần tạo
+### Các bước triển khai
 
-**`src/lib/projectEvidencePdf.ts`** - Logic xuất PDF minh chứng:
-- Sử dụng thư viện `jspdf` + `jspdf-autotable` (đã có sẵn)
-- Tái sử dụng style UEH từ `activityLogPdf.ts`:
-  - Màu UEH Teal: #1A6B6D
-  - Màu UEH Orange: #E07B39
-  - Font helvetica (tương thích PDF, không dấu tiếng Việt)
-- Cấu trúc hàm chính:
-  ```typescript
-  exportProjectEvidencePdf({
-    project: Group,
-    members: GroupMember[],
-    stages: Stage[],
-    tasks: Task[],
-    scores: { taskScores, stageScores, finalScores },
-    resources: ProjectResource[],
-    activityLogs: ActivityLog[],
-    options: {
-      includeMembers: boolean,
-      includeTasks: boolean,
-      includeScores: boolean,
-      includeResources: boolean,
-      includeLogs: boolean,
-    }
-  })
-  ```
+1. **Tạo component `GoogleDrivePicker`**
+   - Load Google Picker API script
+   - Xử lý OAuth2 flow (xin quyền `drive.file` scope — chỉ truy cập file do app tạo/chọn)
+   - Hiển thị Picker widget
+   - Trả về file metadata (link, tên, kích thước)
 
-**`src/components/ProjectEvidenceExport.tsx`** - Component UI:
-- Card với checkboxes để chọn nội dung xuất
-- Button xuất với loading state
-- Fetch tất cả dữ liệu cần thiết khi click xuất
+2. **Tích hợp vào `MultiFileUploadSubmission`**
+   - Thêm tab/button "Upload qua Google Drive" bên cạnh upload trực tiếp
+   - Khi user chọn file từ Picker → lưu link như `submission_link`
 
-### 2. File cần chỉnh sửa
+3. **Tích hợp vào `ResourceUploadDialog`**
+   - Thêm tab "Google Drive" bên cạnh tab File và Link hiện tại
+   - File từ Drive → lưu như resource link
 
-**`src/pages/GroupDetail.tsx`**:
-- Import và thêm component `ProjectEvidenceExport` vào tab Settings
-- Đặt trước Card "Xóa project"
+4. **Lưu trữ trong DB**
+   - Không cần thêm bảng mới
+   - Dùng trường `submission_link` / resource link hiện có
+   - Thêm metadata field để phân biệt nguồn (drive vs direct upload)
 
-### 3. Dữ liệu cần fetch khi xuất
+### Giới hạn & Lưu ý
 
-| Dữ liệu | Bảng | Điều kiện |
-|---------|------|-----------|
-| Thông tin dự án | groups | id = groupId |
-| Thành viên | group_members + profiles | group_id = groupId |
-| Giai đoạn | stages | group_id = groupId |
-| Tasks + Assignments | tasks + task_assignments | group_id = groupId |
-| Điểm task | task_scores | task_id in tasks |
-| Điểm giai đoạn | member_stage_scores | stage_id in stages |
-| Điểm cuối | member_final_scores | group_id = groupId |
-| Tài nguyên | project_resources | group_id = groupId |
-| Nhật ký | activity_logs | group_id = groupId |
+- User cần đăng nhập Google (có thể dùng chung với Google Sign-in nếu có)
+- File phụ thuộc vào Drive của user — nếu user xóa file trên Drive, link sẽ hỏng
+- Cần user tự tạo Google Cloud Project và cung cấp Client ID + API Key (vì đây là public key nên an toàn)
+- Scope `drive.file` chỉ cho phép app truy cập file do chính app tạo/chọn, không truy cập toàn bộ Drive
 
-### 4. Format PDF từng chương
+### Thay đổi cần làm
 
-**Chương 1 - Thông tin chung:**
-- Box thông tin với border teal
-- Các field: Tên dự án, Mô tả, Mã lớp, GV hướng dẫn, Email GV, Link Zalo
+| File | Thay đổi |
+|------|----------|
+| Tạo `src/components/GoogleDrivePicker.tsx` | Component wrapper cho Google Picker API |
+| `src/components/MultiFileUploadSubmission.tsx` | Thêm option "Upload qua Google Drive" |
+| `src/components/ResourceUploadDialog.tsx` | Thêm tab Google Drive |
+| Migration SQL | Thêm cột `source_type` vào bảng liên quan (phân biệt drive/direct) |
 
-**Chương 2 - Thành viên:**
-- Bảng với header teal
-- Cột: STT, MSSV, Họ tên, Vai trò, Ngày tham gia
-- Highlight Leader với badge màu khác
+## Câu hỏi cần xác nhận
 
-**Chương 3 - Tiến độ:**
-- Thống kê tổng: Tổng tasks, Hoàn thành, Đang làm, Chờ xử lý
-- Liệt kê theo từng giai đoạn với progress bar text
+Trước khi triển khai, bạn cần:
+1. **Tạo Google Cloud Project** và enable Picker API + Drive API
+2. Cung cấp **Google API Key** và **OAuth Client ID** (cả hai đều là public key)
 
-**Chương 4 - Chi tiết công việc:**
-- Bảng đầy đủ thông tin task
-- Màu status khác nhau (TODO, IN_PROGRESS, DONE, VERIFIED)
+Bạn có muốn tiến hành với phương án này không? Nếu bạn đã có Google Cloud Project, hãy cung cấp API Key và Client ID để bắt đầu.
 
-**Chương 5 - Điểm quá trình:**
-- Bảng điểm theo giai đoạn
-- Bảng điểm tổng kết cuối cùng
-
-**Chương 6 - Tài nguyên:**
-- Bảng liệt kê file với metadata
-
-**Chương 7 - Nhật ký:**
-- Tái sử dụng format từ `activityLogPdf.ts`
-
-### 5. Chi tiết Style PDF
-
-```typescript
-// UEH Colors (giống activityLogPdf.ts)
-const UEH_TEAL: [number, number, number] = [26, 107, 109];
-const UEH_ORANGE: [number, number, number] = [224, 123, 57];
-const UEH_TEAL_LIGHT: [number, number, number] = [230, 243, 243];
-
-// Chapter heading style
-fontSize: 14, bold, color: UEH_TEAL
-// Section heading style  
-fontSize: 11, bold, color: gray-dark
-// Table header
-fillColor: UEH_TEAL, textColor: white
-// Alternating rows
-fillColor: UEH_TEAL_LIGHT
-```
-
-## Luồng Xuất PDF
-
-```text
-User clicks [Xuất PDF]
-       |
-       v
-Validate at least 1 option selected
-       |
-       v
-Show loading state + progress bar
-       |
-       v
-Fetch all selected data in parallel
-       |
-       v
-Generate PDF with chapters
-       |
-       v
-Auto-download: "minh-chung-[project-slug]-[timestamp].pdf"
-       |
-       v
-Show success toast
-```
-
-## Tóm tắt Thay đổi
-
-| File | Hành động |
-|------|-----------|
-| `src/lib/projectEvidencePdf.ts` | Tạo mới - Logic xuất PDF |
-| `src/components/ProjectEvidenceExport.tsx` | Tạo mới - Component UI |
-| `src/pages/GroupDetail.tsx` | Chỉnh sửa - Thêm component vào Settings |
-
-## Ghi chú Quan trọng
-
-- Sử dụng `removeVietnameseDiacritics()` cho tất cả text (PDF không hỗ trợ font tiếng Việt)
-- Mỗi chương bắt đầu trang mới để dễ đọc
-- Footer mỗi trang có UEH branding + số trang
-- Tên file output: `minh-chung-[project-slug]-YYYYMMDD-HHmmss.pdf`
