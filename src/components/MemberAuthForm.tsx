@@ -586,14 +586,12 @@ export function MemberAuthForm() {
                   }
                   setForgotLoading(true);
                   try {
-                    const { error } = await supabase.auth.verifyOtp({
-                      email: forgotEmail,
-                      token: code,
-                      type: 'email',
+                    const { data, error } = await supabase.functions.invoke('password-reset-otp', {
+                      body: { action: 'verify_code', email: forgotEmail, code },
                     });
                     setForgotLoading(false);
-                    if (error) {
-                      toast({ title: 'Mã không hợp lệ', description: 'Mã xác minh không đúng hoặc đã hết hạn. Vui lòng thử lại.', variant: 'destructive' });
+                    if (error || data?.error) {
+                      toast({ title: 'Mã không hợp lệ', description: data?.error || 'Mã xác minh không đúng hoặc đã hết hạn.', variant: 'destructive' });
                     } else {
                       setForgotStep('newpass');
                     }
@@ -636,7 +634,9 @@ export function MemberAuthForm() {
                     </button>
                     <button type="button" className="text-muted-foreground hover:underline text-xs" onClick={async () => {
                       setForgotLoading(true);
-                      await supabase.auth.signInWithOtp({ email: forgotEmail });
+                      await supabase.functions.invoke('password-reset-otp', {
+                        body: { action: 'send_code', email: forgotEmail },
+                      });
                       setForgotLoading(false);
                       toast({ title: 'Đã gửi lại mã', description: 'Mã mới đã được gửi đến email của bạn.' });
                     }}>
