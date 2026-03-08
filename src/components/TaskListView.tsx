@@ -349,14 +349,35 @@ function TaskRow({
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-1.5">
-              {taskIsOverdue && (
+              {isMeetingTask && (
+                <Video className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+              )}
+              {taskIsOverdue && !isMeetingTask && (
                 <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0 mt-0.5" />
               )}
               <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
                 {task.title}
               </h4>
+              {/* Meeting status badges */}
+              {meetingIsLive && (
+                <Badge className="bg-destructive/15 text-destructive border-destructive/30 text-[10px] px-1.5 py-0 shrink-0 animate-pulse gap-1">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-destructive" />
+                  </span>
+                  LIVE
+                </Badge>
+              )}
+              {meetingIsScheduled && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">Sắp họp</Badge>
+              )}
+              {meetingIsCompleted && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">Đã họp</Badge>
+              )}
               {/* Drill-down indicator - shows on hover */}
-              <Eye className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              {!isMeetingTask && (
+                <Eye className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              )}
             </div>
             
             {/* Assignees */}
