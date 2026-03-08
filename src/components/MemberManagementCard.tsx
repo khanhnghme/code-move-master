@@ -168,7 +168,6 @@ export default function MemberManagementCard({
   const resetCreateForm = () => {
     setNewMemberFullName('');
     setNewMemberStudentId('');
-    setNewMemberEmail('');
     setNewMemberRole('member');
   };
 
