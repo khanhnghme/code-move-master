@@ -673,7 +673,7 @@ export default function GroupDetail() {
               </TabsContent>
             )}
 
-            {isLeaderInGroup && group.created_by === user?.id && (
+            {isLeaderInGroup && (group.created_by === user?.id || isAdmin) && (
               <TabsContent value="settings" className="mt-6 space-y-6">
                 <ShareSettingsCard
                   groupId={group.id}
