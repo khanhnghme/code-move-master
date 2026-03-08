@@ -481,7 +481,7 @@ export default function GroupDetail() {
                               </div>
 
                               {/* Stage & Config + Deadline - Card style */}
-                              <div className="grid grid-cols-3 gap-3">
+                              <div className="grid grid-cols-2 gap-3">
                                 {stages.length > 0 && (
                                   <div className="p-3 rounded-lg bg-warning/5 border border-warning/20">
                                     <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-warning">
@@ -503,6 +503,8 @@ export default function GroupDetail() {
                                   </Label>
                                   <DeadlineHourPicker value={newTaskDeadline} onChange={setNewTaskDeadline} placeholder="Chọn deadline..." />
                                 </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 rounded-lg bg-indigo-500/5 border border-indigo-500/20">
                                   <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
                                     <Send className="w-3.5 h-3.5" />
@@ -516,7 +518,7 @@ export default function GroupDetail() {
                                       <SelectItem value="both">
                                         <span className="flex items-center gap-2">
                                           <span className="w-2 h-2 rounded-full bg-primary" />
-                                          Cả hai cách (mặc định)
+                                          Cả hai cách
                                         </span>
                                       </SelectItem>
                                       <SelectItem value="file_only">
