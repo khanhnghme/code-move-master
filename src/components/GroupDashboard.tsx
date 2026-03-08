@@ -275,6 +275,7 @@ export default function GroupDashboard({ tasks, members, stages, groupId, create
         open={profileDialogOpen}
         onOpenChange={setProfileDialogOpen}
         role={profileRole}
+        groupId={groupId}
       />
     </div>
   );
