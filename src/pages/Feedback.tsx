@@ -571,7 +571,7 @@ export default function FeedbackPage() {
               </Card>
             ) : (
               <div className="space-y-5">
-                {feedbacks.map(feedback => (
+                {feedbacks.map((feedback, index) => (
                   <Card
                     key={feedback.id}
                     className={`transition-all overflow-hidden hover:shadow-md ${
