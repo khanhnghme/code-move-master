@@ -123,6 +123,21 @@ export default function ProjectActivityLog({ groupId, groupName = 'Project', isL
     if (!error) {
       setLoggingEnabled(newVal);
       toast.success(newVal ? 'Đã bật ghi nhật ký' : 'Đã tắt ghi nhật ký');
+      
+      // Log the toggle action
+      const userName = profile?.full_name || user?.email || 'Unknown';
+      await supabase.from('activity_logs').insert({
+        group_id: groupId,
+        user_id: user!.id,
+        user_name: userName,
+        action: newVal ? 'ENABLE_LOGGING' : 'DISABLE_LOGGING',
+        action_type: 'system',
+        description: newVal
+          ? `${userName} đã bật ghi nhật ký hoạt động`
+          : `${userName} đã tắt ghi nhật ký hoạt động`,
+        metadata: { logging_enabled: newVal, toggled_at: new Date().toISOString() },
+      });
+      await fetchLogs();
     }
     setIsTogglingLogging(false);
   };
