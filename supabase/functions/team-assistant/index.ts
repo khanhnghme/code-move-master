@@ -574,10 +574,20 @@ async function fetchProjectContext(
   const profilesMap = new Map(profiles?.map((p: any) => [p.id, p]) || []);
 
   const taskIds = tasks?.map((t: any) => t.id) || [];
-  const { data: assignments } = await supabase
-    .from('task_assignments')
-    .select('*')
-    .in('task_id', taskIds.length > 0 ? taskIds : ['none']);
+  const stageIds = stages?.map((s: any) => s.id) || [];
+
+  // Fetch assignments and user's scores in parallel
+  const [assignmentsRes, taskScoresRes, stageScoresRes, finalScoreRes] = await Promise.all([
+    supabase.from('task_assignments').select('*').in('task_id', taskIds.length > 0 ? taskIds : ['none']),
+    supabase.from('task_scores').select('*').in('task_id', taskIds.length > 0 ? taskIds : ['none']).eq('user_id', userId),
+    supabase.from('member_stage_scores').select('*').in('stage_id', stageIds.length > 0 ? stageIds : ['none']).eq('user_id', userId),
+    supabase.from('member_final_scores').select('*').eq('group_id', projectId).eq('user_id', userId).maybeSingle(),
+  ]);
+
+  const assignments = assignmentsRes.data;
+  const userTaskScores = taskScoresRes.data || [];
+  const userStageScores = stageScoresRes.data || [];
+  const userFinalScore = finalScoreRes.data;
 
   // Fetch folder names for resources
   const folderIds = [...new Set((resources || []).filter((r: any) => r.folder_id).map((r: any) => r.folder_id))];
