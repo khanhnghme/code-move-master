@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -102,6 +102,8 @@ export default function MemberManagementCard({
   // Leave project state
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
+  const [leaveCountdown, setLeaveCountdown] = useState(15);
+  const [leaveCountdownActive, setLeaveCountdownActive] = useState(false);
   
   // Add member dialog - Multi-select from system members
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -151,6 +153,24 @@ export default function MemberManagementCard({
     
     return { canLeave, hoursLeft, isCreator: false };
   }, [currentUserMember, groupCreatorId]);
+
+  // Countdown timer for leave dialog
+  useEffect(() => {
+    if (!isLeaveDialogOpen) {
+      setLeaveCountdown(15);
+      setLeaveCountdownActive(false);
+      return;
+    }
+    setLeaveCountdown(15);
+    setLeaveCountdownActive(true);
+  }, [isLeaveDialogOpen]);
+
+  useEffect(() => {
+    if (!leaveCountdownActive || leaveCountdown <= 0) return;
+    const timer = setTimeout(() => setLeaveCountdown(prev => prev - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [leaveCountdownActive, leaveCountdown]);
+
 
   const getRoleBadge = (role: string, memberId?: string) => {
     // Check if this member is the group creator (Trưởng nhóm)
@@ -1354,47 +1374,84 @@ export default function MemberManagementCard({
 
       {/* Leave Project Confirmation Dialog */}
       <AlertDialog open={isLeaveDialogOpen} onOpenChange={setIsLeaveDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <LogOut className="w-5 h-5 text-destructive" />
-              Rời khỏi project?
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <LogOut className="w-5 h-5" />
+              Xác nhận rời khỏi project
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <p>Bạn có chắc muốn rời khỏi project này? Hành động này sẽ:</p>
-              <ul className="list-disc list-inside text-sm space-y-1">
-                <li>Xóa bạn khỏi danh sách thành viên</li>
-                <li>Hủy tất cả nhiệm vụ được giao cho bạn</li>
-              </ul>
-              {leaveInfo.canLeave && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-sm">
-                  <Clock className="w-4 h-4 text-primary shrink-0" />
-                  <span>
-                    Còn <strong className="text-primary">{formatHoursLeft(leaveInfo.hoursLeft)}</strong> để có thể tự rời project
-                  </span>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <div className="p-3 rounded-lg border border-destructive/20 bg-destructive/5">
+                  <p className="font-medium text-destructive text-sm mb-2">⚠️ Hành động này không thể hoàn tác!</p>
+                  <p className="text-sm text-muted-foreground">
+                    Sau khi rời, bạn sẽ không thể tự quay lại project trừ khi được trưởng nhóm thêm lại.
+                  </p>
                 </div>
-              )}
+                
+                <div className="space-y-2 text-sm">
+                  <p className="font-medium">Khi bạn rời khỏi project:</p>
+                  <ul className="space-y-1.5 ml-1">
+                    <li className="flex items-start gap-2">
+                      <span className="text-destructive mt-0.5">•</span>
+                      <span>Bạn sẽ bị xóa khỏi danh sách thành viên</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-destructive mt-0.5">•</span>
+                      <span>Tất cả nhiệm vụ được giao cho bạn sẽ bị hủy</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-destructive mt-0.5">•</span>
+                      <span>Bạn sẽ không thể truy cập project này nữa</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {leaveInfo.canLeave && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-sm">
+                    <Clock className="w-4 h-4 text-primary shrink-0" />
+                    <span>
+                      Còn <strong className="text-primary">{formatHoursLeft(leaveInfo.hoursLeft)}</strong> để có thể tự rời project
+                    </span>
+                  </div>
+                )}
+
+                {leaveCountdown > 0 && (
+                  <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-muted text-sm font-medium">
+                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                    <span className="text-muted-foreground">
+                      Vui lòng đợi <span className="text-foreground font-bold">{leaveCountdown}s</span> trước khi xác nhận
+                    </span>
+                  </div>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isLeaving}>Hủy</AlertDialogCancel>
-            <AlertDialogAction
+            <AlertDialogCancel disabled={isLeaving}>Hủy bỏ</AlertDialogCancel>
+            <Button
               onClick={handleLeaveProject}
-              disabled={isLeaving}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={isLeaving || leaveCountdown > 0}
+              variant="destructive"
+              className="gap-2"
             >
               {isLeaving ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Đang rời...
+                </>
+              ) : leaveCountdown > 0 ? (
+                <>
+                  <Clock className="w-4 h-4" />
+                  Đợi {leaveCountdown}s...
                 </>
               ) : (
                 <>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Rời project
+                  <LogOut className="w-4 h-4" />
+                  Xác nhận rời project
                 </>
               )}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
