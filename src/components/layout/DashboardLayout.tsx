@@ -242,7 +242,7 @@ export default function DashboardLayout({ children, projectId, projectName, zalo
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-primary border-t border-white/10 shadow-lg z-50">
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-primary/80 backdrop-blur-md border-t border-white/10 shadow-lg z-50">
             <nav className="p-5 space-y-2">
               {navigation
                 .filter(item => !item.requiresAdmin || isAdmin)
