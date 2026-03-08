@@ -5,15 +5,13 @@ import { useToast } from '@/hooks/use-toast';
 import { logActivity } from '@/lib/activityLogger';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   ArrowLeft, Video, VideoOff, Users, CheckCircle, Clock, XCircle,
-  ChevronDown, ChevronUp, StickyNote, Loader2, Maximize, Minimize,
-  Link2, Copy, Check
+  StickyNote, Loader2, Maximize, Minimize,
+  Link2, Check, ExternalLink
 } from 'lucide-react';
 import type { GroupMember } from '@/types/database';
 
@@ -159,6 +157,13 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleOpenMeetingLink = () => {
+    const link = meeting.external_link;
+    if (link) {
+      window.open(link, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const presentCount = attendance.filter(a => a.status === 'present').length;
   const lateCount = attendance.filter(a => a.status === 'late').length;
 
@@ -178,8 +183,8 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
     }
   };
 
-  const jitsiUrl = `https://meet.jit.si/${meeting.jitsi_room_name}#userInfo.displayName="${encodeURIComponent(profile?.full_name || 'User')}"`;
   const isSidebarOpen = isAttendanceOpen || isNotesOpen;
+  const isActive = meeting.status === 'in_progress' || meeting.status === 'scheduled';
 
   return (
     <div ref={containerRef} className={`flex flex-col bg-background ${isFullscreen ? 'h-screen' : 'h-full'}`}>
@@ -199,8 +204,8 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
-          {/* Copy link */}
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyLink} title="Sao chép đường dẫn">
+          {/* Copy page link */}
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopyLink} title="Sao chép đường dẫn trang">
             {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Link2 className="w-3.5 h-3.5" />}
           </Button>
 
@@ -249,20 +254,57 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
 
       {/* Main content area */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Video area */}
-        <div className="flex-1 min-w-0">
-          {meeting.status === 'in_progress' || meeting.status === 'scheduled' ? (
-            <iframe
-              src={jitsiUrl}
-              className="w-full h-full"
-              allow="camera;microphone;display-capture;autoplay;clipboard-write"
-              style={{ border: 'none' }}
-            />
+        {/* Main area - meeting info + join button */}
+        <div className="flex-1 min-w-0 flex items-center justify-center">
+          {isActive ? (
+            <div className="text-center space-y-6 max-w-md px-6">
+              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                <Video className="w-10 h-10 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-1">{meeting.title}</h3>
+                {meeting.description && (
+                  <p className="text-sm text-muted-foreground mb-3">{meeting.description}</p>
+                )}
+                <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4" />
+                    {new Date(meeting.scheduled_at).toLocaleString('vi-VN')}
+                  </span>
+                  <span>{meeting.duration_minutes} phút</span>
+                </div>
+              </div>
+
+              {meeting.external_link ? (
+                <Button size="lg" className="gap-2 text-base px-8" onClick={handleOpenMeetingLink}>
+                  <ExternalLink className="w-5 h-5" />
+                  Tham gia phòng họp
+                </Button>
+              ) : (
+                <p className="text-sm text-muted-foreground">Chưa có link phòng họp</p>
+              )}
+
+              {meeting.external_link && (
+                <p className="text-xs text-muted-foreground">
+                  Phòng họp sẽ mở trong tab mới • {getLinkPlatform(meeting.external_link)}
+                </p>
+              )}
+
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <Users className="w-4 h-4 text-muted-foreground" />
+                <span className={presentCount > 0 ? 'font-medium text-green-600' : 'text-muted-foreground'}>
+                  {presentCount}/{members.length} đã điểm danh
+                </span>
+              </div>
+            </div>
           ) : (
-            <div className="flex items-center justify-center h-full bg-muted/30">
-              <div className="text-center">
-                <VideoOff className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
-                <p className="font-medium text-muted-foreground">Cuộc họp đã kết thúc</p>
+            <div className="text-center space-y-4">
+              <VideoOff className="w-16 h-16 mx-auto text-muted-foreground/40" />
+              <div>
+                <p className="font-semibold text-lg">Cuộc họp đã kết thúc</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {presentCount}/{members.length} thành viên đã tham gia
+                </p>
               </div>
             </div>
           )}
@@ -352,4 +394,19 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
       </div>
     </div>
   );
+}
+
+function getLinkPlatform(url: string): string {
+  if (!url) return '';
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    if (hostname.includes('meet.google') || hostname.includes('hangouts.google')) return 'Google Meet';
+    if (hostname.includes('zoom.us') || hostname.includes('zoom.com')) return 'Zoom';
+    if (hostname.includes('teams.microsoft') || hostname.includes('teams.live')) return 'Microsoft Teams';
+    if (hostname.includes('discord')) return 'Discord';
+    if (hostname.includes('jit.si') || hostname.includes('jitsi')) return 'Jitsi Meet';
+    return hostname;
+  } catch {
+    return '';
+  }
 }

@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { logActivity } from '@/lib/activityLogger';
-import { Loader2, Video, Calendar, Clock, Layers } from 'lucide-react';
+import { Loader2, Video, Calendar, Clock, Layers, Link2 } from 'lucide-react';
 import { DeadlineHourPicker } from '@/components/DeadlineHourPicker';
 import type { Stage, GroupMember } from '@/types/database';
 
@@ -33,10 +33,15 @@ export default function CreateMeetingDialog({
   const [scheduledAt, setScheduledAt] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(60);
   const [stageId, setStageId] = useState('');
+  const [externalLink, setExternalLink] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreate = async () => {
     if (!title.trim() || !scheduledAt) return;
+    if (!externalLink.trim()) {
+      toast({ title: 'Thiếu link họp', description: 'Vui lòng nhập link phòng họp (Zoom, Google Meet, v.v.)', variant: 'destructive' });
+      return;
+    }
     setIsCreating(true);
 
     try {
@@ -71,6 +76,7 @@ export default function CreateMeetingDialog({
         scheduled_at: scheduledAt,
         duration_minutes: durationMinutes,
         jitsi_room_name: roomName,
+        external_link: externalLink.trim(),
         task_id: newTask?.id || null,
         created_by: user!.id,
       }).select().single();
@@ -115,6 +121,7 @@ export default function CreateMeetingDialog({
     setScheduledAt('');
     setDurationMinutes(60);
     setStageId('');
+    setExternalLink('');
   };
 
   return (
@@ -139,6 +146,19 @@ export default function CreateMeetingDialog({
               Tên cuộc họp <span className="text-destructive">*</span>
             </Label>
             <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="VD: Họp sprint review tuần 5" />
+          </div>
+
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Link2 className="w-4 h-4 text-primary" />
+              Link phòng họp <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              value={externalLink}
+              onChange={e => setExternalLink(e.target.value)}
+              placeholder="VD: https://meet.google.com/abc-defg-hij hoặc Zoom link"
+            />
+            <p className="text-[11px] text-muted-foreground">Hỗ trợ Google Meet, Zoom, Microsoft Teams, hoặc bất kỳ link nào</p>
           </div>
 
           <div className="space-y-2">
@@ -191,13 +211,13 @@ export default function CreateMeetingDialog({
           <div className="p-3 rounded-lg bg-muted/50 border border-border/50 text-sm text-muted-foreground">
             <p>📋 Task <strong>"Họp: {title || '...'}"</strong> sẽ được tạo tự động</p>
             <p>👥 Tất cả {members.length} thành viên sẽ được gán vào task</p>
-            <p>🎥 Phòng Jitsi Meet sẽ được tạo tự động</p>
+            <p>🔗 Thành viên sẽ tham gia qua link phòng họp bên ngoài</p>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
-          <Button onClick={handleCreate} disabled={isCreating || !title.trim() || !scheduledAt}>
+          <Button onClick={handleCreate} disabled={isCreating || !title.trim() || !scheduledAt || !externalLink.trim()}>
             {isCreating ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Đang tạo...</> : 'Tạo cuộc họp'}
           </Button>
         </DialogFooter>
