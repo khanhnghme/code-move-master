@@ -2525,7 +2525,114 @@ FOR DELETE USING (is_admin(auth.uid()));
 
 ---
 
-#### 3.5.30 BẢNG TỔNG HỢP QUYỀN RLS
+#### 3.5.30 Policies - `system_settings`
+
+**Quyền có:** SELECT (tất cả), ALL (admin)
+
+```sql
+-- Tất cả user đọc system settings (cho maintenance mode, policy)
+CREATE POLICY "Anyone can read system settings" ON public.system_settings
+FOR SELECT USING (true);
+
+-- Chỉ admin sửa system settings
+CREATE POLICY "Only admin can modify system settings" ON public.system_settings
+FOR ALL USING (is_admin(auth.uid()))
+WITH CHECK (is_admin(auth.uid()));
+```
+
+---
+
+#### 3.5.31 Policies - `meetings`
+
+**Quyền có:** SELECT (member/admin), ALL (leader)
+
+```sql
+-- Thành viên nhóm xem cuộc họp
+CREATE POLICY "Group members can view meetings" ON public.meetings
+FOR SELECT USING (
+  is_group_member(auth.uid(), group_id) OR is_admin(auth.uid())
+);
+
+-- Leader quản lý cuộc họp
+CREATE POLICY "Leaders can manage meetings" ON public.meetings
+FOR ALL USING (is_group_leader(auth.uid(), group_id));
+```
+
+---
+
+#### 3.5.32 Policies - `meeting_attendance`
+
+**Quyền có:** SELECT (member/admin), ALL (leader), UPDATE (self)
+
+```sql
+-- Thành viên nhóm xem điểm danh
+CREATE POLICY "Group members can view attendance" ON public.meeting_attendance
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM meetings m
+    WHERE m.id = meeting_attendance.meeting_id
+    AND (is_group_member(auth.uid(), m.group_id) OR is_admin(auth.uid()))
+  )
+);
+
+-- Leader quản lý điểm danh
+CREATE POLICY "Leaders can manage attendance" ON public.meeting_attendance
+FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM meetings m
+    WHERE m.id = meeting_attendance.meeting_id
+    AND is_group_leader(auth.uid(), m.group_id)
+  )
+);
+
+-- Thành viên tự cập nhật điểm danh
+CREATE POLICY "Members can update own attendance" ON public.meeting_attendance
+FOR UPDATE USING (user_id = auth.uid())
+WITH CHECK (user_id = auth.uid());
+```
+
+---
+
+#### 3.5.33 Policies - `meeting_messages`
+
+**Quyền có:** SELECT (member/admin), INSERT (member), DELETE (self/leader)  
+**Quyền KHÔNG có:** UPDATE
+
+```sql
+-- Thành viên nhóm xem tin nhắn
+CREATE POLICY "Group members can view meeting messages" ON public.meeting_messages
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM meetings m
+    WHERE m.id = meeting_messages.meeting_id
+    AND (is_group_member(auth.uid(), m.group_id) OR is_admin(auth.uid()))
+  )
+);
+
+-- Thành viên nhóm gửi tin nhắn
+CREATE POLICY "Group members can insert meeting messages" ON public.meeting_messages
+FOR INSERT WITH CHECK (
+  (user_id = auth.uid()) AND EXISTS (
+    SELECT 1 FROM meetings m
+    WHERE m.id = meeting_messages.meeting_id
+    AND is_group_member(auth.uid(), m.group_id)
+  )
+);
+
+-- Xóa tin nhắn (bản thân hoặc leader)
+CREATE POLICY "Leaders can delete meeting messages" ON public.meeting_messages
+FOR DELETE USING (
+  (user_id = auth.uid()) OR EXISTS (
+    SELECT 1 FROM meetings m
+    WHERE m.id = meeting_messages.meeting_id
+    AND is_group_leader(auth.uid(), m.group_id)
+  )
+);
+```
+
+---
+
+#### 3.5.34 BẢNG TỔNG HỢP QUYỀN RLS
 
 | # | Bảng | SELECT | INSERT | UPDATE | DELETE |
 |---|------|--------|--------|--------|--------|
