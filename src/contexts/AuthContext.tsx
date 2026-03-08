@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Profile, UserRole, AppRole } from '@/types/database';
 import SuspendedScreen from '@/components/SuspendedScreen';
 import MaintenanceScreen from '@/components/MaintenanceScreen';
+import { ProfileCompletionForm } from '@/components/ProfileCompletionForm';
 
 interface AuthContextType {
   user: User | null;
