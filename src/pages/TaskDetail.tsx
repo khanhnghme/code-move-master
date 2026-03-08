@@ -41,7 +41,7 @@ export default function TaskDetail() {
     try {
       const { data: taskData } = await supabase.from('tasks').select('*').eq('id', taskId).single();
       if (taskData) {
-        setTask(taskData);
+        setTask(taskData as Task);
         setStatus(taskData.status as TaskStatus);
         setSubmissionLink(taskData.submission_link || '');
       }

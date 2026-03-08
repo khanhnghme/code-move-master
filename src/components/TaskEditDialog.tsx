@@ -25,9 +25,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   Loader2, AlertTriangle, Eye, Calendar, Users, FileText, 
   Layers, Edit, Clock, HardDrive, CalendarPlus, ArrowRight,
-  CheckCircle2, X, Plus
+  CheckCircle2, X, Plus, Send
 } from 'lucide-react';
-import type { Task, Stage, GroupMember, TaskStatus } from '@/types/database';
+import type { Task, Stage, GroupMember, TaskStatus, SubmissionMethod } from '@/types/database';
 import { formatDeadlineVN, formatDeadlineShortVN, isDeadlineOverdue, parseLocalDateTime } from '@/lib/datetime';
 import { DeadlineHourPicker } from './DeadlineHourPicker';
 import FileSizeLimitSelector, { formatFileSizeMB } from './FileSizeLimitSelector';
@@ -68,6 +68,7 @@ export default function TaskEditDialog({
   const [stageId, setStageId] = useState<string>('');
   const [assignees, setAssignees] = useState<string[]>([]);
   const [maxFileSize, setMaxFileSize] = useState<number>(10 * 1024 * 1024);
+  const [submissionMethod, setSubmissionMethod] = useState<SubmissionMethod>('both');
   const [extensionHours, setExtensionHours] = useState<number>(0);
   const [showExtendSection, setShowExtendSection] = useState(false);
   const [showAssigneesExpanded, setShowAssigneesExpanded] = useState(false);
@@ -101,6 +102,7 @@ export default function TaskEditDialog({
       setAssignees(task.task_assignments?.map(a => a.user_id) || []);
       const taskWithSize = task as Task & { max_file_size?: number };
       setMaxFileSize(taskWithSize.max_file_size || 10 * 1024 * 1024);
+      setSubmissionMethod((task as any).submission_method || 'both');
       
       const existingHours = getExistingExtensionHours();
       setExtensionHours(existingHours);
@@ -153,6 +155,7 @@ export default function TaskEditDialog({
       
       const taskWithSize = task as Task & { max_file_size?: number };
       if (maxFileSize !== (taskWithSize.max_file_size || 10 * 1024 * 1024)) changes.push('giới hạn upload');
+      if ((task as any).submission_method !== submissionMethod) changes.push('cách nộp bài');
       
       const existingHours = getExistingExtensionHours();
       const newHours = showExtendSection ? extensionHours : 0;
@@ -171,6 +174,7 @@ export default function TaskEditDialog({
         deadline: deadline || null,
         stage_id: stageId || null,
         max_file_size: maxFileSize,
+        submission_method: submissionMethod,
       };
 
       // Handle extended deadline based on hours
@@ -372,7 +376,7 @@ export default function TaskEditDialog({
                   <Layers className="w-4 h-4" />
                   <span className="text-xs font-semibold uppercase">Giai đoạn & Cấu hình</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3 pl-6">
+                <div className="grid grid-cols-3 gap-3 pl-6">
                   <div>
                     <Label className="text-xs mb-1.5 block">Giai đoạn</Label>
                     {canEditDetails ? (
@@ -398,6 +402,40 @@ export default function TaskEditDialog({
                       <FileSizeLimitSelector value={maxFileSize} onChange={setMaxFileSize} />
                     ) : (
                       <div className="p-2 rounded-md bg-muted/50 border text-sm">{formatFileSizeMB(maxFileSize)}</div>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-xs mb-1.5 block flex items-center gap-1">
+                      <Send className="w-3 h-3" /> Cách nộp bài
+                    </Label>
+                    {canEditDetails ? (
+                      <Select value={submissionMethod} onValueChange={(v) => setSubmissionMethod(v as SubmissionMethod)}>
+                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="both">
+                            <span className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-primary" />
+                              Cả hai cách
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="file_only">
+                            <span className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                              Chỉ tải file
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="link_only">
+                            <span className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-blue-500" />
+                              Chỉ dán link
+                            </span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="p-2 rounded-md bg-muted/50 border text-sm">
+                        {submissionMethod === 'both' ? 'Cả hai cách' : submissionMethod === 'file_only' ? 'Chỉ tải file' : 'Chỉ dán link'}
+                      </div>
                     )}
                   </div>
                 </div>

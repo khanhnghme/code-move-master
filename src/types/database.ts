@@ -66,6 +66,8 @@ export interface GroupMember {
   profiles?: Profile;
 }
 
+export type SubmissionMethod = 'both' | 'file_only' | 'link_only';
+
 export interface Task {
   id: string;
   short_id: string;
@@ -77,6 +79,7 @@ export interface Task {
   status: TaskStatus;
   deadline: string | null;
   submission_link: string | null;
+  submission_method: SubmissionMethod;
   created_by: string;
   created_at: string;
   updated_at: string;

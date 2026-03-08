@@ -1,0 +1,2 @@
+ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS submission_method text NOT NULL DEFAULT 'both';
+COMMENT ON COLUMN public.tasks.submission_method IS 'Allowed submission method: both, file_only, link_only';

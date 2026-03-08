@@ -133,9 +133,12 @@ export default function TaskSubmissionDialog({
   // Storage usage check
   const storageUsage = useStorageUsage(user?.id, profile?.storage_limit_mb);
 
-  // Get max file size from task (cast since not in types yet)
+  // Get max file size and submission method from task
   const taskWithSize = task as (Task & { max_file_size?: number }) | null;
   const maxFileSize = taskWithSize?.max_file_size || DEFAULT_MAX_FILE_SIZE;
+  const submissionMethod: string = (task as any)?.submission_method || 'both';
+  const allowFileUpload = submissionMethod === 'both' || submissionMethod === 'file_only';
+  const allowLinkSubmission = submissionMethod === 'both' || submissionMethod === 'link_only';
 
   // Handle extended deadline
   const taskWithExtended = task as (Task & { extended_deadline?: string; extended_at?: string }) | null;
@@ -882,10 +885,26 @@ export default function TaskSubmissionDialog({
                 {/* Scrollable Content Area */}
                 <ScrollArea className="flex-1">
                   <div className="p-4 space-y-4">
-                    {/* Two Column Layout - File Upload & Links */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Submission Method Info Banner */}
+                    {submissionMethod !== 'both' && (
+                      <div className={`flex items-center gap-2 text-xs rounded-lg px-3 py-2 ${
+                        submissionMethod === 'file_only' 
+                          ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' 
+                          : 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                      }`}>
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                        <span className="font-medium">
+                          {submissionMethod === 'file_only' 
+                            ? 'Task này chỉ cho phép nộp bằng cách tải file lên' 
+                            : 'Task này chỉ cho phép nộp bằng cách dán liên kết'}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Layout - File Upload & Links */}
+                    <div className={`grid gap-4 ${allowFileUpload && allowLinkSubmission ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
                       {/* Method 1: File Upload */}
-                      <div className={`rounded-xl border-2 overflow-hidden flex flex-col ${
+                      {allowFileUpload && <div className={`rounded-xl border-2 overflow-hidden flex flex-col ${
                         storageUsage.isOverLimit 
                           ? 'border-destructive/40 bg-gradient-to-br from-destructive/5 to-background opacity-80' 
                           : 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-background'
@@ -977,10 +996,10 @@ export default function TaskSubmissionDialog({
                             />
                           )}
                         </div>
-                      </div>
+                      </div>}
 
                       {/* Method 2: External Links */}
-                      <div className="rounded-xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-background overflow-hidden flex flex-col">
+                      {allowLinkSubmission && <div className="rounded-xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-background overflow-hidden flex flex-col">
                         {/* Method Header */}
                         <div className="px-3 py-2 bg-blue-500/10 border-b border-blue-500/20 shrink-0">
                           <div className="flex items-center justify-between">
@@ -1080,7 +1099,7 @@ export default function TaskSubmissionDialog({
                             </div>
                           )}
                         </div>
-                      </div>
+                      </div>}
                     </div>
 
                     {/* Bottom: Status & Note - More compact */}
