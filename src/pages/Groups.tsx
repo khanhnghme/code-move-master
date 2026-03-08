@@ -118,29 +118,41 @@ export default function Groups() {
         .order('created_at', { ascending: false });
 
       if (groupsData) {
-        // Get member counts (robust, avoids relying on wide SELECTs)
-        const countEntries = await Promise.all(
+        // Get member counts + avatars
+        const memberEntries = await Promise.all(
           groupIds.map(async (groupId) => {
-            const { count, error } = await supabase
+            const { count } = await supabase
               .from('group_members')
               .select('*', { count: 'exact', head: true })
               .eq('group_id', groupId);
 
-            if (error) {
-              console.error('Error counting members for group:', groupId, error);
-              return [groupId, 0] as const;
+            // Fetch up to 4 member avatars
+            const { data: members } = await supabase
+              .from('group_members')
+              .select('user_id')
+              .eq('group_id', groupId)
+              .limit(4);
+
+            let avatars: MemberAvatar[] = [];
+            if (members && members.length > 0) {
+              const { data: profiles } = await supabase
+                .from('profiles')
+                .select('avatar_url, full_name')
+                .in('id', members.map(m => m.user_id));
+              avatars = (profiles || []).map(p => ({ avatar_url: p.avatar_url, full_name: p.full_name }));
             }
 
-            return [groupId, count ?? 0] as const;
+            return [groupId, { count: count ?? 0, avatars }] as const;
           })
         );
 
-        const countMap = new Map<string, number>(countEntries);
+        const memberMap = new Map(memberEntries);
 
         const groupsWithMembers: GroupWithMembers[] = groupsData.map((g) => ({
           ...g,
-          memberCount: countMap.get(g.id) || 0,
+          memberCount: memberMap.get(g.id)?.count || 0,
           myRole: roleMap.get(g.id) || 'member',
+          memberAvatars: memberMap.get(g.id)?.avatars || [],
         }));
 
         setGroups(groupsWithMembers);
