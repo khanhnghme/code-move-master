@@ -107,6 +107,7 @@ export default function MemberManagementCard({
   const [newMemberFullName, setNewMemberFullName] = useState('');
   const [newMemberStudentId, setNewMemberStudentId] = useState('');
   const [newMemberEmail, setNewMemberEmail] = useState('');
+  const [newMemberRole, setNewMemberRole] = useState<'member' | 'leader'>('member');
 
   // New role for change role dialog
   const [newRole, setNewRole] = useState<'member' | 'leader'>('member');
@@ -143,6 +144,7 @@ export default function MemberManagementCard({
   };
 
   const isMemberGroupCreator = (memberId: string) => memberId === groupCreatorId;
+  const canManageProjectRoles = currentUserId === groupCreatorId;
 
   const canDeleteMember = (member: GroupMember) => {
     if (member.user_id === currentUserId) return false;
@@ -153,7 +155,7 @@ export default function MemberManagementCard({
   const canChangeRole = (member: GroupMember) => {
     if (isMemberGroupCreator(member.user_id)) return false;
     // Only group creator (Trưởng nhóm) can change roles, not Phó nhóm
-    return isGroupCreator;
+    return canManageProjectRoles;
   };
 
   const resetAddForm = () => {
@@ -166,6 +168,7 @@ export default function MemberManagementCard({
     setNewMemberFullName('');
     setNewMemberStudentId('');
     setNewMemberEmail('');
+    setNewMemberRole('member');
   };
 
   // Filter available profiles that are not already in the group
@@ -193,7 +196,7 @@ export default function MemberManagementCard({
     }
     setIsAddingMember(true);
 
-    const finalRole = isGroupCreator ? selectedRole : 'member';
+    const finalRole = canManageProjectRoles ? selectedRole : 'member';
 
     try {
       const memberInserts = Array.from(selectedUserIds).map(uid => ({
@@ -271,11 +274,12 @@ export default function MemberManagementCard({
       const newUserId = createResult?.user?.id;
       if (!newUserId) throw new Error('Không thể tạo tài khoản');
 
-      // Step 2: Add to project with role = 'member'
+      // Step 2: Add to project with role based on permission
+      const roleToAssign = canManageProjectRoles ? newMemberRole : 'member';
       const { error: addError } = await supabase.from('group_members').insert({
         group_id: groupId,
         user_id: newUserId,
-        role: 'member',
+        role: roleToAssign,
       });
 
       if (addError) {
@@ -289,13 +293,13 @@ export default function MemberManagementCard({
         user_name: profile?.full_name || user?.email || 'Unknown',
         action: 'CREATE_AND_ADD_MEMBER',
         action_type: 'member',
-        description: `Tạo tài khoản và thêm ${newMemberFullName.trim()} vào project với vai trò Thành viên`,
+        description: `Tạo tài khoản và thêm ${newMemberFullName.trim()} vào project với vai trò ${roleToAssign === 'leader' ? 'Phó nhóm' : 'Thành viên'}`,
         group_id: groupId,
         metadata: { 
           created_user_id: newUserId, 
           created_user_name: newMemberFullName.trim(),
           created_user_email: newMemberEmail.trim(),
-          role: 'member'
+          role: roleToAssign
         }
       });
 
@@ -535,7 +539,7 @@ export default function MemberManagementCard({
               {selectedMemberIds.size > 0 && (
                 <>
                   <div className="w-px h-5 bg-border mx-1" />
-                  {isGroupCreator && (
+                  {canManageProjectRoles && (
                     <>
                       <Select value={bulkRole} onValueChange={(v) => setBulkRole(v as 'member' | 'leader')}>
                         <SelectTrigger className="w-28 h-7 text-xs">
@@ -817,7 +821,7 @@ export default function MemberManagementCard({
                 </ScrollArea>
 
                 {/* Role Selection */}
-                {isGroupCreator ? (
+                {canManageProjectRoles ? (
                   <div className="space-y-2 mb-4">
                     <Label className="text-sm font-medium">Vai trò trong Project</Label>
                     <Select value={selectedRole} onValueChange={(v) => setSelectedRole(v as 'member' | 'leader')}>
@@ -1061,16 +1065,28 @@ export default function MemberManagementCard({
               />
             </div>
 
-            {/* Role info - fixed for Phó nhóm */}
+            {/* Role info */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Vai trò trong Project</Label>
-              <div className="h-11 flex items-center px-3 bg-muted/50 rounded-md border border-border">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <UserCheck className="w-4 h-4" />
-                  Thành viên
+              {canManageProjectRoles ? (
+                <Select value={newMemberRole} onValueChange={(v) => setNewMemberRole(v as 'member' | 'leader')}>
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="member">Thành viên</SelectItem>
+                    <SelectItem value="leader">Phó nhóm</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="h-11 flex items-center px-3 bg-muted/50 rounded-md border border-border">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <UserCheck className="w-4 h-4" />
+                    Thành viên
+                  </div>
                 </div>
-              </div>
-              {!isGroupCreator && (
+              )}
+              {!canManageProjectRoles && (
                 <p className="text-xs text-muted-foreground italic">
                   Vai trò mặc định: Member (Phó nhóm không có quyền thay đổi)
                 </p>
