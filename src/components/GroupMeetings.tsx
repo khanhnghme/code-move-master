@@ -57,14 +57,16 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
 
   if (selectedMeeting) {
     return (
-      <MeetingRoom
-        meeting={selectedMeeting}
-        members={members}
-        isLeader={isLeader}
-        groupId={groupId}
-        onBack={() => { setSelectedMeeting(null); fetchMeetings(); }}
-        onRefresh={fetchMeetings}
-      />
+      <div className="h-[calc(100vh-180px)]">
+        <MeetingRoom
+          meeting={selectedMeeting}
+          members={members}
+          isLeader={isLeader}
+          groupId={groupId}
+          onBack={() => { setSelectedMeeting(null); fetchMeetings(); }}
+          onRefresh={fetchMeetings}
+        />
+      </div>
     );
   }
 
