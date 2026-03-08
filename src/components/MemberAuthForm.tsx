@@ -74,7 +74,7 @@ function PolicyCheckbox({
                 }} />
                 <div className="relative px-6 py-5 flex items-center gap-4">
                   <div className="p-2 rounded-xl">
-                    <img src="/src/assets/ueh-logo-new.png" alt="UEH Logo" style={{ width: 44, height: 'auto' }} />
+                    <img src={uehLogoWhite} alt="UEH Logo" style={{ width: 44, height: 'auto' }} />
                   </div>
                   <div className="text-primary-foreground">
                     <DialogTitle className="text-xl font-bold">Chính sách hệ thống</DialogTitle>
