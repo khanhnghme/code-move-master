@@ -42,6 +42,7 @@ interface StageManagementProps {
 
 export default function StageManagement({ stage, taskCount, onUpdate }: StageManagementProps) {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
