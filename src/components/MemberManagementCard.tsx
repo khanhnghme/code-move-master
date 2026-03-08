@@ -168,6 +168,7 @@ export default function MemberManagementCard({
     setNewMemberFullName('');
     setNewMemberStudentId('');
     setNewMemberEmail('');
+    setNewMemberRole('member');
   };
 
   // Filter available profiles that are not already in the group
