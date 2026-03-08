@@ -55,7 +55,10 @@ import {
   Bug,
   Reply,
   X,
+  ThumbsUp,
+  ThumbsDown,
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
