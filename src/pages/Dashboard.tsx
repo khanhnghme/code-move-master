@@ -34,7 +34,8 @@ export default function Dashboard() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
-  const { isConnected } = useUserPresence('system-global');
+  const [videoOpacity, setVideoOpacity] = useState(0.2);
+  const [showVideoControls, setShowVideoControls] = useState(false);
 
   useEffect(() => {
     if (user) {
