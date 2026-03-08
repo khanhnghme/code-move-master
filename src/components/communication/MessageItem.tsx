@@ -122,7 +122,49 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
     }
   };
 
-  const handleDelete = async () => {
+  const handleTaskRefClick = async (taskId: string) => {
+    if (!taskId || !user) return;
+    
+    // Fetch task data
+    const { data: taskData } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('id', taskId)
+      .single();
+
+    if (!taskData) {
+      // Fallback to navigation
+      onTaskClick?.(taskId);
+      return;
+    }
+
+    const task = taskData as unknown as Task;
+
+    // Check if current user is assignee
+    const { data: assignmentData } = await supabase
+      .from('task_assignments')
+      .select('id')
+      .eq('task_id', taskId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    // Check if current user is leader in this group
+    const { data: memberData } = await supabase
+      .from('group_members')
+      .select('role')
+      .eq('group_id', task.group_id)
+      .eq('user_id', user.id)
+      .single();
+
+    const role = memberData?.role;
+    const isLeader = role === 'leader' || role === 'admin' || isAdmin;
+
+    setTaskToView(task);
+    setIsTaskAssignee(!!assignmentData);
+    setIsLeaderInGroup(isLeader);
+    setTaskDialogOpen(true);
+  };
+
     if (!onDelete) return;
     setIsDeleting(true);
     try {
