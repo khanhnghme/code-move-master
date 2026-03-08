@@ -248,14 +248,6 @@ export default function AdminSystem() {
                 />
               </div>
 
-              <Button
-                onClick={() => setShowMaintenanceConfirm(true)}
-                disabled={saving}
-                className="w-full"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Xác nhận thay đổi
-              </Button>
             </CardContent>
           </Card>
 
