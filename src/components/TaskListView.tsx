@@ -1184,12 +1184,6 @@ export default function TaskListView({
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {progressPercent === 100 && stageTasks.length > 0 && (
-                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px] px-1.5 h-5 gap-0.5">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Xong
-                          </Badge>
-                        )}
                         {overdueCount > 0 && (
                           <Badge variant="destructive" className="text-[10px] px-1.5 h-5">
                             {overdueCount} trễ
@@ -1199,13 +1193,6 @@ export default function TaskListView({
                     </div>
                     
                     <div className="flex items-center gap-2 shrink-0">
-                      {/* Progress bar */}
-                      <div className="hidden sm:flex items-center gap-1.5 w-28">
-                        <Progress value={progressPercent} className="h-1.5 flex-1" />
-                        <span className="text-[10px] text-muted-foreground w-8 text-right font-medium">
-                          {Math.round(progressPercent)}%
-                        </span>
-                      </div>
                       
                       {stage.is_hidden && (
                         <Badge variant="outline" className="text-[10px] h-5 gap-1 text-muted-foreground">
