@@ -66,6 +66,7 @@ export default function KanbanBoard({
   onDeleteStage,
 }: KanbanBoardProps) {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
