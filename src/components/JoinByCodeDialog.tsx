@@ -20,9 +20,9 @@ interface GroupPreview {
   instructor_name: string | null;
   created_at: string;
   image_url: string | null;
+  zalo_link: string | null;
   memberCount: number;
   leaderName: string | null;
-  taskCount: number;
 }
 
 interface JoinByCodeDialogProps {
