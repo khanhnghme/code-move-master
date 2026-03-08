@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { logActivity } from '@/lib/activityLogger';
 import { supabase } from '@/integrations/supabase/client';
-import { Share2, Copy, ExternalLink, Users, Activity, Loader2, Lock, Unlock, Eye, RefreshCw, FolderOpen } from 'lucide-react';
+import { Share2, Copy, ExternalLink, Users, Activity, Loader2, Lock, Unlock, Eye, RefreshCw, FolderOpen, KeyRound } from 'lucide-react';
 
 interface ShareSettingsCardProps {
   groupId: string;
@@ -17,6 +17,8 @@ interface ShareSettingsCardProps {
   showMembersPublic: boolean;
   showActivityPublic: boolean;
   showResourcesPublic?: boolean;
+  joinCode?: string | null;
+  allowJoinByCode?: boolean;
   onUpdate: () => void;
 }
 
@@ -27,6 +29,10 @@ function generateToken(): string {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
+function generateJoinCode(): string {
+  return Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+}
+
 export default function ShareSettingsCard({
   groupId,
   isPublic,
@@ -34,6 +40,8 @@ export default function ShareSettingsCard({
   showMembersPublic,
   showActivityPublic,
   showResourcesPublic = true,
+  joinCode,
+  allowJoinByCode = false,
   onUpdate,
 }: ShareSettingsCardProps) {
   const { toast } = useToast();
@@ -44,6 +52,8 @@ export default function ShareSettingsCard({
   const [localShowMembers, setLocalShowMembers] = useState(showMembersPublic);
   const [localShowActivity, setLocalShowActivity] = useState(showActivityPublic);
   const [localShowResources, setLocalShowResources] = useState(showResourcesPublic);
+  const [localJoinCode, setLocalJoinCode] = useState(joinCode || null);
+  const [localAllowJoin, setLocalAllowJoin] = useState(allowJoinByCode);
 
   useEffect(() => {
     setLocalIsPublic(isPublic);
@@ -51,7 +61,9 @@ export default function ShareSettingsCard({
     setLocalShowMembers(showMembersPublic);
     setLocalShowActivity(showActivityPublic);
     setLocalShowResources(showResourcesPublic);
-  }, [isPublic, shareToken, showMembersPublic, showActivityPublic, showResourcesPublic]);
+    setLocalJoinCode(joinCode || null);
+    setLocalAllowJoin(allowJoinByCode);
+  }, [isPublic, shareToken, showMembersPublic, showActivityPublic, showResourcesPublic, joinCode, allowJoinByCode]);
 
   const publicLink = localShareToken 
     ? `${window.location.origin}/s/${localShareToken}` 
@@ -325,6 +337,143 @@ export default function ShareSettingsCard({
             </div>
           </div>
         )}
+
+        {/* Join Code Section */}
+        <div className="border-t pt-6 space-y-4">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 rounded-xl bg-accent/10 border border-accent/20">
+              <KeyRound className="w-5 h-5 text-accent" />
+            </div>
+            <div>
+              <p className="font-semibold">Mã tham gia Project</p>
+              <p className="text-sm text-muted-foreground">
+                Cho phép thành viên tham gia bằng mã 4 chữ số
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border">
+            <div className="flex items-center gap-3">
+              {localAllowJoin ? (
+                <div className="p-2 rounded-lg bg-success/20">
+                  <Unlock className="w-4 h-4 text-success" />
+                </div>
+              ) : (
+                <div className="p-2 rounded-lg bg-muted-foreground/20">
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                </div>
+              )}
+              <div>
+                <p className="font-medium">
+                  {localAllowJoin ? 'Đang cho phép tham gia bằng mã' : 'Tắt tham gia bằng mã'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {localAllowJoin ? 'Thành viên có mã có thể tự tham gia' : 'Chỉ trưởng nhóm mới có thể thêm thành viên'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={localAllowJoin}
+              onCheckedChange={async (enabled) => {
+                setIsUpdating(true);
+                try {
+                  let newCode = localJoinCode;
+                  if (enabled && !newCode) {
+                    newCode = generateJoinCode();
+                  }
+                  const { error } = await supabase
+                    .from('groups')
+                    .update({
+                      allow_join_by_code: enabled,
+                      join_code: enabled ? newCode : null,
+                    })
+                    .eq('id', groupId);
+                  if (error) throw error;
+                  setLocalAllowJoin(enabled);
+                  setLocalJoinCode(enabled ? newCode : null);
+                  toast({
+                    title: enabled ? 'Đã bật mã tham gia' : 'Đã tắt mã tham gia',
+                    description: enabled ? `Mã tham gia: ${newCode}` : 'Thành viên không thể tự tham gia bằng mã nữa',
+                  });
+                  if (user && profile) {
+                    await logActivity({
+                      userId: user.id, userName: profile.full_name,
+                      action: enabled ? 'ENABLE_JOIN_CODE' : 'DISABLE_JOIN_CODE',
+                      actionType: 'setting',
+                      description: enabled ? `Bật mã tham gia project: ${newCode}` : 'Tắt mã tham gia project',
+                      groupId,
+                    });
+                  }
+                  onUpdate();
+                } catch (error: any) {
+                  toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+                } finally {
+                  setIsUpdating(false);
+                }
+              }}
+              disabled={isUpdating}
+            />
+          </div>
+
+          {localAllowJoin && localJoinCode && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Mã tham gia</Label>
+              <div className="flex gap-2 items-center">
+                <div className="flex-1 bg-muted/50 border rounded-lg px-4 py-3 text-center text-3xl font-bold tracking-[0.5em] font-mono select-all">
+                  {localJoinCode}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    navigator.clipboard.writeText(localJoinCode);
+                    toast({ title: 'Đã sao chép mã' });
+                  }}
+                  title="Sao chép mã"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={async () => {
+                    setIsUpdating(true);
+                    try {
+                      const newCode = generateJoinCode();
+                      const { error } = await supabase
+                        .from('groups')
+                        .update({ join_code: newCode })
+                        .eq('id', groupId);
+                      if (error) throw error;
+                      setLocalJoinCode(newCode);
+                      toast({ title: 'Đã tạo mã mới', description: `Mã mới: ${newCode}` });
+                      if (user && profile) {
+                        await logActivity({
+                          userId: user.id, userName: profile.full_name,
+                          action: 'REGENERATE_JOIN_CODE', actionType: 'setting',
+                          description: `Tạo lại mã tham gia mới: ${newCode}`,
+                          groupId,
+                        });
+                      }
+                      onUpdate();
+                    } catch (error: any) {
+                      toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+                    } finally {
+                      setIsUpdating(false);
+                    }
+                  }}
+                  title="Tạo mã mới"
+                  disabled={isUpdating}
+                >
+                  <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Chia sẻ mã này cho thành viên muốn tham gia project
+              </p>
+            </div>
+          )}
+        </div>
 
         {isUpdating && (
           <div className="flex items-center justify-center py-4">
