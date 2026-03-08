@@ -54,91 +54,53 @@ const IntroHeroImage = React.forwardRef<HTMLDivElement, { imageUrl?: string; fal
 
 function Page1Overview({ images }: { images: IntroImages }) {
   return (
-    <div className="h-full flex flex-col gap-4">
-      {/* Hero Image */}
-      <div className="h-[38%] min-h-[180px] flex-shrink-0" style={{ animation: 'fade-in 0.5s ease-out both' }}>
-        <IntroHeroImage
-          imageUrl={images.page1}
-          fallbackGradient="bg-gradient-to-br from-primary/20 via-accent/10 to-primary/5"
-          alt="Tổng quan hệ thống Teamworks UEH"
-        />
-      </div>
-
-      <div className="space-y-1">
+    <div className="h-full flex flex-col gap-3">
+      {/* Title */}
+      <div className="text-center flex-shrink-0">
         <h3 className="text-2xl font-bold text-foreground">Tổng quan hệ thống</h3>
-        <p className="text-sm text-muted-foreground">Teamworks UEH — Nền tảng quản lý công việc nhóm cho sinh viên</p>
+        <p className="text-xs text-muted-foreground">Teamworks UEH — Nền tảng quản lý công việc nhóm cho sinh viên</p>
       </div>
 
-      {/* Compact flow */}
-      <div className="flex items-center justify-between gap-1 px-2 py-3 bg-muted/30 rounded-xl border border-border/60" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
-        {[
-          { icon: Users, label: 'Tạo nhóm' },
-          { icon: ListChecks, label: 'Phân công' },
-          { icon: Upload, label: 'Nộp bài' },
-          { icon: BarChart3, label: 'Chấm điểm' },
-          { icon: FileText, label: 'Báo cáo' },
-        ].map((step, i) => (
-          <div key={i} className="flex items-center gap-1 flex-shrink-0">
-            <div className="flex flex-col items-center gap-1 min-w-[70px]">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <step.icon className="w-4 h-4 text-primary" />
-              </div>
-              <span className="text-[10px] font-semibold text-foreground">{step.label}</span>
-            </div>
-            {i < 4 && <ArrowRight className="w-3 h-3 text-primary/40 flex-shrink-0" />}
-          </div>
-        ))}
-      </div>
-
-      {/* Bottom cards */}
-      <div className="grid grid-cols-3 gap-3 flex-1" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Vai trò</p>
-          <div className="space-y-1.5">
-            {[
-              { role: 'Admin', color: 'text-destructive', desc: 'Quản trị hệ thống' },
-              { role: 'Leader', color: 'text-primary', desc: 'Quản lý nhóm' },
-              { role: 'Member', color: 'text-accent-foreground', desc: 'Thực hiện task' },
-            ].map((r, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className={`text-xs font-bold ${r.color}`}>{r.role}</span>
-                <span className="text-[10px] text-muted-foreground">— {r.desc}</span>
-              </div>
-            ))}
-          </div>
+      {/* Hero + Workflow row */}
+      <div className="flex gap-3 flex-1 min-h-0">
+        {/* Left: Hero overview */}
+        <div className="w-[35%] flex-shrink-0 rounded-xl overflow-hidden" style={{ animation: 'fade-in 0.4s ease-out both' }}>
+          <img src={introPage1} alt="Tổng quan" className="w-full h-full object-cover rounded-xl" />
         </div>
 
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Tính năng</p>
-          <div className="space-y-1.5">
-            {[
-              { icon: CheckCircle2, label: 'Chấm điểm tự động' },
-              { icon: Globe, label: 'Chia sẻ công khai' },
-              { icon: Zap, label: 'AI hỗ trợ' },
-              { icon: Lock, label: 'Bảo mật RLS' },
-              { icon: Bell, label: 'Thông báo realtime' },
-            ].map((f, i) => (
-              <div key={i} className="flex items-center gap-1.5">
-                <f.icon className="w-3 h-3 text-primary" />
-                <span className="text-[10px] text-foreground">{f.label}</span>
-              </div>
-            ))}
+        {/* Right: Grid of feature images */}
+        <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0">
+          {/* Workflow */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative group" style={{ animation: 'fade-in 0.4s ease-out 100ms both' }}>
+            <img src={introP1Workflow} alt="Quy trình làm việc" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Quy trình làm việc</p>
+            </div>
           </div>
-        </div>
 
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3 flex flex-col items-center justify-center">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Đa nền tảng</p>
-          <div className="flex gap-3 items-end">
-            <div className="w-14 border-2 border-border rounded-md overflow-hidden">
-              <div className="bg-primary h-1.5" />
-              <div className="p-1 space-y-0.5"><div className="h-1 bg-muted rounded w-3/4" /><div className="h-4 bg-primary/10 rounded" /></div>
-            </div>
-            <div className="w-8 border-2 border-border rounded-md overflow-hidden">
-              <div className="bg-primary h-1" />
-              <div className="p-0.5"><div className="h-3 bg-primary/10 rounded" /></div>
+          {/* Roles */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative group" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
+            <img src={introP1Roles} alt="Vai trò hệ thống" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Vai trò hệ thống</p>
             </div>
           </div>
-          <p className="text-[9px] text-muted-foreground mt-2">Desktop · Mobile</p>
+
+          {/* Features */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative group" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
+            <img src={introP1Features} alt="Tính năng nổi bật" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Tính năng nổi bật</p>
+            </div>
+          </div>
+
+          {/* Multi-platform */}
+          <div className="rounded-xl overflow-hidden border border-border/40 bg-muted/20 relative group" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
+            <img src={introP1Multiplatform} alt="Đa nền tảng" className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">Đa nền tảng</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
