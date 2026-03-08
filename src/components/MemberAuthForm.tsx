@@ -133,8 +133,12 @@ export function MemberAuthForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState('login');
+  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'forgot'>('login');
   const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [forgotIdentifier, setForgotIdentifier] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
 
   // Login fields
   const [identifier, setIdentifier] = useState('');
@@ -403,12 +407,14 @@ export function MemberAuthForm() {
       <Card className="w-full shadow-card-lg border-border/50">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-lg font-heading">
-            {activeTab === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}
+            {activeTab === 'login' ? 'Đăng nhập' : activeTab === 'register' ? 'Tạo tài khoản' : 'Quên mật khẩu'}
           </CardTitle>
           <CardDescription>
             {activeTab === 'login'
               ? 'Nhập MSSV và mật khẩu để đăng nhập'
-              : 'Điền thông tin để đăng ký tài khoản mới'}
+              : activeTab === 'register'
+              ? 'Điền thông tin để đăng ký tài khoản mới'
+              : 'Lấy lại mật khẩu qua email'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -461,17 +467,115 @@ export function MemberAuthForm() {
                 {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                 Đăng nhập
               </Button>
-              <p className="text-sm text-center text-muted-foreground">
-                Chưa có tài khoản?{' '}
+              <div className="flex items-center justify-between text-sm">
                 <button
                   type="button"
                   className="text-primary hover:underline font-medium"
-                  onClick={() => { setActiveTab('register'); setErrors({}); }}
+                  onClick={() => { setActiveTab('forgot'); setErrors({}); }}
                 >
-                  Đăng ký ngay
+                  Quên mật khẩu?
                 </button>
-              </p>
+                <span className="text-muted-foreground">
+                  Chưa có tài khoản?{' '}
+                  <button
+                    type="button"
+                    className="text-primary hover:underline font-medium"
+                    onClick={() => { setActiveTab('register'); setErrors({}); }}
+                  >
+                    Đăng ký
+                  </button>
+                </span>
+              </div>
             </form>
+          ) : activeTab === 'forgot' ? (
+            <div className="space-y-4">
+              {forgotSent ? (
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto">
+                    <Mail className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <h3 className="text-lg font-heading font-semibold">Đã gửi email đặt lại mật khẩu</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Một email chứa liên kết đặt lại mật khẩu đã được gửi đến <span className="font-medium text-foreground">{forgotEmail}</span>. Vui lòng kiểm tra hộp thư (bao gồm thư rác).
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => { setActiveTab('login'); setForgotSent(false); setForgotIdentifier(''); setErrors({}); }}
+                  >
+                    Quay lại đăng nhập
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setErrors({});
+                  const sid = forgotIdentifier.trim();
+                  if (!sid) {
+                    setErrors({ forgotId: 'Vui lòng nhập MSSV' });
+                    return;
+                  }
+                  setForgotLoading(true);
+                  try {
+                    const { data: email } = await supabase.rpc('get_email_by_student_id', { _student_id: sid });
+                    if (!email) {
+                      setForgotLoading(false);
+                      toast({ title: 'MSSV không tồn tại', description: 'Mã số sinh viên này chưa được đăng ký.', variant: 'destructive' });
+                      return;
+                    }
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    setForgotLoading(false);
+                    if (error) {
+                      toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+                    } else {
+                      setForgotEmail(email);
+                      setForgotSent(true);
+                    }
+                  } catch {
+                    setForgotLoading(false);
+                    toast({ title: 'Lỗi hệ thống', description: 'Có lỗi xảy ra.', variant: 'destructive' });
+                  }
+                }} className="space-y-4">
+                  <div className="text-center space-y-1 mb-2">
+                    <p className="text-sm text-muted-foreground">
+                      Nhập MSSV của bạn, hệ thống sẽ gửi email đặt lại mật khẩu đến email đã liên kết.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-id">Mã số sinh viên (MSSV)</Label>
+                    <div className="relative">
+                      <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="forgot-id"
+                        type="text"
+                        placeholder="31241234567"
+                        className="pl-10"
+                        value={forgotIdentifier}
+                        onChange={(e) => setForgotIdentifier(e.target.value)}
+                        disabled={forgotLoading}
+                        autoFocus
+                      />
+                    </div>
+                    {errors.forgotId && <p className="text-sm text-destructive">{errors.forgotId}</p>}
+                  </div>
+                  <Button type="submit" className="w-full font-semibold" disabled={forgotLoading}>
+                    {forgotLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
+                    Gửi email đặt lại mật khẩu
+                  </Button>
+                  <p className="text-sm text-center text-muted-foreground">
+                    <button
+                      type="button"
+                      className="text-primary hover:underline font-medium"
+                      onClick={() => { setActiveTab('login'); setErrors({}); }}
+                    >
+                      ← Quay lại đăng nhập
+                    </button>
+                  </p>
+                </form>
+              )}
+            </div>
           ) : (
             <form onSubmit={handleRegister} className="space-y-3">
               <div className="space-y-2">

@@ -21,6 +21,7 @@ import Communication from "./pages/Communication";
 import PublicProjectView from "./pages/PublicProjectView";
 import FilePreview from "./pages/FilePreview";
 import PersonalInfo from "./pages/PersonalInfo";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ function AppRoutes() {
       {/* Legacy file preview - backward compatibility */}
       <Route path="/file-preview" element={<FilePreview />} />
       <Route path="/auth" element={<Auth />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/auth/member" element={<Navigate to="/auth" replace />} />
       <Route path="/auth/admin" element={<Navigate to="/auth" replace />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
