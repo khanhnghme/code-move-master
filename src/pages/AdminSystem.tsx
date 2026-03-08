@@ -48,6 +48,9 @@ export default function AdminSystem() {
   const [policyDialogOpen, setPolicyDialogOpen] = useState(false);
   const [editPolicyContent, setEditPolicyContent] = useState('');
 
+  // Error logging state
+  const [errorLoggingEnabled, setErrorLoggingEnabled] = useState(true);
+  const [savingErrorLogging, setSavingErrorLogging] = useState(false);
   useEffect(() => {
     if (!isLoading && !isAdmin) {
       navigate('/dashboard');
