@@ -363,6 +363,7 @@ export default function Landing() {
   }, []);
 
   const openIntro = () => {
+    preloadIntroImages();
     setCurrentPage(0);
     setShowIntro(true);
     requestAnimationFrame(() => setIntroVisible(true));
