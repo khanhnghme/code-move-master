@@ -130,7 +130,7 @@ export default function DashboardLayout({ children, projectId, projectName, zalo
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Fixed Top Navigation Bar */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-primary shadow-lg">
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-primary/80 backdrop-blur-md shadow-lg">
         <div className="h-full max-w-[1600px] mx-auto px-6 flex items-center">
           {/* Left: Logo & Brand - fixed width */}
           <div className="w-[160px] shrink-0">
