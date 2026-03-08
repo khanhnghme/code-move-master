@@ -53,6 +53,8 @@ import {
   ChevronDown,
   ChevronUp,
   Bug,
+  Reply,
+  X,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
