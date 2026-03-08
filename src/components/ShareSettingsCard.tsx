@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { logActivity } from '@/lib/activityLogger';
 import { supabase } from '@/integrations/supabase/client';
-import { Share2, Copy, ExternalLink, Users, Activity, Loader2, Lock, Unlock, Eye, RefreshCw, FolderOpen } from 'lucide-react';
+import { Share2, Copy, ExternalLink, Users, Activity, Loader2, Lock, Unlock, Eye, RefreshCw, FolderOpen, KeyRound } from 'lucide-react';
 
 interface ShareSettingsCardProps {
   groupId: string;
