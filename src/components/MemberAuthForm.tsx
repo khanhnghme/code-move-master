@@ -350,10 +350,23 @@ export function MemberAuthForm() {
           toast({ title: 'Đăng ký thất bại', description: error.message, variant: 'destructive' });
         }
       } else {
+        // Check if auto-approve is enabled
+        const { data: settingData } = await supabase
+          .from('system_settings')
+          .select('value')
+          .eq('key', 'auto_approve_accounts')
+          .maybeSingle();
+        const isAutoApproved = settingData?.value && (settingData.value as any).enabled === true;
+
         await supabase.auth.signOut({ scope: 'local' });
         setIsLoading(false);
-        setRegisterSuccess(true);
-        toast({ title: 'Đăng ký thành công', description: 'Tài khoản đang chờ Admin duyệt.' });
+        setRegisterSuccess(isAutoApproved ? 'approved' : 'pending');
+        toast({
+          title: 'Đăng ký thành công',
+          description: isAutoApproved
+            ? 'Tài khoản đã được kích hoạt. Bạn có thể đăng nhập ngay!'
+            : 'Tài khoản đang chờ Admin duyệt.',
+        });
       }
     } catch (err) {
       setIsLoading(false);
