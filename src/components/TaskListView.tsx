@@ -607,39 +607,51 @@ function TaskRow({
         <div className="hidden md:flex items-center justify-end gap-1 flex-nowrap min-w-0">
           {/* Meeting join button - desktop */}
           {isMeetingTask ? (
-            /* Meeting task: show join button + menu */
-            <div className="flex items-center gap-1">
-              {onJoinMeeting && (
-                <Button
-                  size="sm"
-                  variant={meetingIsLive ? "default" : meetingIsCompleted ? "secondary" : "outline"}
-                  className={`h-7 text-xs px-3 gap-1.5 ${meetingIsLive ? 'animate-pulse' : ''}`}
-                  onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
-                >
-                  {meetingIsLive ? <Sparkles className="w-3 h-3" /> : <Video className="w-3 h-3" />}
-                  {meetingIsLive ? 'Vào họp ngay' : meetingIsCompleted ? 'Xem lại' : 'Phòng họp'}
-                </Button>
-              )}
-              {isLeaderInGroup && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <MoreVertical className="w-3.5 h-3.5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
-                      <Edit className="w-3.5 h-3.5 mr-2" />
-                      Chỉnh sửa
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
-                      <Trash2 className="w-3.5 h-3.5 mr-2" />
-                      Xóa buổi họp
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+            /* Meeting task: use same grid width as normal tasks for alignment */
+            <div className="grid grid-cols-[64px_104px_92px_40px] items-center justify-end gap-1 flex-nowrap min-w-0">
+              {/* Spacer for history column */}
+              <span className="h-7" aria-hidden />
+              {/* Spacer for submission button column */}
+              <span className="h-7" aria-hidden />
+              {/* Join meeting button - same width as submit button */}
+              <div className="flex justify-end">
+                {onJoinMeeting && (
+                  <Button
+                    size="sm"
+                    variant={meetingIsLive ? "default" : meetingIsCompleted ? "secondary" : "outline"}
+                    className={`h-7 w-[92px] text-xs px-2 gap-1 shrink-0 justify-center ${meetingIsLive ? 'animate-pulse' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
+                  >
+                    {meetingIsLive ? <Sparkles className="w-3 h-3" /> : <Video className="w-3 h-3" />}
+                    {meetingIsLive ? 'Vào họp' : meetingIsCompleted ? 'Xem lại' : 'Phòng họp'}
+                  </Button>
+                )}
+              </div>
+              {/* Menu button */}
+              <div className="flex justify-end">
+                {isLeaderInGroup ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <MoreVertical className="w-3.5 h-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
+                        <Edit className="w-3.5 h-3.5 mr-2" />
+                        Chỉnh sửa
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
+                        <Trash2 className="w-3.5 h-3.5 mr-2" />
+                        Xóa buổi họp
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <span className="h-7 w-7" aria-hidden />
+                )}
+              </div>
             </div>
           ) : (
             /* Normal task: show submit buttons + menu */
