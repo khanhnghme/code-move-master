@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';
 import { useNavigate } from 'react-router-dom';
 import { useFilePreview } from '@/contexts/FilePreviewContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/activityLogger';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
