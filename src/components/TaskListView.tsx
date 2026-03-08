@@ -976,6 +976,14 @@ export default function TaskListView({
     deleteWithUndo({
       description: `Đã xóa task "${taskRef.title}"`,
       onDelete: async () => {
+        // Cascade: delete linked meeting if this is a meeting task
+        const meetingLinked = meetingsByTaskId[taskRef.id];
+        if (meetingLinked) {
+          await (supabase.from('meeting_messages') as any).delete().eq('meeting_id', meetingLinked.id);
+          await (supabase.from('meeting_attendance') as any).delete().eq('meeting_id', meetingLinked.id);
+          await (supabase.from('meetings') as any).delete().eq('id', meetingLinked.id);
+        }
+
         await supabase.from('task_assignments').delete().eq('task_id', taskRef.id);
         await supabase.from('task_scores').delete().eq('task_id', taskRef.id);
         await supabase.from('submission_history').delete().eq('task_id', taskRef.id);
@@ -987,9 +995,9 @@ export default function TaskListView({
           user_name: user?.email || 'Unknown',
           action: 'DELETE_TASK',
           action_type: 'task',
-          description: `Xóa task "${taskRef.title}"`,
+          description: `Xóa task "${taskRef.title}"${meetingLinked ? ' (kèm buổi họp)' : ''}`,
           group_id: groupId,
-          metadata: { task_id: taskRef.id, task_title: taskRef.title }
+          metadata: { task_id: taskRef.id, task_title: taskRef.title, meeting_deleted: !!meetingLinked }
         });
 
         onRefresh();
