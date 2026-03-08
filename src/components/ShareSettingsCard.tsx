@@ -118,6 +118,14 @@ export default function ShareSettingsCard({
 
       setLocalShareToken(newToken);
       toast({ title: 'Đã tạo link mới', description: 'Link cũ sẽ không còn hoạt động' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'REGENERATE_SHARE_TOKEN', actionType: 'setting',
+          description: 'Tạo lại link chia sẻ mới (link cũ vô hiệu)',
+          groupId,
+        });
+      }
       onUpdate();
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
