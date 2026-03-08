@@ -576,6 +576,9 @@ export default function AdminSystem() {
       {/* Policy Editor Dialog - 16:9 */}
       <Dialog open={policyDialogOpen} onOpenChange={setPolicyDialogOpen}>
         <DialogContent className="max-w-[95vw] w-[1280px] h-[720px] max-h-[90vh] p-0 overflow-hidden flex flex-col border-0 shadow-2xl">
+          <DialogDescription className="sr-only">
+            Trình chỉnh sửa và xem trước nội dung chính sách hệ thống bằng Markdown.
+          </DialogDescription>
           {/* Header with UEH branding */}
           <div className="relative shrink-0 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-accent" />
@@ -629,7 +632,7 @@ export default function AdminSystem() {
               <div className="flex-1 min-h-0 p-6 overflow-y-auto overscroll-contain">
                 <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-primary prose-h1:text-2xl prose-h1:border-b prose-h1:border-primary/20 prose-h1:pb-3 prose-h2:text-lg prose-h2:mt-6 prose-a:text-accent prose-strong:text-foreground">
                   {editPolicyContent ? (
-                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>{editPolicyContent}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{editPolicyContent}</ReactMarkdown>
                   ) : (
                     <div className="text-center py-10">
                       <FileText className="w-10 h-10 mx-auto text-muted-foreground/30 mb-2" />
