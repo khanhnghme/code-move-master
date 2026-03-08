@@ -59,8 +59,10 @@ function PolicyCheckbox({
           onCheckedChange={(v) => onCheckedChange(v === true)}
           className="shrink-0 h-3.5 w-3.5 rounded-full border border-muted-foreground/40 data-[state=checked]:border-primary data-[state=checked]:bg-transparent transition-all duration-200 [&_svg]:h-3 [&_svg]:w-3 [&_svg]:text-primary"
         />
-        <label htmlFor="policy-agree" className="text-xs cursor-pointer leading-none flex items-center gap-1 whitespace-nowrap">
-          <span>Tôi đồng ý với</span>
+        <div className="text-xs leading-none flex items-center gap-1 whitespace-nowrap">
+          <label htmlFor="policy-agree" className="cursor-pointer">
+            Tôi đồng ý với
+          </label>
           <Dialog>
             <DialogTrigger asChild>
               <button type="button" className="text-warning hover:underline font-semibold">
@@ -68,6 +70,9 @@ function PolicyCheckbox({
               </button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] w-[1280px] h-[720px] max-h-[90vh] p-0 overflow-hidden flex flex-col border-0 shadow-2xl">
+              <DialogDescription className="sr-only">
+                Nội dung chính sách hệ thống Teamworks UEH.
+              </DialogDescription>
               {/* Header with UEH branding */}
               <div className="relative shrink-0 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-accent" />
@@ -96,7 +101,7 @@ function PolicyCheckbox({
               <div className="flex-1 overflow-y-auto px-8 py-6">
                 <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-primary prose-h1:text-2xl prose-h1:border-b prose-h1:border-primary/20 prose-h1:pb-3 prose-h2:text-lg prose-h2:mt-6 prose-a:text-accent prose-strong:text-foreground">
                   {policyContent ? (
-                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>{policyContent}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{policyContent}</ReactMarkdown>
                   ) : (
                     <div className="text-center py-16">
                       <FileText className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
@@ -121,7 +126,7 @@ function PolicyCheckbox({
           {policyUpdatedAt && (
             <span className="text-[10px] text-muted-foreground">· {format(new Date(policyUpdatedAt), "dd/MM/yyyy", { locale: vi })}</span>
           )}
-        </label>
+        </div>
       </div>
       {error && <p className="text-sm text-destructive ml-6">{error}</p>}
     </div>
