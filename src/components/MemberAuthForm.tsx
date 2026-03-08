@@ -63,37 +63,55 @@ function PolicyCheckbox({
                 Chính sách hệ thống
               </button>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] w-[1280px] h-[720px] max-h-[90vh] p-0 overflow-hidden flex flex-col">
-              <DialogHeader className="px-5 py-3 border-b bg-primary/5 shrink-0">
-                <div className="flex items-center gap-3">
-                  <UEHLogo width={40} />
-                  <div>
-                    <DialogTitle className="text-lg font-bold">Chính sách hệ thống - Teamworks UEH</DialogTitle>
-                    <p className="text-xs text-muted-foreground">
-                      Vui lòng đọc kỹ các điều khoản trước khi sử dụng hệ thống
-                      {policyUpdatedAt && (
-                        <> · Cập nhật lần cuối: <span className="font-medium">{format(new Date(policyUpdatedAt), "HH:mm dd/MM/yyyy", { locale: vi })}</span></>
-                      )}
+            <DialogContent className="max-w-[95vw] w-[1280px] h-[720px] max-h-[90vh] p-0 overflow-hidden flex flex-col border-0 shadow-2xl">
+              {/* Header with UEH branding */}
+              <div className="relative shrink-0 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-accent" />
+                <div className="absolute inset-0 opacity-10" style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }} />
+                <div className="relative px-6 py-5 flex items-center gap-4">
+                  <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <UEHLogo width={44} />
+                  </div>
+                  <div className="text-primary-foreground">
+                    <DialogTitle className="text-xl font-bold">Chính sách hệ thống</DialogTitle>
+                    <p className="text-sm opacity-80">
+                      Teamworks UEH — Vui lòng đọc kỹ các điều khoản trước khi sử dụng
                     </p>
                   </div>
-                </div>
-              </DialogHeader>
-              <div className="flex-1 overflow-y-auto p-6">
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  {policyContent ? (
-                    <ReactMarkdown>{policyContent}</ReactMarkdown>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-10">Chưa có nội dung chính sách.</p>
+                  {policyUpdatedAt && (
+                    <Badge className="ml-auto bg-white/20 text-primary-foreground border-0 backdrop-blur-sm text-xs">
+                      Cập nhật: {format(new Date(policyUpdatedAt), "dd/MM/yyyy", { locale: vi })}
+                    </Badge>
                   )}
                 </div>
               </div>
-              {policyUpdatedAt && (
-                <div className="px-5 py-3 border-t bg-muted/30 shrink-0">
-                  <p className="text-xs text-muted-foreground">
-                    Cập nhật lần cuối: {format(new Date(policyUpdatedAt), "HH:mm 'ngày' dd/MM/yyyy", { locale: vi })}
-                  </p>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto px-8 py-6">
+                <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-primary prose-h1:text-2xl prose-h1:border-b prose-h1:border-primary/20 prose-h1:pb-3 prose-h2:text-lg prose-h2:mt-6 prose-a:text-accent prose-strong:text-foreground">
+                  {policyContent ? (
+                    <ReactMarkdown>{policyContent}</ReactMarkdown>
+                  ) : (
+                    <div className="text-center py-16">
+                      <FileText className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
+                      <p className="text-muted-foreground">Chưa có nội dung chính sách.</p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-3 border-t bg-muted/30 shrink-0 flex items-center justify-between">
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5" />
+                  {policyUpdatedAt
+                    ? `Cập nhật lần cuối: ${format(new Date(policyUpdatedAt), "HH:mm 'ngày' dd/MM/yyyy", { locale: vi })}`
+                    : 'Teamworks UEH'}
+                </p>
+                <p className="text-[10px] text-muted-foreground">© UEH Teamworks</p>
+              </div>
             </DialogContent>
           </Dialog>
           {policyUpdatedAt && (
