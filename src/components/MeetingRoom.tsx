@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import type { GroupMember } from '@/types/database';
 
+const JAAS_APP_ID = 'vpaas-magic-cookie-32897196ce344000a13727f619440fe0';
+
 interface MeetingRoomProps {
   meeting: any;
   members: GroupMember[];
