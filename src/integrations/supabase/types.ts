@@ -104,6 +104,7 @@ export type Database = {
           id: string
           is_admin: boolean
           is_hidden: boolean | null
+          reply_to_id: string | null
           updated_at: string
           user_id: string
         }
@@ -114,6 +115,7 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_hidden?: boolean | null
+          reply_to_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -124,6 +126,7 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_hidden?: boolean | null
+          reply_to_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -133,6 +136,13 @@ export type Database = {
             columns: ["feedback_id"]
             isOneToOne: false
             referencedRelation: "feedbacks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_comments_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_comments"
             referencedColumns: ["id"]
           },
         ]

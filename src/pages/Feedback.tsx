@@ -53,6 +53,8 @@ import {
   ChevronDown,
   ChevronUp,
   Bug,
+  Reply,
+  X,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -78,20 +80,10 @@ interface FeedbackComment {
   content: string;
   is_hidden: boolean;
   created_at: string;
+  reply_to_id: string | null;
   user_name?: string;
   user_student_id?: string;
   user_avatar_url?: string;
-}
-
-interface FeedbackComment {
-  id: string;
-  feedback_id: string;
-  user_id: string;
-  content: string;
-  is_hidden: boolean;
-  created_at: string;
-  user_name?: string;
-  user_student_id?: string;
 }
 
 export default function FeedbackPage() {
@@ -111,6 +103,7 @@ export default function FeedbackPage() {
   const [loadingComments, setLoadingComments] = useState<Record<string, boolean>>({});
   const [newComment, setNewComment] = useState<Record<string, string>>({});
   const [postingComment, setPostingComment] = useState<Record<string, boolean>>({});
+  const [replyTo, setReplyTo] = useState<FeedbackComment | null>(null);
 
   // Delete state
   const [feedbackToDelete, setFeedbackToDelete] = useState<Feedback | null>(null);
@@ -266,11 +259,13 @@ export default function FeedbackPage() {
         feedback_id: feedbackId,
         user_id: user!.id,
         content,
+        reply_to_id: replyTo?.feedback_id === feedbackId ? replyTo.id : null,
       });
 
       if (error) throw error;
 
       setNewComment(prev => ({ ...prev, [feedbackId]: '' }));
+      setReplyTo(null);
       fetchComments(feedbackId);
       // Update comment count
       setFeedbacks(prev =>
@@ -607,7 +602,11 @@ export default function FeedbackPage() {
                               {comments[feedback.id]?.length > 0 && (
                                 <ScrollArea className="max-h-[300px]">
                                   <div className="space-y-3 pr-4">
-                                    {comments[feedback.id].map(comment => (
+                                    {comments[feedback.id].map(comment => {
+                                      const repliedComment = comment.reply_to_id
+                                        ? comments[feedback.id]?.find(c => c.id === comment.reply_to_id)
+                                        : null;
+                                      return (
                                       <div
                                         key={comment.id}
                                         className={`flex gap-3 p-3 rounded-lg bg-muted/50 ${
@@ -634,9 +633,30 @@ export default function FeedbackPage() {
                                               </Badge>
                                             )}
                                           </div>
+                                          {/* Reply quote */}
+                                          {repliedComment && (
+                                            <div className="mt-1 mb-1 pl-3 border-l-2 border-primary/40 bg-primary/5 rounded-r-md py-1.5 px-2">
+                                              <span className="text-xs font-medium text-primary">
+                                                ↩ {repliedComment.user_name}
+                                              </span>
+                                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                                {repliedComment.content}
+                                              </p>
+                                            </div>
+                                          )}
                                           <p className="text-sm mt-1 whitespace-pre-wrap">
                                             {comment.content}
                                           </p>
+                                          {/* Reply button */}
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 px-2 text-xs text-muted-foreground hover:text-primary mt-1 -ml-2"
+                                            onClick={() => setReplyTo(comment)}
+                                          >
+                                            <Reply className="w-3 h-3 mr-1" />
+                                            Trả lời
+                                          </Button>
                                         </div>
                                         {(comment.user_id === user?.id || isAdmin) && (
                                           <Button
@@ -649,9 +669,30 @@ export default function FeedbackPage() {
                                           </Button>
                                         )}
                                       </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 </ScrollArea>
+                              )}
+
+                              {/* Reply indicator */}
+                              {replyTo && replyTo.feedback_id === feedback.id && (
+                                <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm">
+                                  <Reply className="w-4 h-4 text-primary shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <span className="text-primary font-medium">{replyTo.user_name}</span>
+                                    <span className="text-muted-foreground">: </span>
+                                    <span className="text-muted-foreground line-clamp-1">{replyTo.content}</span>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 shrink-0"
+                                    onClick={() => setReplyTo(null)}
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
                               )}
 
                               {/* New comment input */}
