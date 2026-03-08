@@ -533,6 +533,9 @@ export default function MemberManagement() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={() => { setSelectedMember(member); setIsRoleManagementOpen(true); }}>
+                <Shield className="w-4 h-4 mr-2" />Quản lý quyền
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => openEditDialog(member)}>
                 <Pencil className="w-4 h-4 mr-2" />Chỉnh sửa thông tin
               </DropdownMenuItem>
