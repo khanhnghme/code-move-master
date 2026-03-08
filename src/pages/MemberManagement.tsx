@@ -655,6 +655,11 @@ export default function MemberManagement() {
               <Shield className="w-3.5 h-3.5" /><span className="hidden sm:inline">Nâng cấp</span>
             </Button>
           )}
+          {activeSubTab !== 'suspended' && (
+            <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs sm:text-sm" onClick={() => setBulkAction('demote')} disabled={selectedIds.size === 0}>
+              <UserCheck className="w-3.5 h-3.5" /><span className="hidden sm:inline">Hạ cấp</span>
+            </Button>
+          )}
           <Button size="sm" variant="destructive" className="gap-1.5 h-8 text-xs sm:text-sm" onClick={() => setBulkAction('delete')} disabled={selectedIds.size === 0}>
             <Trash2 className="w-3.5 h-3.5" /><span className="hidden sm:inline">Xóa</span>
           </Button>
