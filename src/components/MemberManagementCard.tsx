@@ -243,19 +243,13 @@ export default function MemberManagementCard({
 
   // Create new member and add to project
   const handleCreateMember = async () => {
-    if (!newMemberFullName.trim() || !newMemberStudentId.trim() || !newMemberEmail.trim()) {
+    if (!newMemberFullName.trim() || !newMemberStudentId.trim()) {
       toast({ title: 'Lỗi', description: 'Vui lòng điền đầy đủ thông tin', variant: 'destructive' });
-      return;
-    }
-    
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newMemberEmail.trim())) {
-      toast({ title: 'Lỗi', description: 'Email không hợp lệ', variant: 'destructive' });
       return;
     }
 
     setIsCreatingMember(true);
+    const placeholderEmail = `${newMemberStudentId.trim().toLowerCase()}@teamworks.local`;
 
     try {
       // Step 1: Create user in system via edge function
