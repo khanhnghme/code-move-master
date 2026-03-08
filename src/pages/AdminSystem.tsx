@@ -447,100 +447,23 @@ export default function AdminSystem() {
                   </div>
                   <Switch
                     checked={driveEnabled}
-                    disabled={savingDrive}
-                    onCheckedChange={(checked) => setDriveEnabled(checked)}
+                    disabled={savingDrive || (!driveEnabled && !(driveApiKey.trim() && driveClientId.trim()))}
+                    onCheckedChange={handleToggleDrive}
                   />
                 </div>
               </CardHeader>
-              <CardContent className="pt-0 space-y-3">
+              <CardContent className="pt-0 space-y-2">
                 <p className="text-xs text-muted-foreground">
                   Cho phép thành viên upload file lên Google Drive cá nhân thay vì dùng dung lượng hệ thống.
                 </p>
-                {driveEnabled && (
-                  <div className="space-y-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs">API Key</Label>
-                      <Input
-                        value={driveApiKey}
-                        onChange={(e) => setDriveApiKey(e.target.value)}
-                        placeholder="AIza..."
-                        className="text-xs h-8"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">OAuth Client ID</Label>
-                      <Input
-                        value={driveClientId}
-                        onChange={(e) => setDriveClientId(e.target.value)}
-                        placeholder="xxxx.apps.googleusercontent.com"
-                        className="text-xs h-8"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        className="gap-1.5 text-xs h-7"
-                        disabled={savingDrive || !driveApiKey.trim() || !driveClientId.trim()}
-                        onClick={async () => {
-                          setSavingDrive(true);
-                          try {
-                            const { error } = await supabase
-                              .from('system_settings')
-                              .upsert({
-                                key: 'google_drive_config',
-                                value: { enabled: driveEnabled, api_key: driveApiKey.trim(), client_id: driveClientId.trim() } as any,
-                                updated_at: new Date().toISOString(),
-                              }, { onConflict: 'key' });
-                            if (error) throw error;
-                            toast({ title: 'Đã lưu cài đặt Google Drive' });
-                          } catch {
-                            toast({ title: 'Lỗi', description: 'Không thể lưu', variant: 'destructive' });
-                          } finally {
-                            setSavingDrive(false);
-                          }
-                        }}
-                      >
-                        <Save className="w-3 h-3" /> Lưu
-                      </Button>
-                      <a
-                        href="https://console.cloud.google.com/apis/credentials"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] text-primary hover:underline flex items-center gap-1"
-                      >
-                        <ExternalLink className="w-3 h-3" /> Google Cloud Console
-                      </a>
-                    </div>
-                  </div>
-                )}
-                {!driveEnabled && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-7"
-                    disabled={savingDrive}
-                    onClick={async () => {
-                      setSavingDrive(true);
-                      try {
-                        const { error } = await supabase
-                          .from('system_settings')
-                          .upsert({
-                            key: 'google_drive_config',
-                            value: { enabled: false, api_key: '', client_id: '' } as any,
-                            updated_at: new Date().toISOString(),
-                          }, { onConflict: 'key' });
-                        if (error) throw error;
-                        toast({ title: 'Đã tắt Google Drive' });
-                      } catch {
-                        toast({ title: 'Lỗi', variant: 'destructive' });
-                      } finally {
-                        setSavingDrive(false);
-                      }
-                    }}
-                  >
-                    Cập nhật
-                  </Button>
-                )}
+                <p className="text-[11px] text-muted-foreground">
+                  API Key và OAuth Client ID đã chuyển sang cấu hình nội bộ, không còn nhập ở trang Quản trị.
+                </p>
+                {!driveApiKey.trim() || !driveClientId.trim() ? (
+                  <p className="text-xs text-destructive">
+                    Chưa có cấu hình khóa Google Drive trong hệ thống nên chưa thể bật.
+                  </p>
+                ) : null}
               </CardContent>
             </Card>
           </div>
