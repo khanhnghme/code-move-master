@@ -766,9 +766,9 @@ export default function Groups() {
                           {group.name}
                         </h3>
                         <div className="flex items-center gap-1.5 mt-1.5">
-                          <div className="flex -space-x-1.5">
-                            {[...Array(Math.min(group.memberCount, 3))].map((_, i) => (
-                              <div key={i} className="w-5 h-5 rounded-full bg-white/30 border border-white/50 backdrop-blur-sm" />
+                          <div className="flex -space-x-2">
+                            {group.memberAvatars.slice(0, 4).map((m, i) => (
+                              <UserAvatar key={i} src={m.avatar_url} name={m.full_name} size="sm" className="w-6 h-6 border-2 border-white/60 shadow-sm" />
                             ))}
                           </div>
                           <span className="text-xs text-white/80 font-medium ml-1">
