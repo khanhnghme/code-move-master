@@ -134,6 +134,10 @@
 ✅ Sử dụng AI Assistant
 ✅ Xem tài liệu dự án
 ✅ Cập nhật thông tin cá nhân
+✅ Tham gia cuộc họp nhóm (Jitsi video call)
+✅ Xem và cập nhật điểm danh cuộc họp
+✅ Chat trong phòng họp
+✅ Đồng ý Chính sách hệ thống khi đăng nhập/đăng ký
 ```
 
 ### 1.4 Luồng hoạt động chi tiết
