@@ -66,6 +66,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/activityLogger';
 import type { Task, Stage, GroupMember } from '@/types/database';
 import { formatDeadlineVN, isDeadlineOverdue, parseLocalDateTime } from '@/lib/datetime';
 import TaskSubmissionDialog from './TaskSubmissionDialog';
@@ -686,7 +687,7 @@ export default function TaskListView({
   onToggleStageHidden,
 }: TaskListViewProps) {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set(stages.map(s => s.id)));
@@ -923,6 +924,15 @@ export default function TaskListView({
           await supabase.from('submission_history').delete().eq('task_id', taskId);
           await supabase.from('tasks').delete().eq('id', taskId);
         }
+        if (user && profile) {
+          const deletedTasks = tasks.filter(t => idsToDelete.has(t.id));
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'BATCH_DELETE_TASKS', actionType: 'task',
+            description: `Xóa hàng loạt ${count} task: ${deletedTasks.map(t => t.title).join(', ')}`,
+            groupId,
+          });
+        }
         onRefresh();
       },
       onUndo: () => {
@@ -941,7 +951,16 @@ export default function TaskListView({
         .update({ status: bulkStatus as any })
         .in('id', Array.from(selectedTaskIds));
       if (error) throw error;
+      const statusLabels: Record<string, string> = { TODO: 'Chờ thực hiện', IN_PROGRESS: 'Đang thực hiện', DONE: 'Hoàn thành', VERIFIED: 'Đã duyệt' };
       toast({ title: 'Thành công', description: `Đã cập nhật trạng thái ${selectedTaskIds.size} task` });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'BATCH_STATUS_CHANGE', actionType: 'task',
+          description: `Đổi trạng thái hàng loạt ${selectedTaskIds.size} task thành "${statusLabels[bulkStatus] || bulkStatus}"`,
+          groupId,
+        });
+      }
       clearSelection();
       onRefresh();
     } catch (error: any) {

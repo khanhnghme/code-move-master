@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { logActivity } from '@/lib/activityLogger';
 import {
   Target,
   Users,
@@ -65,7 +66,7 @@ export default function TaskScoringDialog({
   taskScores,
   onScoreUpdated,
 }: TaskScoringDialogProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [memberEdits, setMemberEdits] = useState<MemberScoreEdit[]>([]);
@@ -215,6 +216,15 @@ export default function TaskScoringDialog({
       }
 
       toast({ title: 'Đã lưu điểm' });
+      const memberProfile = members.find(m => m.user_id === edit.userId)?.profiles;
+      if (user && profile && task) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'SCORE_TASK', actionType: 'score',
+          description: `Chấm điểm task "${task.title}" cho ${memberProfile?.full_name || 'Unknown'}: ${newScore} điểm${edit.adjustment !== 0 ? ` (điều chỉnh ${edit.adjustment > 0 ? '+' : ''}${edit.adjustment})` : ''}`,
+          groupId: task.group_id,
+        });
+      }
       toggleEditing(edit.userId);
       onScoreUpdated();
     } catch (error: any) {
@@ -296,6 +306,14 @@ export default function TaskScoringDialog({
         title: 'Đã chấm điểm cho tất cả thành viên',
         description: `${assignedMembers.length} thành viên đã được chấm ${newScore} điểm`
       });
+      if (user && profile && task) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'SCORE_TASK_GROUP', actionType: 'score',
+          description: `Chấm điểm nhóm task "${task.title}": ${newScore} điểm cho ${assignedMembers.length} thành viên${groupAdjustment !== 0 ? ` (điều chỉnh ${groupAdjustment > 0 ? '+' : ''}${groupAdjustment})` : ''}`,
+          groupId: task.group_id,
+        });
+      }
       onScoreUpdated();
       onClose();
     } catch (error: any) {

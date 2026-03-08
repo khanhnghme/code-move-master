@@ -36,6 +36,7 @@ import type { Group, GroupMember, Task, Profile, Stage } from '@/types/database'
 import { DeadlineHourPicker } from '@/components/DeadlineHourPicker';
 import { notifyTaskAssigned } from '@/lib/notifications';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';
+import { logActivity } from '@/lib/activityLogger';
 
 interface ExtendedGroup extends Group {
   class_code: string | null;
@@ -61,7 +62,7 @@ export default function GroupDetail() {
   const navigate = useNavigate();
   // Support all URL formats: /p/:projectSlug, /p/:projectId, /groups/:groupId
   const routeId = projectSlug || projectId || groupId;
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, profile } = useAuth();
   const { toast } = useToast();
   const { currentTab, setCurrentTab, goBack, goNext, canGoBack, canGoNext, isFirstTab, isLastTab } = useNavigation();
 
@@ -210,6 +211,13 @@ export default function GroupDetail() {
     try {
       await supabase.from('stages').insert({ group_id: group.id, name: newStageName.trim(), description: newStageDescription.trim() || null, order_index: stages.length });
       toast({ title: 'Thành công', description: 'Đã tạo giai đoạn mới' });
+      await logActivity({
+        userId: user!.id,
+        userName: profile?.full_name || user?.email || 'Unknown',
+        action: 'CREATE_STAGE', actionType: 'stage',
+        description: `Tạo giai đoạn "${newStageName.trim()}"`,
+        groupId: group!.id,
+      });
       setIsStageDialogOpen(false);
       setNewStageName('');
       setNewStageDescription('');
@@ -261,6 +269,19 @@ export default function GroupDetail() {
       }
       
       toast({ title: 'Thành công', description: 'Đã tạo task mới' });
+      
+      const assigneeNames = newTaskAssignees.length > 0 
+        ? members.filter(m => newTaskAssignees.includes(m.user_id)).map(m => m.profiles?.full_name).filter(Boolean).join(', ')
+        : '';
+      await logActivity({
+        userId: user!.id,
+        userName: profile?.full_name || user?.email || 'Unknown',
+        action: 'CREATE_TASK', actionType: 'task',
+        description: `Tạo task "${newTaskTitle.trim()}"${assigneeNames ? ` — Giao cho: ${assigneeNames}` : ''}${newTaskDeadline ? ` — Deadline: ${new Date(newTaskDeadline).toLocaleString('vi-VN')}` : ''}`,
+        groupId: group!.id,
+        metadata: { task_id: newTask?.id, task_title: newTaskTitle.trim(), assignees: newTaskAssignees },
+      });
+
       setIsTaskDialogOpen(false);
       setNewTaskTitle('');
       setNewTaskDescription('');
@@ -290,7 +311,13 @@ export default function GroupDetail() {
         title: newHiddenStatus ? 'Đã ẩn giai đoạn' : 'Đã hiện giai đoạn',
         description: `Giai đoạn "${stage.name}" ${newHiddenStatus ? 'đã được ẩn' : 'đã được hiện'}`,
       });
-      
+      await logActivity({
+        userId: user!.id,
+        userName: profile?.full_name || user?.email || 'Unknown',
+        action: newHiddenStatus ? 'HIDE_STAGE' : 'SHOW_STAGE', actionType: 'stage',
+        description: `${newHiddenStatus ? 'Ẩn' : 'Hiện'} giai đoạn "${stage.name}"`,
+        groupId: group!.id,
+      });
       fetchGroupData();
     } catch (error: any) {
       toast({
@@ -338,6 +365,13 @@ export default function GroupDetail() {
         await supabase.from('tasks').update({ stage_id: null }).eq('stage_id', stageRef.id);
         await supabase.from('member_stage_scores').delete().eq('stage_id', stageRef.id);
         await supabase.from('stages').delete().eq('id', stageRef.id);
+        await logActivity({
+          userId: user!.id,
+          userName: profile?.full_name || user?.email || 'Unknown',
+          action: 'DELETE_STAGE', actionType: 'stage',
+          description: `Xóa giai đoạn "${stageRef.name}"`,
+          groupId: group!.id,
+        });
         fetchGroupData();
       },
       onUndo: () => {

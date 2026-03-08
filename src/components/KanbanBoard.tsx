@@ -35,6 +35,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/activityLogger';
 import type { Task, Stage, GroupMember, Profile } from '@/types/database';
 import { formatDateVN, isDeadlineOverdue } from '@/lib/datetime';
 
@@ -64,6 +66,7 @@ export default function KanbanBoard({
   onDeleteStage,
 }: KanbanBoardProps) {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -152,6 +155,16 @@ export default function KanbanBoard({
         title: 'Đã di chuyển task',
         description: 'Task đã được chuyển sang giai đoạn mới',
       });
+      const task = tasks.find(t => t.id === taskId);
+      const newStageName = stages.find(s => s.id === newStageId)?.name || 'Chưa phân giai đoạn';
+      if (user && profile && task) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'MOVE_TASK_STAGE', actionType: 'task',
+          description: `Di chuyển task "${task.title}" sang giai đoạn "${newStageName}"`,
+          groupId,
+        });
+      }
       onRefresh();
     } catch (error: any) {
       toast({
@@ -175,6 +188,15 @@ export default function KanbanBoard({
         await supabase.from('submission_history').delete().eq('task_id', taskRef.id);
         const { error } = await supabase.from('tasks').delete().eq('id', taskRef.id);
         if (error) throw error;
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'DELETE_TASK', actionType: 'task',
+            description: `Xóa task "${taskRef.title}"`,
+            groupId,
+            metadata: { task_id: taskRef.id, task_title: taskRef.title },
+          });
+        }
         onRefresh();
       },
       onUndo: () => {

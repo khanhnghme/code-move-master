@@ -28,6 +28,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/activityLogger';
 import { MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react';
 import type { Stage } from '@/types/database';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';
@@ -40,6 +42,7 @@ interface StageManagementProps {
 
 export default function StageManagement({ stage, taskCount, onUpdate }: StageManagementProps) {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -65,11 +68,15 @@ export default function StageManagement({ stage, taskCount, onUpdate }: StageMan
 
       if (error) throw error;
 
-      toast({
-        title: 'Thành công',
-        description: 'Đã đổi tên giai đoạn',
-      });
-
+      toast({ title: 'Thành công', description: 'Đã đổi tên giai đoạn' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'RENAME_STAGE', actionType: 'stage',
+          description: `Đổi tên giai đoạn "${stage.name}" → "${newName.trim()}"`,
+          groupId: stage.group_id,
+        });
+      }
       setIsRenameDialogOpen(false);
       onUpdate();
     } catch (error: any) {
@@ -94,6 +101,14 @@ export default function StageManagement({ stage, taskCount, onUpdate }: StageMan
         await supabase.from('tasks').update({ stage_id: null }).eq('stage_id', stage.id);
         const { error } = await supabase.from('stages').delete().eq('id', stage.id);
         if (error) throw error;
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'DELETE_STAGE', actionType: 'stage',
+            description: `Xóa giai đoạn "${stage.name}"${taskCount > 0 ? ` (${taskCount} task chuyển về chưa phân giai đoạn)` : ''}`,
+            groupId: stage.group_id,
+          });
+        }
         onUpdate();
       },
       onUndo: () => {

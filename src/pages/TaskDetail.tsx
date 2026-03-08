@@ -11,6 +11,7 @@ import UserAvatar from '@/components/UserAvatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logActivity } from '@/lib/activityLogger';
 import { formatDeadlineVN } from '@/lib/datetime';
 import { ArrowLeft, Loader2, ExternalLink, Calendar, Clock, Save } from 'lucide-react';
 import type { Task, TaskAssignment, Profile, TaskStatus } from '@/types/database';
@@ -18,7 +19,7 @@ import ResourceLinkRenderer from '@/components/ResourceLinkRenderer';
 
 export default function TaskDetail() {
   const { groupId, taskId } = useParams<{ groupId: string; taskId: string }>();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -74,6 +75,21 @@ export default function TaskDetail() {
 
       const { error } = await supabase.from('tasks').update(updates).eq('id', taskId);
       if (error) throw error;
+      
+      const statusLabels: Record<string, string> = { TODO: 'Chờ', IN_PROGRESS: 'Đang làm', DONE: 'Hoàn thành', VERIFIED: 'Đã duyệt' };
+      const changes: string[] = [];
+      if (updates.status && updates.status !== task?.status) changes.push(`Trạng thái → ${statusLabels[updates.status] || updates.status}`);
+      if (updates.submission_link !== undefined) changes.push('Cập nhật link nộp bài');
+      
+      if (user && profile && changes.length > 0) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'UPDATE_TASK_STATUS', actionType: 'task',
+          description: `Cập nhật task "${task?.title}": ${changes.join(', ')}`,
+          groupId,
+        });
+      }
+      
       toast({ title: 'Đã lưu', description: 'Cập nhật task thành công' });
       fetchTaskData();
     } catch (error: any) {
