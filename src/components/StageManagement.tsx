@@ -68,11 +68,15 @@ export default function StageManagement({ stage, taskCount, onUpdate }: StageMan
 
       if (error) throw error;
 
-      toast({
-        title: 'Thành công',
-        description: 'Đã đổi tên giai đoạn',
-      });
-
+      toast({ title: 'Thành công', description: 'Đã đổi tên giai đoạn' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'RENAME_STAGE', actionType: 'stage',
+          description: `Đổi tên giai đoạn "${stage.name}" → "${newName.trim()}"`,
+          groupId: stage.group_id,
+        });
+      }
       setIsRenameDialogOpen(false);
       onUpdate();
     } catch (error: any) {
