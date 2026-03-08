@@ -111,6 +111,12 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
 
       if (joinError) {
         if (joinError.message?.includes('giới hạn')) {
+          const stats = await fetchJoinStats(groupPreview.id);
+          setGroupPreview((prev) => prev ? {
+            ...prev,
+            memberCount: stats.memberCount,
+            joinMemberLimit: stats.joinMemberLimit,
+          } : prev);
           toast({ title: 'Không thể tham gia', description: 'Project đã đạt giới hạn thành viên', variant: 'destructive' });
         } else {
           throw joinError;
