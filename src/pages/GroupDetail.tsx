@@ -84,7 +84,7 @@ export default function GroupDetail() {
     'members',
     'resources',
     'scores',
-    'logs',
+    ...(isLeaderInGroup && (group?.created_by === user?.id || isAdmin) ? ['logs'] : []),
     ...(isLeaderInGroup && group?.created_by === user?.id ? ['settings'] : [])
   ];
   
