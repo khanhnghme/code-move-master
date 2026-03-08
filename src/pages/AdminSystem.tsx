@@ -248,11 +248,15 @@ export default function AdminSystem() {
                       className="h-7 w-20 text-xs"
                     />
                   </div>
-                  {maintenanceStart && maintenanceEnd && (
+                  {maintenanceStart && maintenanceEnd ? (
                     <p className="text-[11px] text-muted-foreground">
-                      {format(new Date(maintenanceStart), "HH:mm dd/MM", { locale: vi })} → {format(new Date(maintenanceEnd), "HH:mm dd/MM/yyyy", { locale: vi })}
+                      🕐 {format(new Date(maintenanceStart), "HH:mm dd/MM", { locale: vi })} → {format(new Date(maintenanceEnd), "HH:mm dd/MM/yyyy", { locale: vi })}
                     </p>
-                  )}
+                  ) : maintenanceDays > 0 ? (
+                    <p className="text-[11px] text-muted-foreground">
+                      🕐 Dự kiến mở lại: {format(new Date(Date.now() + maintenanceDays * 86400000), "HH:mm dd/MM/yyyy", { locale: vi })}
+                    </p>
+                  ) : null}
                 </div>
 
                 {/* Maintenance message */}
