@@ -107,6 +107,7 @@ export default function MemberManagementCard({
   const [newMemberFullName, setNewMemberFullName] = useState('');
   const [newMemberStudentId, setNewMemberStudentId] = useState('');
   const [newMemberEmail, setNewMemberEmail] = useState('');
+  const [newMemberRole, setNewMemberRole] = useState<'member' | 'leader'>('member');
 
   // New role for change role dialog
   const [newRole, setNewRole] = useState<'member' | 'leader'>('member');
