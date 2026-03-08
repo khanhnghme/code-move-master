@@ -19,7 +19,7 @@ import ResourceLinkRenderer from '@/components/ResourceLinkRenderer';
 
 export default function TaskDetail() {
   const { groupId, taskId } = useParams<{ groupId: string; taskId: string }>();
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
