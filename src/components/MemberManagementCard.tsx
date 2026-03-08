@@ -1132,8 +1132,8 @@ export default function MemberManagementCard({
           const results: ImportValidation[] = [];
           for (const row of rows) {
             if (action === 'add') {
-              if (!row.fullName || !row.email) {
-                results.push({ row, status: 'missing_field', message: `Thiếu ${!row.fullName ? 'họ tên' : 'email'}` });
+              if (!row.fullName) {
+                results.push({ row, status: 'missing_field', message: 'Thiếu họ tên' });
                 continue;
               }
               // Check if already in project
