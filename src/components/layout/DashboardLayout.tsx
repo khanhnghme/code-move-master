@@ -58,7 +58,7 @@ function ThemeToggle() {
         <Button
           variant="outline"
           size="icon"
-          className="h-9 w-9 relative border-primary/30 bg-accent/50 hover:bg-accent"
+          className="h-9 w-9 relative border-border bg-background hover:bg-accent"
           onClick={() => setTheme(isDark ? 'light' : 'dark')}
         >
           <Sun className="h-[1.1rem] w-[1.1rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
