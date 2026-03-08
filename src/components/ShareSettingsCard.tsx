@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -22,7 +22,6 @@ interface ShareSettingsCardProps {
   onUpdate: () => void;
 }
 
-// Generate a random token client-side
 function generateToken(): string {
   const array = new Uint8Array(16);
   crypto.getRandomValues(array);
@@ -73,30 +72,19 @@ export default function ShareSettingsCard({
     setIsUpdating(true);
     try {
       let newToken = localShareToken;
-      
-      // Always generate a new token when enabling if there's no token
       if (enabled && !newToken) {
         newToken = generateToken();
       }
-
       const { error } = await supabase
         .from('groups')
-        .update({
-          is_public: enabled,
-          share_token: newToken,
-        })
+        .update({ is_public: enabled, share_token: newToken })
         .eq('id', groupId);
-
       if (error) throw error;
-
       setLocalIsPublic(enabled);
       setLocalShareToken(newToken);
-      
       toast({
         title: enabled ? 'Đã bật chia sẻ' : 'Đã tắt chia sẻ',
-        description: enabled 
-          ? 'Link xem project đã được tạo' 
-          : 'Link xem project đã bị vô hiệu hóa',
+        description: enabled ? 'Link xem project đã được tạo' : 'Link xem project đã bị vô hiệu hóa',
       });
       if (user && profile) {
         await logActivity({
@@ -109,7 +97,6 @@ export default function ShareSettingsCard({
       }
       onUpdate();
     } catch (error: any) {
-      console.error('Toggle share error:', error);
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
     } finally {
       setIsUpdating(false);
@@ -120,14 +107,11 @@ export default function ShareSettingsCard({
     setIsUpdating(true);
     try {
       const newToken = generateToken();
-
       const { error } = await supabase
         .from('groups')
         .update({ share_token: newToken })
         .eq('id', groupId);
-
       if (error) throw error;
-
       setLocalShareToken(newToken);
       toast({ title: 'Đã tạo link mới', description: 'Link cũ sẽ không còn hoạt động' });
       if (user && profile) {
@@ -152,24 +136,17 @@ export default function ShareSettingsCard({
         .from('groups')
         .update({ [field]: value })
         .eq('id', groupId);
-
       if (error) throw error;
-
-      if (field === 'show_members_public') {
-        setLocalShowMembers(value);
-      } else if (field === 'show_activity_public') {
-        setLocalShowActivity(value);
-      } else if (field === 'show_resources_public') {
-        setLocalShowResources(value);
-      }
-      
-      const fieldLabels: Record<string, string> = {
-        show_members_public: 'Hiển thị thành viên công khai',
-        show_activity_public: 'Hiển thị nhật ký công khai',
-        show_resources_public: 'Hiển thị tài nguyên công khai',
-      };
-      toast({ title: 'Đã cập nhật', description: 'Cài đặt hiển thị đã được lưu' });
+      if (field === 'show_members_public') setLocalShowMembers(value);
+      else if (field === 'show_activity_public') setLocalShowActivity(value);
+      else if (field === 'show_resources_public') setLocalShowResources(value);
+      toast({ title: 'Đã cập nhật' });
       if (user && profile) {
+        const fieldLabels: Record<string, string> = {
+          show_members_public: 'Hiển thị thành viên công khai',
+          show_activity_public: 'Hiển thị nhật ký công khai',
+          show_resources_public: 'Hiển thị tài nguyên công khai',
+        };
         await logActivity({
           userId: user.id, userName: profile.full_name,
           action: 'UPDATE_SHARE_VISIBILITY', actionType: 'setting',
@@ -183,304 +160,215 @@ export default function ShareSettingsCard({
     }
   };
 
-  const copyLink = () => {
-    if (publicLink) {
-      navigator.clipboard.writeText(publicLink);
-      toast({ title: 'Đã sao chép', description: 'Link đã được sao chép vào clipboard' });
+  const handleToggleJoinCode = async (enabled: boolean) => {
+    setIsUpdating(true);
+    try {
+      let newCode = localJoinCode;
+      if (enabled && !newCode) newCode = generateJoinCode();
+      const { error } = await supabase
+        .from('groups')
+        .update({ allow_join_by_code: enabled, join_code: enabled ? newCode : null })
+        .eq('id', groupId);
+      if (error) throw error;
+      setLocalAllowJoin(enabled);
+      setLocalJoinCode(enabled ? newCode : null);
+      toast({
+        title: enabled ? 'Đã bật mã tham gia' : 'Đã tắt mã tham gia',
+        description: enabled ? `Mã tham gia: ${newCode}` : 'Thành viên không thể tự tham gia bằng mã nữa',
+      });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: enabled ? 'ENABLE_JOIN_CODE' : 'DISABLE_JOIN_CODE',
+          actionType: 'setting',
+          description: enabled ? `Bật mã tham gia project: ${newCode}` : 'Tắt mã tham gia project',
+          groupId,
+        });
+      }
+      onUpdate();
+    } catch (error: any) {
+      toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
-  const openLink = () => {
+  const handleRegenerateJoinCode = async () => {
+    setIsUpdating(true);
+    try {
+      const newCode = generateJoinCode();
+      const { error } = await supabase
+        .from('groups')
+        .update({ join_code: newCode })
+        .eq('id', groupId);
+      if (error) throw error;
+      setLocalJoinCode(newCode);
+      toast({ title: 'Đã tạo mã mới', description: `Mã mới: ${newCode}` });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'REGENERATE_JOIN_CODE', actionType: 'setting',
+          description: `Tạo lại mã tham gia mới: ${newCode}`,
+          groupId,
+        });
+      }
+      onUpdate();
+    } catch (error: any) {
+      toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const copyLink = () => {
     if (publicLink) {
-      window.open(publicLink, '_blank');
+      navigator.clipboard.writeText(publicLink);
+      toast({ title: 'Đã sao chép link' });
     }
   };
 
   return (
-    <Card className="border-2 border-primary/20">
-      <CardHeader className="pb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20">
-            <Share2 className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <CardTitle className="text-lg">Link xem Project (Read-only)</CardTitle>
-            <CardDescription>
-              Chia sẻ link để người ngoài hệ thống xem tiến độ mà không cần đăng nhập
-            </CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
-        {/* Main Toggle */}
-        <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border">
-          <div className="flex items-center gap-3">
-            {localIsPublic ? (
-              <div className="p-2 rounded-lg bg-success/20">
-                <Unlock className="w-4 h-4 text-success" />
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Card 1: Public Share Link */}
+      <Card className="border border-border">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Share2 className="w-4 h-4 text-primary" />
               </div>
-            ) : (
-              <div className="p-2 rounded-lg bg-muted-foreground/20">
-                <Lock className="w-4 h-4 text-muted-foreground" />
-              </div>
-            )}
-            <div>
-              <p className="font-medium">
-                {localIsPublic ? 'Đang mở chia sẻ' : 'Đang khóa chia sẻ'}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {localIsPublic 
-                  ? 'Bất kỳ ai có link đều có thể xem' 
-                  : 'Chỉ thành viên project mới xem được'}
-              </p>
-            </div>
-          </div>
-          <Switch
-            checked={localIsPublic}
-            onCheckedChange={handleToggleShare}
-            disabled={isUpdating}
-          />
-        </div>
-
-        {/* Share Link - Always show when public is enabled */}
-        {localIsPublic && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Link chia sẻ công khai</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={publicLink || 'Đang tạo link...'}
-                  readOnly
-                  className="flex-1 bg-muted/50 font-mono text-sm"
-                />
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={copyLink} 
-                  title="Sao chép link"
-                  disabled={!publicLink}
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={openLink} 
-                  title="Mở trong tab mới"
-                  disabled={!publicLink}
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={handleRegenerateToken} 
-                  title="Tạo link mới"
-                  disabled={isUpdating}
-                >
-                  <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Người có link này có thể xem tiến độ project mà không cần đăng nhập
-              </p>
-            </div>
-
-            {/* Visibility Options */}
-            <div className="p-4 rounded-xl border bg-muted/30 space-y-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Eye className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Tùy chọn hiển thị</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Hiển thị danh sách thành viên</span>
-                </div>
-                <Switch
-                  checked={localShowMembers}
-                  onCheckedChange={(v) => handleUpdateVisibility('show_members_public', v)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FolderOpen className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Hiển thị tài nguyên dự án</span>
-                </div>
-                <Switch
-                  checked={localShowResources}
-                  onCheckedChange={(v) => handleUpdateVisibility('show_resources_public', v)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Hiển thị nhật ký hoạt động</span>
-                </div>
-                <Switch
-                  checked={localShowActivity}
-                  onCheckedChange={(v) => handleUpdateVisibility('show_activity_public', v)}
-                />
-              </div>
-            </div>
-
-            {/* Info Badge */}
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20 text-warning">
-              <Eye className="w-4 h-4 shrink-0" />
-              <span className="text-sm">
-                Chế độ chỉ xem – người có link không thể chỉnh sửa bất kỳ nội dung nào
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Join Code Section */}
-        <div className="border-t pt-6 space-y-4">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2.5 rounded-xl bg-accent/10 border border-accent/20">
-              <KeyRound className="w-5 h-5 text-accent" />
-            </div>
-            <div>
-              <p className="font-semibold">Mã tham gia Project</p>
-              <p className="text-sm text-muted-foreground">
-                Cho phép thành viên tham gia bằng mã 4 chữ số
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border">
-            <div className="flex items-center gap-3">
-              {localAllowJoin ? (
-                <div className="p-2 rounded-lg bg-success/20">
-                  <Unlock className="w-4 h-4 text-success" />
-                </div>
-              ) : (
-                <div className="p-2 rounded-lg bg-muted-foreground/20">
-                  <Lock className="w-4 h-4 text-muted-foreground" />
-                </div>
-              )}
-              <div>
-                <p className="font-medium">
-                  {localAllowJoin ? 'Đang cho phép tham gia bằng mã' : 'Tắt tham gia bằng mã'}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {localAllowJoin ? 'Thành viên có mã có thể tự tham gia' : 'Chỉ trưởng nhóm mới có thể thêm thành viên'}
-                </p>
-              </div>
+              <CardTitle className="text-base">Chia sẻ công khai</CardTitle>
             </div>
             <Switch
-              checked={localAllowJoin}
-              onCheckedChange={async (enabled) => {
-                setIsUpdating(true);
-                try {
-                  let newCode = localJoinCode;
-                  if (enabled && !newCode) {
-                    newCode = generateJoinCode();
-                  }
-                  const { error } = await supabase
-                    .from('groups')
-                    .update({
-                      allow_join_by_code: enabled,
-                      join_code: enabled ? newCode : null,
-                    })
-                    .eq('id', groupId);
-                  if (error) throw error;
-                  setLocalAllowJoin(enabled);
-                  setLocalJoinCode(enabled ? newCode : null);
-                  toast({
-                    title: enabled ? 'Đã bật mã tham gia' : 'Đã tắt mã tham gia',
-                    description: enabled ? `Mã tham gia: ${newCode}` : 'Thành viên không thể tự tham gia bằng mã nữa',
-                  });
-                  if (user && profile) {
-                    await logActivity({
-                      userId: user.id, userName: profile.full_name,
-                      action: enabled ? 'ENABLE_JOIN_CODE' : 'DISABLE_JOIN_CODE',
-                      actionType: 'setting',
-                      description: enabled ? `Bật mã tham gia project: ${newCode}` : 'Tắt mã tham gia project',
-                      groupId,
-                    });
-                  }
-                  onUpdate();
-                } catch (error: any) {
-                  toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
-                } finally {
-                  setIsUpdating(false);
-                }
-              }}
+              checked={localIsPublic}
+              onCheckedChange={handleToggleShare}
               disabled={isUpdating}
             />
           </div>
+        </CardHeader>
+        <CardContent className="space-y-3 pt-0">
+          {localIsPublic ? (
+            <>
+              <div className="flex gap-1.5">
+                <Input
+                  value={publicLink || '...'}
+                  readOnly
+                  className="flex-1 bg-muted/50 font-mono text-xs h-9"
+                />
+                <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={copyLink} disabled={!publicLink} title="Sao chép">
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={() => publicLink && window.open(publicLink, '_blank')} disabled={!publicLink} title="Mở">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-9 w-9 shrink-0" onClick={handleRegenerateToken} disabled={isUpdating} title="Tạo lại">
+                  <RefreshCw className={`w-3.5 h-3.5 ${isUpdating ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
 
-          {localAllowJoin && localJoinCode && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Mã tham gia</Label>
+              <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                  <Eye className="w-3.5 h-3.5" /> Hiển thị công khai
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { icon: Users, label: 'Thành viên', checked: localShowMembers, field: 'show_members_public' as const },
+                    { icon: FolderOpen, label: 'Tài nguyên', checked: localShowResources, field: 'show_resources_public' as const },
+                    { icon: Activity, label: 'Nhật ký', checked: localShowActivity, field: 'show_activity_public' as const },
+                  ].map(({ icon: Icon, label, checked, field }) => (
+                    <div key={field} className="flex items-center justify-between">
+                      <span className="text-sm flex items-center gap-1.5">
+                        <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+                        {label}
+                      </span>
+                      <Switch
+                        checked={checked}
+                        onCheckedChange={(v) => handleUpdateVisibility(field, v)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Eye className="w-3 h-3 shrink-0" />
+                Chế độ chỉ xem – không thể chỉnh sửa
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground py-2">
+              Bật để tạo link cho người ngoài xem tiến độ project
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Card 2: Join Code */}
+      <Card className="border border-border">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-lg bg-accent/10">
+                <KeyRound className="w-4 h-4 text-accent" />
+              </div>
+              <CardTitle className="text-base">Mã tham gia</CardTitle>
+            </div>
+            <Switch
+              checked={localAllowJoin}
+              onCheckedChange={handleToggleJoinCode}
+              disabled={isUpdating}
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3 pt-0">
+          {localAllowJoin && localJoinCode ? (
+            <>
               <div className="flex gap-2 items-center">
                 <div className="flex-1 bg-muted/50 border rounded-lg px-4 py-3 text-center text-3xl font-bold tracking-[0.5em] font-mono select-all">
                   {localJoinCode}
                 </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => {
-                    navigator.clipboard.writeText(localJoinCode);
-                    toast({ title: 'Đã sao chép mã' });
-                  }}
-                  title="Sao chép mã"
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={async () => {
-                    setIsUpdating(true);
-                    try {
-                      const newCode = generateJoinCode();
-                      const { error } = await supabase
-                        .from('groups')
-                        .update({ join_code: newCode })
-                        .eq('id', groupId);
-                      if (error) throw error;
-                      setLocalJoinCode(newCode);
-                      toast({ title: 'Đã tạo mã mới', description: `Mã mới: ${newCode}` });
-                      if (user && profile) {
-                        await logActivity({
-                          userId: user.id, userName: profile.full_name,
-                          action: 'REGENERATE_JOIN_CODE', actionType: 'setting',
-                          description: `Tạo lại mã tham gia mới: ${newCode}`,
-                          groupId,
-                        });
-                      }
-                      onUpdate();
-                    } catch (error: any) {
-                      toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
-                    } finally {
-                      setIsUpdating(false);
-                    }
-                  }}
-                  title="Tạo mã mới"
-                  disabled={isUpdating}
-                >
-                  <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin' : ''}`} />
-                </Button>
+                <div className="flex flex-col gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9"
+                    onClick={() => {
+                      navigator.clipboard.writeText(localJoinCode);
+                      toast({ title: 'Đã sao chép mã' });
+                    }}
+                    title="Sao chép mã"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9"
+                    onClick={handleRegenerateJoinCode}
+                    title="Tạo mã mới"
+                    disabled={isUpdating}
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isUpdating ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Chia sẻ mã này cho thành viên muốn tham gia project
+                Chia sẻ mã 4 số này cho thành viên muốn tự tham gia project
               </p>
-            </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground py-2">
+              Bật để tạo mã 4 chữ số cho thành viên tự tham gia
+            </p>
           )}
-        </div>
+        </CardContent>
+      </Card>
 
-        {isUpdating && (
-          <div className="flex items-center justify-center py-4">
-            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {isUpdating && (
+        <div className="col-span-full flex items-center justify-center py-2">
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+        </div>
+      )}
+    </div>
   );
 }
