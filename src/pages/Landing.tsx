@@ -5,10 +5,21 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import uehLogo from '@/assets/ueh-logo-new.png';
-import { Skeleton } from '@/components/ui/skeleton';
+import introPage1 from '@/assets/intro-page1-overview.png';
+import introPage2 from '@/assets/intro-page2-tasks.png';
+import introPage3 from '@/assets/intro-page3-scoring.png';
+import introPage4 from '@/assets/intro-page4-project.png';
+import introPage5 from '@/assets/intro-page5-advanced.png';
 
-/* ─── Intro Images Context ─── */
+/* ─── Intro Images ─── */
 type IntroImages = Record<string, string>;
+const STATIC_INTRO_IMAGES: IntroImages = {
+  page1: introPage1,
+  page2: introPage2,
+  page3: introPage3,
+  page4: introPage4,
+  page5: introPage5,
+};
 
 const IntroHeroImage = React.forwardRef<HTMLDivElement, { imageUrl?: string; fallbackGradient: string; alt: string }>(
   function IntroHeroImage({ imageUrl, fallbackGradient, alt }, ref) {
