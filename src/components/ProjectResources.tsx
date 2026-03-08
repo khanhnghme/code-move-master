@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { deleteWithUndo } from '@/lib/deleteWithUndo';
 import { useNavigate } from 'react-router-dom';
 import { useFilePreview } from '@/contexts/FilePreviewContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/activityLogger';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -100,6 +102,7 @@ function formatFileSize(bytes: number): string {
 
 export default function ProjectResources({ groupId, isLeader }: ProjectResourcesProps) {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { openFilePreview } = useFilePreview();
   const [resources, setResources] = useState<ProjectResource[]>([]);
@@ -247,6 +250,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
         }
         const { error } = await supabase.from('project_resources').delete().in('id', Array.from(idsToDelete));
         if (error) throw error;
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'BATCH_DELETE_RESOURCES', actionType: 'resource',
+            description: `Xóa hàng loạt ${count} tài nguyên: ${toDelete.map(r => r.name).join(', ')}`,
+            groupId,
+          });
+        }
         fetchResources();
       },
       onUndo: () => {
@@ -271,6 +282,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
         ? folders.find(f => f.id === batchMoveTarget)?.name || 'thư mục'
         : 'ngoài thư mục';
       toast({ title: 'Thành công', description: `Đã di chuyển ${selectedIds.size} tài nguyên vào ${targetName}` });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'BATCH_MOVE_RESOURCES', actionType: 'resource',
+          description: `Di chuyển hàng loạt ${selectedIds.size} tài nguyên vào ${targetName}`,
+          groupId,
+        });
+      }
       clearSelection();
       setBatchMoveDialogOpen(false);
       fetchResources();
@@ -340,10 +359,26 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
         const { error } = await (supabase.from('resource_folders' as any).update({ name: folderName.trim(), description: folderDescription || null }).eq('id', editingFolder.id) as any);
         if (error) throw error;
         toast({ title: 'Thành công', description: 'Đã cập nhật thư mục' });
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'UPDATE_FOLDER', actionType: 'resource',
+            description: `Cập nhật thư mục "${editingFolder.name}" → "${folderName.trim()}"`,
+            groupId,
+          });
+        }
       } else {
         const { error } = await (supabase.from('resource_folders' as any).insert({ group_id: groupId, name: folderName.trim(), description: folderDescription || null, created_by: userData.user.id }) as any);
         if (error) throw error;
         toast({ title: 'Thành công', description: 'Đã tạo thư mục mới' });
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'CREATE_FOLDER', actionType: 'resource',
+            description: `Tạo thư mục mới "${folderName.trim()}"`,
+            groupId,
+          });
+        }
       }
       setIsFolderDialogOpen(false);
       setFolderName('');
@@ -367,6 +402,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
       onDelete: async () => {
         await (supabase.from('project_resources').update({ folder_id: null } as any).eq('folder_id', folderRef.id) as any);
         await (supabase.from('resource_folders' as any).delete().eq('id', folderRef.id) as any);
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'DELETE_FOLDER', actionType: 'resource',
+            description: `Xóa thư mục "${folderRef.name}" (các file được chuyển về gốc)`,
+            groupId,
+          });
+        }
         fetchFolders();
         fetchResources();
       },
@@ -390,6 +433,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
         }
         const { error: dbError } = await supabase.from('project_resources').delete().eq('id', resourceRef.id);
         if (dbError) throw dbError;
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'DELETE_RESOURCE', actionType: 'resource',
+            description: `Xóa ${resourceRef.resource_type === 'link' ? 'link' : 'file'} "${resourceRef.name}" (${formatFileSize(resourceRef.file_size)})`,
+            groupId,
+          });
+        }
         fetchResources();
       },
       onUndo: () => {
@@ -411,6 +462,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
       const { error } = await supabase.from('project_resources').update({ name: finalName }).eq('id', renameResource.id);
       if (error) throw error;
       toast({ title: 'Thành công', description: 'Đã đổi tên' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'RENAME_RESOURCE', actionType: 'resource',
+          description: `Đổi tên "${renameResource.name}" → "${finalName}"`,
+          groupId,
+        });
+      }
       setRenameResource(null);
       setNewFileName('');
       fetchResources();
@@ -433,6 +492,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
         ? folders.find(f => f.id === moveTarget)?.name || 'thư mục'
         : 'ngoài thư mục';
       toast({ title: 'Thành công', description: `Đã di chuyển "${moveResource.name}" vào ${targetName}` });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'MOVE_RESOURCE', actionType: 'resource',
+          description: `Di chuyển "${moveResource.name}" vào ${targetName}`,
+          groupId,
+        });
+      }
       setMoveResource(null);
       fetchResources();
     } catch (error: any) {

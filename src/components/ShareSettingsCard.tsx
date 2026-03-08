@@ -5,6 +5,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/activityLogger';
 import { supabase } from '@/integrations/supabase/client';
 import { Share2, Copy, ExternalLink, Users, Activity, Loader2, Lock, Unlock, Eye, RefreshCw, FolderOpen } from 'lucide-react';
 
@@ -35,6 +37,7 @@ export default function ShareSettingsCard({
   onUpdate,
 }: ShareSettingsCardProps) {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
   const [localIsPublic, setLocalIsPublic] = useState(isPublic);
   const [localShareToken, setLocalShareToken] = useState(shareToken);
@@ -83,6 +86,15 @@ export default function ShareSettingsCard({
           ? 'Link xem project đã được tạo' 
           : 'Link xem project đã bị vô hiệu hóa',
       });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: enabled ? 'ENABLE_PUBLIC_SHARE' : 'DISABLE_PUBLIC_SHARE',
+          actionType: 'setting',
+          description: enabled ? 'Bật chia sẻ công khai dự án' : 'Tắt chia sẻ công khai dự án',
+          groupId,
+        });
+      }
       onUpdate();
     } catch (error: any) {
       console.error('Toggle share error:', error);
@@ -106,6 +118,14 @@ export default function ShareSettingsCard({
 
       setLocalShareToken(newToken);
       toast({ title: 'Đã tạo link mới', description: 'Link cũ sẽ không còn hoạt động' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'REGENERATE_SHARE_TOKEN', actionType: 'setting',
+          description: 'Tạo lại link chia sẻ mới (link cũ vô hiệu)',
+          groupId,
+        });
+      }
       onUpdate();
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
@@ -131,7 +151,20 @@ export default function ShareSettingsCard({
         setLocalShowResources(value);
       }
       
+      const fieldLabels: Record<string, string> = {
+        show_members_public: 'Hiển thị thành viên công khai',
+        show_activity_public: 'Hiển thị nhật ký công khai',
+        show_resources_public: 'Hiển thị tài nguyên công khai',
+      };
       toast({ title: 'Đã cập nhật', description: 'Cài đặt hiển thị đã được lưu' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'UPDATE_SHARE_VISIBILITY', actionType: 'setting',
+          description: `${value ? 'Bật' : 'Tắt'} ${fieldLabels[field] || field}`,
+          groupId,
+        });
+      }
       onUpdate();
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });

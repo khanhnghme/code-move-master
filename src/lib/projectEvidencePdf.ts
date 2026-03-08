@@ -113,6 +113,8 @@ const ACTION_TYPE_LABELS: Record<string, string> = {
   task: 'Task',
   resource: 'Tai nguyen',
   score: 'Diem',
+  project: 'Du an',
+  setting: 'Cai dat',
 };
 
 const formatAction = (action: string): string => {

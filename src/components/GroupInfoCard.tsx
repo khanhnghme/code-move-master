@@ -15,6 +15,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { logActivity } from '@/lib/activityLogger';
 import {
   BookOpen,
   User,
@@ -49,7 +50,7 @@ interface GroupInfoCardProps {
 
 export default function GroupInfoCard({ group, canEdit, onUpdate }: GroupInfoCardProps) {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -181,6 +182,24 @@ export default function GroupInfoCard({ group, canEdit, onUpdate }: GroupInfoCar
         .eq('id', group.id);
 
       if (error) throw error;
+
+      // Build change description
+      const changes: string[] = [];
+      if (editName.trim() !== group.name) changes.push(`Tên: "${group.name}" → "${editName.trim()}"`);
+      if ((editDescription.trim() || '') !== (group.description || '')) changes.push('Mô tả');
+      if ((editClassCode.trim() || '') !== (group.class_code || '')) changes.push(`Mã lớp: "${editClassCode.trim()}"`);
+      if ((editInstructorName.trim() || '') !== (group.instructor_name || '')) changes.push(`GVHD: "${editInstructorName.trim()}"`);
+      if ((editZaloLink.trim() || '') !== (group.zalo_link || '')) changes.push('Link Zalo');
+      if ((editImageUrl.trim() || '') !== (group.image_url || '')) changes.push('Ảnh đại diện');
+
+      if (user && changes.length > 0) {
+        await logActivity({
+          userId: user.id, userName: profile?.full_name || user.email || 'Unknown',
+          action: 'UPDATE_PROJECT_INFO', actionType: 'project',
+          description: `Cập nhật thông tin dự án: ${changes.join(', ')}`,
+          groupId: group.id,
+        });
+      }
 
       toast({
         title: 'Thành công',

@@ -11,6 +11,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { logActivity } from '@/lib/activityLogger';
 import UserAvatar from '@/components/UserAvatar';
 import { 
   Award, Scale, History, 
@@ -126,7 +127,7 @@ export default function ProcessScores({
   members,
   isLeader,
 }: ProcessScoresProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   
   const [isLoading, setIsLoading] = useState(true);
@@ -371,6 +372,14 @@ export default function ProcessScores({
         }
       }
       toast({ title: 'Thành công', description: 'Đã gửi phúc khảo' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'SUBMIT_APPEAL', actionType: 'score',
+          description: `Gửi phúc khảo điểm ${appealDialog.type === 'task' ? 'task' : 'giai đoạn'}: "${content.substring(0, 100)}"`,
+          groupId,
+        });
+      }
       setAppealDialog(null);
       fetchScoreData();
     } catch (error: any) {
@@ -386,6 +395,14 @@ export default function ProcessScores({
     try {
       await supabase.from('score_appeals').update({ status: approved ? 'approved' : 'rejected', response, responded_by: user?.id, responded_at: new Date().toISOString() }).eq('id', reviewDialog.appeal.id);
       toast({ title: 'Thành công', description: approved ? 'Đã chấp nhận phúc khảo' : 'Đã từ chối phúc khảo' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: approved ? 'APPROVE_APPEAL' : 'REJECT_APPEAL', actionType: 'score',
+          description: `${approved ? 'Chấp nhận' : 'Từ chối'} phúc khảo của ${getMemberProfile(reviewDialog.appeal.user_id)?.full_name || 'Unknown'}`,
+          groupId,
+        });
+      }
       setReviewDialog({ isOpen: false, appeal: null });
       fetchScoreData();
     } catch (error: any) {
@@ -406,7 +423,19 @@ export default function ProcessScores({
           await supabase.from('stage_weights').insert([{ group_id: groupId, stage_id: stageId, weight }]);
         }
       }
+      const weightChanges = weights.map(w => {
+        const stage = stages.find(s => s.id === w.stageId);
+        return `${stage?.name || 'Unknown'}: ${w.weight}%`;
+      }).join(', ');
       toast({ title: 'Thành công', description: 'Đã lưu trọng số giai đoạn' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'UPDATE_STAGE_WEIGHTS', actionType: 'score',
+          description: `Thay đổi trọng số giai đoạn: ${weightChanges}`,
+          groupId,
+        });
+      }
       setWeightDialog(false);
       fetchScoreData();
     } catch (error: any) {
