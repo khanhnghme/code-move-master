@@ -407,6 +407,7 @@ export default function GroupDetail() {
             <TabsList>
               <TabsTrigger value="overview">Tổng quan</TabsTrigger>
               <TabsTrigger value="tasks">Task</TabsTrigger>
+              <TabsTrigger value="meetings">Họp nhóm</TabsTrigger>
               <TabsTrigger value="members">Thành viên</TabsTrigger>
               <TabsTrigger value="resources">Tài nguyên</TabsTrigger>
               <TabsTrigger value="scores">Điểm quá trình</TabsTrigger>
