@@ -5,6 +5,7 @@ import type { Profile, UserRole, AppRole } from '@/types/database';
 import SuspendedScreen from '@/components/SuspendedScreen';
 import MaintenanceScreen from '@/components/MaintenanceScreen';
 import { ProfileCompletionForm } from '@/components/ProfileCompletionForm';
+import ForceGoogleLinkScreen from '@/components/ForceGoogleLinkScreen';
 
 interface AuthContextType {
   user: User | null;
