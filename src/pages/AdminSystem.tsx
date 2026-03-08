@@ -259,14 +259,29 @@ export default function AdminSystem() {
                       className="h-7 w-20 text-xs"
                     />
                   </div>
+                  {/* Schedule info box */}
                   {maintenanceStart && maintenanceEnd ? (
-                    <p className="text-[11px] text-muted-foreground">
-                      🕐 {format(new Date(maintenanceStart), "HH:mm dd/MM", { locale: vi })} → {format(new Date(maintenanceEnd), "HH:mm dd/MM/yyyy", { locale: vi })}
-                    </p>
+                    <div className="rounded-lg border border-warning/30 bg-warning/5 p-2.5 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Bắt đầu khóa:</span>
+                        <span className="text-sm font-medium">{format(new Date(maintenanceStart), "HH:mm - dd/MM/yyyy", { locale: vi })}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Dự kiến mở lại:</span>
+                        <span className="text-sm font-semibold text-primary">{format(new Date(maintenanceEnd), "HH:mm - dd/MM/yyyy", { locale: vi })}</span>
+                      </div>
+                    </div>
                   ) : maintenanceDays > 0 ? (
-                    <p className="text-[11px] text-muted-foreground">
-                      🕐 Dự kiến mở lại: {format(new Date(Date.now() + maintenanceDays * 86400000), "HH:mm dd/MM/yyyy", { locale: vi })}
-                    </p>
+                    <div className="rounded-lg border border-muted bg-muted/30 p-2.5 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Bắt đầu khóa:</span>
+                        <span className="text-sm font-medium">Khi bấm xác nhận</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Dự kiến mở lại:</span>
+                        <span className="text-sm font-semibold text-primary">{format(new Date(Date.now() + maintenanceDays * 86400000), "HH:mm - dd/MM/yyyy", { locale: vi })}</span>
+                      </div>
+                    </div>
                   ) : null}
                 </div>
 
