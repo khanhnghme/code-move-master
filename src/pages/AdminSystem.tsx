@@ -100,15 +100,16 @@ export default function AdminSystem() {
     setSaving(true);
     try {
       const now = new Date();
-      const endAt = maintenanceDays > 0 ? new Date(now.getTime() + maintenanceDays * 86400000).toISOString() : null;
+      const endAt = maintenanceEnabled && maintenanceDays > 0 ? new Date(now.getTime() + maintenanceDays * 86400000).toISOString() : null;
+      const startAt = maintenanceEnabled ? now.toISOString() : null;
       const { error } = await supabase
         .from('system_settings')
         .update({
           value: {
             enabled: maintenanceEnabled,
             message: maintenanceMessage,
-            duration_days: maintenanceDays || null,
-            start_at: maintenanceEnabled ? now.toISOString() : null,
+            duration_days: maintenanceEnabled ? (maintenanceDays || null) : null,
+            start_at: startAt,
             end_at: endAt,
           },
           updated_at: now.toISOString(),
@@ -117,6 +118,16 @@ export default function AdminSystem() {
 
       if (error) throw error;
       setOrigMaintenanceEnabled(maintenanceEnabled);
+
+      if (maintenanceEnabled) {
+        setMaintenanceStart(startAt!);
+        setMaintenanceEnd(endAt ?? '');
+      } else {
+        setMaintenanceStart('');
+        setMaintenanceEnd('');
+        setMaintenanceDays(0);
+        setCustomDays('');
+      }
 
       toast({
         title: 'Đã lưu cài đặt',
@@ -248,14 +259,29 @@ export default function AdminSystem() {
                       className="h-7 w-20 text-xs"
                     />
                   </div>
+                  {/* Schedule info box */}
                   {maintenanceStart && maintenanceEnd ? (
-                    <p className="text-[11px] text-muted-foreground">
-                      🕐 {format(new Date(maintenanceStart), "HH:mm dd/MM", { locale: vi })} → {format(new Date(maintenanceEnd), "HH:mm dd/MM/yyyy", { locale: vi })}
-                    </p>
+                    <div className="rounded-lg border border-warning/30 bg-warning/5 p-2.5 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Bắt đầu khóa:</span>
+                        <span className="text-sm font-medium">{format(new Date(maintenanceStart), "HH:mm - dd/MM/yyyy", { locale: vi })}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Dự kiến mở lại:</span>
+                        <span className="text-sm font-semibold text-primary">{format(new Date(maintenanceEnd), "HH:mm - dd/MM/yyyy", { locale: vi })}</span>
+                      </div>
+                    </div>
                   ) : maintenanceDays > 0 ? (
-                    <p className="text-[11px] text-muted-foreground">
-                      🕐 Dự kiến mở lại: {format(new Date(Date.now() + maintenanceDays * 86400000), "HH:mm dd/MM/yyyy", { locale: vi })}
-                    </p>
+                    <div className="rounded-lg border border-muted bg-muted/30 p-2.5 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Bắt đầu khóa:</span>
+                        <span className="text-sm font-medium">Khi bấm xác nhận</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Dự kiến mở lại:</span>
+                        <span className="text-sm font-semibold text-primary">{format(new Date(Date.now() + maintenanceDays * 86400000), "HH:mm - dd/MM/yyyy", { locale: vi })}</span>
+                      </div>
+                    </div>
                   ) : null}
                 </div>
 
