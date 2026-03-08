@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle, Bug } from 'lucide-react';
+import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle, Bug, Video } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -51,6 +52,13 @@ export default function AdminSystem() {
   // Error logging state
   const [errorLoggingEnabled, setErrorLoggingEnabled] = useState(true);
   const [savingErrorLogging, setSavingErrorLogging] = useState(false);
+
+  // Video background state
+  const [videoBgEnabled, setVideoBgEnabled] = useState(false);
+  const [videoBgOpacity, setVideoBgOpacity] = useState(20);
+  const [videoBgUrl, setVideoBgUrl] = useState('');
+  const [savingVideo, setSavingVideo] = useState(false);
+
   useEffect(() => {
     if (!isLoading && !isAdmin) {
       navigate('/dashboard');
@@ -61,10 +69,11 @@ export default function AdminSystem() {
 
   const fetchSettings = async () => {
     try {
-      const [maintenanceRes, policyRes, errorLoggingRes] = await Promise.all([
+      const [maintenanceRes, policyRes, errorLoggingRes, videoRes] = await Promise.all([
         supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
         supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
+        supabase.from('system_settings').select('*').eq('key', 'dashboard_video_bg').maybeSingle(),
       ]);
 
       if (maintenanceRes.data?.value) {
@@ -88,6 +97,13 @@ export default function AdminSystem() {
       if (errorLoggingRes.data?.value) {
         const val = errorLoggingRes.data.value as { enabled?: boolean };
         setErrorLoggingEnabled(val.enabled ?? true);
+      }
+
+      if (videoRes.data?.value) {
+        const val = videoRes.data.value as { enabled?: boolean; opacity?: number; url?: string };
+        setVideoBgEnabled(val.enabled ?? false);
+        setVideoBgOpacity(Math.round((val.opacity ?? 0.2) * 100));
+        setVideoBgUrl(val.url ?? '');
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
@@ -376,6 +392,81 @@ export default function AdminSystem() {
                     ? 'Tự động ghi lại các lỗi runtime, promise rejection và console error.'
                     : 'Không ghi lỗi — lỗi chỉ hiện trong console trình duyệt.'}
                 </p>
+              </CardContent>
+            </Card>
+
+            {/* Video Background */}
+            <Card className="border border-border">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-lg bg-accent/10">
+                      <Video className="w-4 h-4 text-accent" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        Video nền Dashboard
+                        <Badge variant={videoBgEnabled ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
+                          {videoBgEnabled ? 'BẬT' : 'TẮT'}
+                        </Badge>
+                      </CardTitle>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={videoBgEnabled}
+                    onCheckedChange={setVideoBgEnabled}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <div>
+                  <Label className="text-xs text-muted-foreground">URL video</Label>
+                  <Input
+                    placeholder="https://example.com/video.mp4"
+                    value={videoBgUrl}
+                    onChange={(e) => setVideoBgUrl(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Độ hiển thị: {videoBgOpacity}%</Label>
+                  <Slider
+                    value={[videoBgOpacity]}
+                    onValueChange={(v) => setVideoBgOpacity(v[0])}
+                    min={0}
+                    max={100}
+                    step={5}
+                    className="mt-2"
+                  />
+                </div>
+                <Button
+                  className="w-full gap-2"
+                  disabled={savingVideo}
+                  onClick={async () => {
+                    setSavingVideo(true);
+                    try {
+                      const value = { enabled: videoBgEnabled, opacity: videoBgOpacity / 100, url: videoBgUrl };
+                      const { data: existing } = await supabase
+                        .from('system_settings')
+                        .select('id')
+                        .eq('key', 'dashboard_video_bg')
+                        .maybeSingle();
+                      if (existing) {
+                        await supabase.from('system_settings').update({ value, updated_at: new Date().toISOString() }).eq('key', 'dashboard_video_bg');
+                      } else {
+                        await supabase.from('system_settings').insert({ key: 'dashboard_video_bg', value });
+                      }
+                      toast({ title: 'Đã lưu cài đặt video nền' });
+                    } catch {
+                      toast({ title: 'Lỗi', description: 'Không thể lưu', variant: 'destructive' });
+                    } finally {
+                      setSavingVideo(false);
+                    }
+                  }}
+                >
+                  <Save className="w-4 h-4" />
+                  Lưu cài đặt video
+                </Button>
               </CardContent>
             </Card>
           </div>
