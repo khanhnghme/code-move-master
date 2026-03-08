@@ -45,9 +45,15 @@ import {
 import type { Group, GroupMember } from '@/types/database';
 import UserAvatar from '@/components/UserAvatar';
 
+interface MemberAvatar {
+  avatar_url: string | null;
+  full_name: string;
+}
+
 interface GroupWithMembers extends Group {
   memberCount: number;
   myRole: string;
+  memberAvatars: MemberAvatar[];
 }
 
 interface MemberToAdd {
@@ -112,29 +118,41 @@ export default function Groups() {
         .order('created_at', { ascending: false });
 
       if (groupsData) {
-        // Get member counts (robust, avoids relying on wide SELECTs)
-        const countEntries = await Promise.all(
+        // Get member counts + avatars
+        const memberEntries = await Promise.all(
           groupIds.map(async (groupId) => {
-            const { count, error } = await supabase
+            const { count } = await supabase
               .from('group_members')
               .select('*', { count: 'exact', head: true })
               .eq('group_id', groupId);
 
-            if (error) {
-              console.error('Error counting members for group:', groupId, error);
-              return [groupId, 0] as const;
+            // Fetch up to 4 member avatars
+            const { data: members } = await supabase
+              .from('group_members')
+              .select('user_id')
+              .eq('group_id', groupId)
+              .limit(4);
+
+            let avatars: MemberAvatar[] = [];
+            if (members && members.length > 0) {
+              const { data: profiles } = await supabase
+                .from('profiles')
+                .select('avatar_url, full_name')
+                .in('id', members.map(m => m.user_id));
+              avatars = (profiles || []).map(p => ({ avatar_url: p.avatar_url, full_name: p.full_name }));
             }
 
-            return [groupId, count ?? 0] as const;
+            return [groupId, { count: count ?? 0, avatars }] as const;
           })
         );
 
-        const countMap = new Map<string, number>(countEntries);
+        const memberMap = new Map(memberEntries);
 
         const groupsWithMembers: GroupWithMembers[] = groupsData.map((g) => ({
           ...g,
-          memberCount: countMap.get(g.id) || 0,
+          memberCount: memberMap.get(g.id)?.count || 0,
           myRole: roleMap.get(g.id) || 'member',
+          memberAvatars: memberMap.get(g.id)?.avatars || [],
         }));
 
         setGroups(groupsWithMembers);
@@ -748,9 +766,9 @@ export default function Groups() {
                           {group.name}
                         </h3>
                         <div className="flex items-center gap-1.5 mt-1.5">
-                          <div className="flex -space-x-1.5">
-                            {[...Array(Math.min(group.memberCount, 3))].map((_, i) => (
-                              <div key={i} className="w-5 h-5 rounded-full bg-white/30 border border-white/50 backdrop-blur-sm" />
+                          <div className="flex -space-x-2">
+                            {group.memberAvatars.slice(0, 4).map((m, i) => (
+                              <UserAvatar key={i} src={m.avatar_url} name={m.full_name} size="sm" className="w-6 h-6 border-2 border-white/60 shadow-sm" />
                             ))}
                           </div>
                           <span className="text-xs text-white/80 font-medium ml-1">
