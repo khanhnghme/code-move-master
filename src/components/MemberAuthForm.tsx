@@ -533,22 +533,6 @@ export function MemberAuthForm() {
                 {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="reg-email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="reg-email"
-                    type="email"
-                    placeholder="email@example.com"
-                    className="pl-10"
-                    value={regEmail}
-                    onChange={(e) => setRegEmail(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="reg-password">Mật khẩu</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -563,22 +547,6 @@ export function MemberAuthForm() {
                   />
                 </div>
                 {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reg-confirm-password">Xác nhận mật khẩu</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="reg-confirm-password"
-                    type="password"
-                    placeholder="Nhập lại mật khẩu"
-                    className="pl-10"
-                    value={regConfirmPassword}
-                    onChange={(e) => setRegConfirmPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
               </div>
 
               {/* Policy checkbox - unchecked by default for register */}
