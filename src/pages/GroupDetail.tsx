@@ -481,7 +481,7 @@ export default function GroupDetail() {
                               </div>
 
                               {/* Config row: all fields inline */}
-                              <div className={`grid gap-3 ${stages.length > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                              <div className={`grid gap-3 ${stages.length > 0 ? 'grid-cols-[1fr_1.2fr_1fr_1fr]' : 'grid-cols-[1.2fr_1fr_1fr]'}`}>
                                 {stages.length > 0 && (
                                   <div>
                                     <Label className="text-[11px] font-medium mb-1 block flex items-center gap-1 text-warning">

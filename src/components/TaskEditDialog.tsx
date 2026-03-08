@@ -348,7 +348,7 @@ export default function TaskEditDialog({
               </div>
 
               {/* Config row: all fields inline */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-[1fr_1.2fr_1fr_1fr] gap-3">
                 <div>
                   <Label className="text-[11px] font-medium mb-1 block flex items-center gap-1 text-warning">
                     <Layers className="w-3 h-3" /> Giai đoạn
