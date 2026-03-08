@@ -600,6 +600,92 @@ export default function AIAssistantPanel({
           </p>
         </div>
       </SheetContent>
+
+      <style>{`
+        /* Typing indicator - wave effect */
+        @keyframes ai-typing-wave {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+          30% { transform: translateY(-8px); opacity: 1; }
+        }
+        .ai-typing-dot {
+          animation: ai-typing-wave 1.4s ease-in-out infinite;
+        }
+
+        /* Sparkle spin */
+        @keyframes ai-sparkle-spin {
+          0% { transform: rotate(0deg) scale(1); }
+          50% { transform: rotate(180deg) scale(1.2); }
+          100% { transform: rotate(360deg) scale(1); }
+        }
+        .ai-sparkle-spin {
+          animation: ai-sparkle-spin 2s linear infinite;
+        }
+
+        /* Thinking text shimmer */
+        @keyframes ai-shimmer {
+          0% { opacity: 0.5; }
+          50% { opacity: 1; }
+          100% { opacity: 0.5; }
+        }
+        .ai-thinking-text {
+          animation: ai-shimmer 2s ease-in-out infinite;
+        }
+
+        /* Hero entrance */
+        @keyframes ai-hero-enter {
+          0% { transform: scale(0.3) rotate(-10deg); opacity: 0; }
+          60% { transform: scale(1.1) rotate(3deg); opacity: 1; }
+          100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .ai-hero-entrance {
+          animation: ai-hero-enter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* Hero gentle bounce */
+        @keyframes ai-gentle-bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+        .ai-hero-bounce {
+          animation: ai-gentle-bounce 3s ease-in-out infinite;
+          animation-delay: 0.6s;
+        }
+
+        /* Pulse glow behind hero */
+        @keyframes ai-pulse-glow {
+          0%, 100% { opacity: 0.3; transform: scale(1.5); }
+          50% { opacity: 0.6; transform: scale(1.8); }
+        }
+        .ai-pulse-glow {
+          animation: ai-pulse-glow 3s ease-in-out infinite;
+        }
+
+        /* Suggestion cards staggered entrance */
+        @keyframes ai-card-enter {
+          0% { transform: translateX(20px); opacity: 0; }
+          100% { transform: translateX(0); opacity: 1; }
+        }
+        .ai-suggestion-card {
+          opacity: 0;
+          animation: ai-card-enter 0.4s ease-out forwards;
+        }
+
+        /* Decorative spin */
+        @keyframes ai-decor-rotate {
+          0% { transform: translate(50%, -50%) rotate(0deg); }
+          100% { transform: translate(50%, -50%) rotate(360deg); }
+        }
+        @keyframes ai-decor-rotate-reverse {
+          0% { transform: translate(-50%, 50%) rotate(0deg); }
+          100% { transform: translate(-50%, 50%) rotate(-360deg); }
+        }
+        .ai-decor-spin {
+          animation: ai-decor-rotate 20s linear infinite;
+        }
+        .ai-decor-spin-reverse {
+          animation: ai-decor-rotate-reverse 25s linear infinite;
+        }
+      `}</style>
     </Sheet>
   );
 }
