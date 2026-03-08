@@ -1184,6 +1184,12 @@ export default function TaskListView({
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
+                        {progressPercent === 100 && stageTasks.length > 0 && (
+                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px] px-1.5 h-5 gap-0.5">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Xong
+                          </Badge>
+                        )}
                         {overdueCount > 0 && (
                           <Badge variant="destructive" className="text-[10px] px-1.5 h-5">
                             {overdueCount} trễ
