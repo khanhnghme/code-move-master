@@ -52,6 +52,8 @@ export default function ShareSettingsCard({
   const [localShowMembers, setLocalShowMembers] = useState(showMembersPublic);
   const [localShowActivity, setLocalShowActivity] = useState(showActivityPublic);
   const [localShowResources, setLocalShowResources] = useState(showResourcesPublic);
+  const [localJoinCode, setLocalJoinCode] = useState(joinCode || null);
+  const [localAllowJoin, setLocalAllowJoin] = useState(allowJoinByCode);
 
   useEffect(() => {
     setLocalIsPublic(isPublic);
