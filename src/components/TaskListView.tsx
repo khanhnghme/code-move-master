@@ -519,6 +519,41 @@ export default function TaskListView({
   const [filterStage, setFilterStage] = useState<string>('all');
   const [showHidden, setShowHidden] = useState(false);
   const [taskFilters, setTaskFilters] = useState<TaskFiltersType>(defaultTaskFilters);
+
+  // Auto-collapse completed stages - per user preference in localStorage
+  const autoCollapseKey = `autoCollapseCompleted_${user?.id || 'anon'}_${groupId}`;
+  const [autoCollapseCompleted, setAutoCollapseCompleted] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem(autoCollapseKey);
+      return stored === 'true';
+    } catch { return false; }
+  });
+
+  const toggleAutoCollapse = useCallback(() => {
+    setAutoCollapseCompleted(prev => {
+      const next = !prev;
+      try { localStorage.setItem(autoCollapseKey, String(next)); } catch {}
+      return next;
+    });
+  }, [autoCollapseKey]);
+
+  // Effect: auto-collapse stages that are 100% completed
+  useEffect(() => {
+    if (!autoCollapseCompleted) return;
+    const completedStageIds = stages.filter(stage => {
+      const stageTasks = tasks.filter(t => t.stage_id === stage.id && (!t.is_hidden || showHidden || isLeaderInGroup));
+      if (stageTasks.length === 0) return false;
+      return stageTasks.every(t => t.status === 'DONE' || t.status === 'VERIFIED');
+    }).map(s => s.id);
+    
+    if (completedStageIds.length > 0) {
+      setExpandedStages(prev => {
+        const next = new Set(prev);
+        completedStageIds.forEach(id => next.delete(id));
+        return next;
+      });
+    }
+  }, [autoCollapseCompleted, stages, tasks, showHidden, isLeaderInGroup]);
   const [meetingsByTaskId, setMeetingsByTaskId] = useState<Record<string, any>>({});
   
   // Fetch meetings for this group to show on meeting tasks
