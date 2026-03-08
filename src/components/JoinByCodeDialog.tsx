@@ -23,6 +23,7 @@ interface GroupPreview {
   zalo_link: string | null;
   memberCount: number;
   leaderName: string | null;
+  joinMemberLimit: number | null;
 }
 
 interface JoinByCodeDialogProps {
