@@ -329,6 +329,14 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ProfileViewDialog
+        open={profileDialogOpen}
+        onOpenChange={setProfileDialogOpen}
+        profile={profileToView}
+        role={memberRole}
+        groupId={groupId}
+      />
     </>
   );
 }
