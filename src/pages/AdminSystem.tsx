@@ -173,7 +173,7 @@ export default function AdminSystem() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex items-center gap-3">
           <Shield className="w-7 h-7 text-primary" />
           <div>
@@ -182,37 +182,22 @@ export default function AdminSystem() {
           </div>
         </div>
 
-        {/* Two cards side by side */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Maintenance Mode Card */}
-          <Card className="border-2 border-dashed border-warning/40">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Card 1: Maintenance Mode */}
+          <Card className="border border-border">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-warning/10">
-                  <Wrench className="w-5 h-5 text-warning" />
-                </div>
-                <div className="flex-1">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    Khóa hệ thống
-                    {maintenanceEnabled && (
-                      <Badge variant="destructive" className="text-xs">ĐANG BẬT</Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    Khi bật, toàn bộ thành viên sẽ không thể truy cập.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className={`w-4 h-4 ${maintenanceEnabled ? 'text-destructive' : 'text-muted-foreground'}`} />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-lg bg-warning/10">
+                    <Wrench className="w-4 h-4 text-warning" />
+                  </div>
                   <div>
-                    <p className="font-medium text-sm">Trạng thái bảo trì</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {maintenanceEnabled ? 'Đang khóa' : 'Hoạt động bình thường'}
-                    </p>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      Khóa hệ thống
+                      {maintenanceEnabled && (
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0">BẬT</Badge>
+                      )}
+                    </CardTitle>
                   </div>
                 </div>
                 <Switch
@@ -223,6 +208,11 @@ export default function AdminSystem() {
                   }}
                 />
               </div>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              <p className="text-xs text-muted-foreground">
+                Khi bật, toàn bộ thành viên (trừ Admin) sẽ không thể truy cập hệ thống.
+              </p>
 
               {/* Duration presets */}
               <div className="space-y-1.5">
@@ -233,7 +223,6 @@ export default function AdminSystem() {
                   {[
                     { label: '1 ngày', days: 1 },
                     { label: '3 ngày', days: 3 },
-                    { label: '5 ngày', days: 5 },
                     { label: '7 ngày', days: 7 },
                     { label: '14 ngày', days: 14 },
                     { label: '30 ngày', days: 30 },
@@ -250,12 +239,12 @@ export default function AdminSystem() {
                     </Button>
                   ))}
                 </div>
-                <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex items-center gap-2">
                   <Input
                     type="number"
                     min={1}
                     max={365}
-                    placeholder="Tùy chỉnh số ngày..."
+                    placeholder="Tùy chỉnh..."
                     value={customDays}
                     onChange={(e) => {
                       setCustomDays(e.target.value);
@@ -267,55 +256,57 @@ export default function AdminSystem() {
                   <span className="text-xs text-muted-foreground shrink-0">ngày</span>
                 </div>
               </div>
+
               {maintenanceDays > 0 && (
                 <p className="text-[11px] text-muted-foreground bg-muted/50 rounded px-2 py-1.5">
                   ⏱ Tự mở lại sau <span className="font-semibold text-foreground">{maintenanceDays} ngày</span>
                   {maintenanceEnabled && maintenanceEnd ? (
-                    <> · Dự kiến mở lại: <span className="font-semibold text-foreground">{format(new Date(maintenanceEnd), "HH:mm dd/MM/yyyy", { locale: vi })}</span></>
+                    <> · Dự kiến: <span className="font-semibold text-foreground">{format(new Date(maintenanceEnd), "HH:mm dd/MM/yyyy", { locale: vi })}</span></>
                   ) : (
-                    <> kể từ khi bật bảo trì</>
+                    <> kể từ khi bật</>
                   )}
                 </p>
               )}
 
               <div className="space-y-1.5">
-                <Label htmlFor="maintenance-msg" className="text-xs">Thông báo cho người dùng</Label>
+                <Label htmlFor="maintenance-msg" className="text-xs">Thông báo</Label>
                 <Textarea
                   id="maintenance-msg"
                   value={maintenanceMessage}
                   onChange={(e) => setMaintenanceMessage(e.target.value)}
                   placeholder="Nhập thông báo bảo trì..."
                   rows={2}
-                  className="text-sm"
+                  className="text-sm resize-none"
                 />
               </div>
-
             </CardContent>
           </Card>
 
-          {/* System Policy Card */}
-          <Card className="border-2 border-dashed border-primary/30">
+          {/* Card 2: System Policy */}
+          <Card className="border border-border">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <FileText className="w-5 h-5 text-primary" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <FileText className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Chính sách hệ thống</CardTitle>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <CardTitle className="text-lg">Chính sách hệ thống</CardTitle>
-                  <CardDescription className="text-xs">
-                    Nội dung chính sách người dùng cần đồng ý khi đăng nhập / đăng ký.
-                  </CardDescription>
-                  {policyUpdatedAt && (
-                    <p className="text-[11px] text-muted-foreground mt-1">
-                      Cập nhật: <span className="font-medium">{format(new Date(policyUpdatedAt), "HH:mm dd/MM/yyyy", { locale: vi })}</span>
-                    </p>
-                  )}
-                </div>
+                <Button size="sm" variant="outline" className="h-7 text-xs gap-1" onClick={handleOpenPolicyEditor}>
+                  <Edit className="w-3 h-3" /> Chỉnh sửa
+                </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Policy preview */}
-              <div className="rounded-lg border bg-background p-4 h-[280px] overflow-y-auto">
+            <CardContent className="space-y-3 pt-0">
+              <p className="text-xs text-muted-foreground">
+                Nội dung chính sách người dùng cần đồng ý khi đăng nhập.
+                {policyUpdatedAt && (
+                  <> · Cập nhật: <span className="font-medium">{format(new Date(policyUpdatedAt), "HH:mm dd/MM/yyyy", { locale: vi })}</span></>
+                )}
+              </p>
+              <div className="rounded-lg border bg-background p-3 h-[240px] overflow-y-auto">
                 {policyContent ? (
                   <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-primary prose-h1:text-base prose-h1:border-b prose-h1:border-primary/20 prose-h1:pb-2 prose-h1:mb-3 prose-h2:text-sm prose-h2:mt-4 prose-h2:mb-2 prose-h3:text-[13px] prose-p:text-[13px] prose-p:leading-relaxed prose-p:my-1.5 prose-li:text-[13px] prose-li:my-0.5 prose-a:text-accent prose-strong:text-foreground prose-ul:my-1.5 prose-ol:my-1.5">
                     <ReactMarkdown rehypePlugins={[rehypeRaw]}>{policyContent}</ReactMarkdown>
@@ -327,72 +318,60 @@ export default function AdminSystem() {
                   </div>
                 )}
               </div>
+            </CardContent>
+          </Card>
 
-              <Button onClick={handleOpenPolicyEditor} className="w-full">
-                <Edit className="w-4 h-4 mr-2" />
-                Chỉnh sửa chính sách
-              </Button>
+          {/* Card 3: Error Logging */}
+          <Card className="border border-border">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-lg bg-destructive/10">
+                    <Bug className="w-4 h-4 text-destructive" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      Ghi lỗi hệ thống
+                      <Badge variant={errorLoggingEnabled ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
+                        {errorLoggingEnabled ? 'BẬT' : 'TẮT'}
+                      </Badge>
+                    </CardTitle>
+                  </div>
+                </div>
+                <Switch
+                  checked={errorLoggingEnabled}
+                  disabled={savingErrorLogging}
+                  onCheckedChange={async (checked) => {
+                    setSavingErrorLogging(true);
+                    try {
+                      const { error } = await supabase
+                        .from('system_settings')
+                        .update({ value: { enabled: checked }, updated_at: new Date().toISOString() })
+                        .eq('key', 'error_logging');
+                      if (error) throw error;
+                      setErrorLoggingEnabled(checked);
+                      toast({
+                        title: checked ? 'Đã bật ghi lỗi' : 'Đã tắt ghi lỗi',
+                        description: checked ? 'Hệ thống sẽ tự động ghi lại các lỗi.' : 'Hệ thống sẽ không ghi lỗi vào CSDL.',
+                      });
+                    } catch {
+                      toast({ title: 'Lỗi', description: 'Không thể cập nhật', variant: 'destructive' });
+                    } finally {
+                      setSavingErrorLogging(false);
+                    }
+                  }}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-xs text-muted-foreground">
+                {errorLoggingEnabled
+                  ? 'Tự động ghi lại các lỗi runtime, promise rejection và console error vào cơ sở dữ liệu.'
+                  : 'Không ghi lỗi — lỗi sẽ chỉ hiện trong console trình duyệt.'}
+              </p>
             </CardContent>
           </Card>
         </div>
-
-        {/* Error Logging Toggle */}
-        <Card className="border-2 border-dashed border-destructive/30">
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-destructive/10">
-                <Bug className="w-5 h-5 text-destructive" />
-              </div>
-              <div className="flex-1">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  Ghi lỗi hệ thống
-                  <Badge variant={errorLoggingEnabled ? 'default' : 'secondary'} className="text-xs">
-                    {errorLoggingEnabled ? 'ĐANG BẬT' : 'ĐÃ TẮT'}
-                  </Badge>
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Tự động ghi lại các lỗi runtime, promise rejection và console error vào cơ sở dữ liệu.
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-              <div className="flex items-center gap-2">
-                <Bug className={`w-4 h-4 ${errorLoggingEnabled ? 'text-destructive' : 'text-muted-foreground'}`} />
-                <div>
-                  <p className="font-medium text-sm">Trạng thái ghi lỗi</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {errorLoggingEnabled ? 'Đang ghi lại tất cả lỗi' : 'Không ghi lỗi — lỗi sẽ chỉ hiện trong console'}
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={errorLoggingEnabled}
-                disabled={savingErrorLogging}
-                onCheckedChange={async (checked) => {
-                  setSavingErrorLogging(true);
-                  try {
-                    const { error } = await supabase
-                      .from('system_settings')
-                      .update({ value: { enabled: checked }, updated_at: new Date().toISOString() })
-                      .eq('key', 'error_logging');
-                    if (error) throw error;
-                    setErrorLoggingEnabled(checked);
-                    toast({
-                      title: checked ? 'Đã bật ghi lỗi' : 'Đã tắt ghi lỗi',
-                      description: checked ? 'Hệ thống sẽ tự động ghi lại các lỗi.' : 'Hệ thống sẽ không ghi lỗi vào cơ sở dữ liệu.',
-                    });
-                  } catch {
-                    toast({ title: 'Lỗi', description: 'Không thể cập nhật cài đặt', variant: 'destructive' });
-                  } finally {
-                    setSavingErrorLogging(false);
-                  }
-                }}
-              />
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Maintenance Confirm Dialog */}
