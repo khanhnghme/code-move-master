@@ -367,9 +367,7 @@ export function MemberAuthForm() {
                 setActiveTab('login');
                 setRegStudentId('');
                 setRegFullName('');
-                setRegEmail('');
                 setRegPassword('');
-                setRegConfirmPassword('');
               }}
             >
               Quay lại đăng nhập
