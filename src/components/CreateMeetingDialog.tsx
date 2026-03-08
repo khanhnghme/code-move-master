@@ -38,10 +38,6 @@ export default function CreateMeetingDialog({
 
   const handleCreate = async () => {
     if (!title.trim() || !scheduledAt) return;
-    if (!externalLink.trim()) {
-      toast({ title: 'Thiếu link họp', description: 'Vui lòng nhập link phòng họp (Zoom, Google Meet, v.v.)', variant: 'destructive' });
-      return;
-    }
     setIsCreating(true);
 
     try {
