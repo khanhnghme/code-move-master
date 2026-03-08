@@ -250,6 +250,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
         }
         const { error } = await supabase.from('project_resources').delete().in('id', Array.from(idsToDelete));
         if (error) throw error;
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'BATCH_DELETE_RESOURCES', actionType: 'resource',
+            description: `Xóa hàng loạt ${count} tài nguyên: ${toDelete.map(r => r.name).join(', ')}`,
+            groupId,
+          });
+        }
         fetchResources();
       },
       onUndo: () => {
