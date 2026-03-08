@@ -149,6 +149,8 @@ export default function MemberManagementCard({
   const canDeleteMember = (member: GroupMember) => {
     if (member.user_id === currentUserId) return false;
     if (isMemberGroupCreator(member.user_id)) return false;
+    // Phó nhóm (leader role) cannot be removed - only regular members can
+    if (member.role === 'leader') return false;
     return isLeaderInGroup;
   };
 
@@ -421,7 +423,7 @@ export default function MemberManagementCard({
   // Bulk delete members
   const handleBulkDeleteMembers = async () => {
     if (selectedMemberIds.size === 0) return;
-    const selectedMembers = members.filter(m => selectedMemberIds.has(m.id));
+    const selectedMembers = members.filter(m => selectedMemberIds.has(m.id) && canDeleteMember(m));
     const count = selectedMembers.length;
     clearMemberSelection();
     setBulkMemberAction(null);
