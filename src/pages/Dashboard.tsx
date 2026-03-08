@@ -12,6 +12,7 @@ import { useUserPresence } from '@/hooks/useUserPresence';
 import UserPresenceIndicator from '@/components/UserPresenceIndicator';
 import FirstTimeOnboarding from '@/components/FirstTimeOnboarding';
 import { getSystemRoleLabel } from '@/lib/roleLabels';
+import JoinByCodeDialog from '@/components/JoinByCodeDialog';
 import {
   FolderKanban,
   ArrowRight,
@@ -21,6 +22,7 @@ import {
   Shield,
   Star,
   User,
+  KeyRound,
 } from 'lucide-react';
 import type { Group } from '@/types/database';
 
