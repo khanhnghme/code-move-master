@@ -229,6 +229,10 @@ function TaskRow({
   const canSubmit = isAssignee || isLeaderInGroup;
   const assignments = task.task_assignments || [];
   const hasMultipleAssignees = assignments.length > 1;
+  const isMeetingTask = !!meeting;
+  const meetingIsLive = meeting?.status === 'in_progress';
+  const meetingIsScheduled = meeting?.status === 'scheduled';
+  const meetingIsCompleted = meeting?.status === 'completed';
 
   // Calculate extension text for display
   const getExtensionText = () => {
