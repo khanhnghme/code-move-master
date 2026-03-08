@@ -30,6 +30,8 @@ export default function AdminSystem() {
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [showGuidePopover, setShowGuidePopover] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState('Hệ thống đang bảo trì, vui lòng quay lại sau.');
+  const [maintenanceDays, setMaintenanceDays] = useState(0);
+  const [customDays, setCustomDays] = useState('');
   const [maintenanceStart, setMaintenanceStart] = useState('');
   const [maintenanceEnd, setMaintenanceEnd] = useState('');
   const [saving, setSaving] = useState(false);
@@ -62,10 +64,13 @@ export default function AdminSystem() {
       ]);
 
       if (maintenanceRes.data?.value) {
-        const val = maintenanceRes.data.value as { enabled?: boolean; message?: string; start_at?: string; end_at?: string };
+        const val = maintenanceRes.data.value as { enabled?: boolean; message?: string; duration_days?: number; start_at?: string; end_at?: string };
         setMaintenanceEnabled(val.enabled ?? false);
         setOrigMaintenanceEnabled(val.enabled ?? false);
         setMaintenanceMessage(val.message ?? 'Hệ thống đang bảo trì, vui lòng quay lại sau.');
+        const days = val.duration_days ?? 0;
+        setMaintenanceDays(days);
+        if (days > 0 && ![1,3,5,7,14,30].includes(days)) setCustomDays(String(days));
         setMaintenanceStart(val.start_at ?? '');
         setMaintenanceEnd(val.end_at ?? '');
       }
@@ -85,16 +90,19 @@ export default function AdminSystem() {
   const handleSaveMaintenance = async () => {
     setSaving(true);
     try {
+      const now = new Date();
+      const endAt = maintenanceDays > 0 ? new Date(now.getTime() + maintenanceDays * 86400000).toISOString() : null;
       const { error } = await supabase
         .from('system_settings')
         .update({
           value: {
             enabled: maintenanceEnabled,
             message: maintenanceMessage,
-            start_at: maintenanceStart || null,
-            end_at: maintenanceEnd || null,
+            duration_days: maintenanceDays || null,
+            start_at: maintenanceEnabled ? now.toISOString() : null,
+            end_at: endAt,
           },
-          updated_at: new Date().toISOString(),
+          updated_at: now.toISOString(),
         })
         .eq('key', 'maintenance_mode');
 
@@ -207,35 +215,52 @@ export default function AdminSystem() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="maintenance-start" className="text-xs flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Bắt đầu
-                  </Label>
-                  <Input
-                    id="maintenance-start"
-                    type="datetime-local"
-                    value={maintenanceStart}
-                    onChange={(e) => setMaintenanceStart(e.target.value)}
-                    className="h-8 text-xs"
-                  />
+              {/* Duration presets */}
+              <div className="space-y-1.5">
+                <Label className="text-xs flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Thời lượng khóa
+                </Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: '1 ngày', days: 1 },
+                    { label: '3 ngày', days: 3 },
+                    { label: '5 ngày', days: 5 },
+                    { label: '7 ngày', days: 7 },
+                    { label: '14 ngày', days: 14 },
+                    { label: '30 ngày', days: 30 },
+                  ].map((opt) => (
+                    <Button
+                      key={opt.days}
+                      type="button"
+                      size="sm"
+                      variant={maintenanceDays === opt.days && !customDays ? 'default' : 'outline'}
+                      className="h-7 text-xs px-2.5"
+                      onClick={() => { setMaintenanceDays(opt.days); setCustomDays(''); }}
+                    >
+                      {opt.label}
+                    </Button>
+                  ))}
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="maintenance-end" className="text-xs flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Kết thúc (tự mở)
-                  </Label>
+                <div className="flex items-center gap-2 mt-1.5">
                   <Input
-                    id="maintenance-end"
-                    type="datetime-local"
-                    value={maintenanceEnd}
-                    onChange={(e) => setMaintenanceEnd(e.target.value)}
-                    className="h-8 text-xs"
+                    type="number"
+                    min={1}
+                    max={365}
+                    placeholder="Tùy chỉnh số ngày..."
+                    value={customDays}
+                    onChange={(e) => {
+                      setCustomDays(e.target.value);
+                      const n = parseInt(e.target.value);
+                      if (n > 0) setMaintenanceDays(n);
+                    }}
+                    className="h-7 text-xs flex-1"
                   />
+                  <span className="text-xs text-muted-foreground shrink-0">ngày</span>
                 </div>
               </div>
-              {maintenanceEnd && (
+              {maintenanceDays > 0 && (
                 <p className="text-[11px] text-muted-foreground bg-muted/50 rounded px-2 py-1.5">
-                  ⏱ Tự mở lại: <span className="font-semibold text-foreground">{format(new Date(maintenanceEnd), "HH:mm dd/MM/yyyy", { locale: vi })}</span>
+                  ⏱ Tự mở lại sau <span className="font-semibold text-foreground">{maintenanceDays} ngày</span> kể từ khi bật bảo trì
                 </p>
               )}
 
