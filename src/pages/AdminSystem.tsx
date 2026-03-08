@@ -260,7 +260,12 @@ export default function AdminSystem() {
               </div>
               {maintenanceDays > 0 && (
                 <p className="text-[11px] text-muted-foreground bg-muted/50 rounded px-2 py-1.5">
-                  ⏱ Tự mở lại sau <span className="font-semibold text-foreground">{maintenanceDays} ngày</span> kể từ khi bật bảo trì
+                  ⏱ Tự mở lại sau <span className="font-semibold text-foreground">{maintenanceDays} ngày</span>
+                  {maintenanceEnabled && maintenanceEnd ? (
+                    <> · Dự kiến mở lại: <span className="font-semibold text-foreground">{format(new Date(maintenanceEnd), "HH:mm dd/MM/yyyy", { locale: vi })}</span></>
+                  ) : (
+                    <> kể từ khi bật bảo trì</>
+                  )}
                 </p>
               )}
 
