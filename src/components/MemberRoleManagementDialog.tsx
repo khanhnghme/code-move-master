@@ -164,6 +164,7 @@ export default function MemberRoleManagementDialog({
         metadata: { target_user_id: member.id, from_role: 'member', to_role: 'leader' },
       });
 
+      await notifyRoleChanged({ userIds: [member.id], adminName: currentProfile?.full_name || 'Admin', newRole: 'Thành viên Nâng cao', action: 'promote' });
       toast({ title: 'Đã nâng quyền', description: `${member.full_name} đã trở thành Thành viên Nâng cao.` });
       onRoleChanged();
       setShowPromoteConfirm(false);
