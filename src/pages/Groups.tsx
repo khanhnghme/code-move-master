@@ -342,24 +342,51 @@ export default function Groups() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="space-y-4">
           <div>
             <h1 className="text-3xl font-bold">Nhóm của tôi</h1>
             <p className="text-muted-foreground mt-1">
               Quản lý các nhóm và dự án bạn tham gia
             </p>
           </div>
-          {isLeader && (
-            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) resetForm();
-            }}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="gap-2 relative overflow-hidden bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-105 transition-all duration-300 text-base px-6 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:-translate-x-full hover:before:translate-x-full before:transition-transform before:duration-700">
-                  <Plus className="w-5 h-5" />
-                  Tạo dự án mới
-                </Button>
-              </DialogTrigger>
+
+          {/* Create project CTA - always visible */}
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            if (!isLeader) return;
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}>
+            <DialogTrigger asChild disabled={!isLeader}>
+              <div className={`relative overflow-hidden rounded-xl border-2 border-dashed p-5 transition-all duration-300 ${
+                isLeader
+                  ? 'border-primary/40 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 hover:border-primary hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.005] cursor-pointer group'
+                  : 'border-muted-foreground/20 bg-muted/30 cursor-default'
+              }`}>
+                {isLeader && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                )}
+                <div className="relative flex items-center gap-4">
+                  <div className={`p-3.5 rounded-xl ${
+                    isLeader ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                  }`}>
+                    <Plus className="w-7 h-7" />
+                  </div>
+                  <div className="flex-1">
+                    <p className={`font-bold text-lg ${isLeader ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      {isLeader ? 'Tạo dự án mới' : 'Tạo dự án mới — Bạn không có quyền tạo'}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {isLeader
+                        ? 'Thiết lập project, thêm thành viên và bắt đầu quản lý công việc'
+                        : 'Liên hệ Admin để được nâng cấp quyền Thành viên Nâng cao'}
+                    </p>
+                  </div>
+                  {isLeader && (
+                    <ArrowRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+                </div>
+              </div>
+            </DialogTrigger>
               <DialogContent
                 className="p-0 gap-0 border-0 bg-transparent shadow-none [&>button]:hidden"
                 style={{ maxWidth: 'none', width: 'auto' }}
@@ -637,7 +664,6 @@ export default function Groups() {
                 </div>
               </DialogContent>
             </Dialog>
-          )}
         </div>
 
         {/* Groups List */}

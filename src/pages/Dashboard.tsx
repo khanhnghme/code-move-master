@@ -165,16 +165,55 @@ export default function Dashboard() {
 
         {/* My Projects - Simplified without members */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <div>
-              <CardTitle className="text-xl">Projects của tôi</CardTitle>
-              <CardDescription>Các dự án bạn đang tham gia</CardDescription>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-xl">Projects của tôi</CardTitle>
+                <CardDescription>Các dự án bạn đang tham gia</CardDescription>
+              </div>
+              <Link to="/groups">
+                <Button variant="outline" className="gap-2">
+                  Xem tất cả Project
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
             </div>
-            <Link to="/groups">
-              <Button variant="outline" className="gap-2">
-                Xem tất cả Project
-                <ArrowRight className="w-4 h-4" />
-              </Button>
+
+            {/* Create project CTA */}
+            <Link to="/groups" className="block mt-4">
+              <div className={`relative overflow-hidden rounded-xl border-2 border-dashed p-5 transition-all duration-300 ${
+                (isLeader || isAdmin)
+                  ? 'border-primary/40 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 hover:border-primary hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.01] cursor-pointer group'
+                  : 'border-muted-foreground/20 bg-muted/30 cursor-default'
+              }`}>
+                {(isLeader || isAdmin) && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                )}
+                <div className="relative flex items-center gap-4">
+                  <div className={`p-3 rounded-xl ${
+                    (isLeader || isAdmin)
+                      ? 'bg-primary/10 text-primary'
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    <Plus className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <p className={`font-semibold text-base ${
+                      (isLeader || isAdmin) ? 'text-foreground' : 'text-muted-foreground'
+                    }`}>
+                      {(isLeader || isAdmin) ? 'Tạo dự án mới' : 'Tạo dự án mới — Bạn không có quyền tạo'}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      {(isLeader || isAdmin)
+                        ? 'Đi đến trang Project để tạo và quản lý dự án của bạn'
+                        : 'Liên hệ Admin để được nâng cấp quyền Thành viên Nâng cao'}
+                    </p>
+                  </div>
+                  {(isLeader || isAdmin) && (
+                    <ArrowRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+                </div>
+              </div>
             </Link>
           </CardHeader>
           <CardContent>
