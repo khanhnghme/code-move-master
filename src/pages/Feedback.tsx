@@ -675,6 +675,26 @@ export default function FeedbackPage() {
                                 </ScrollArea>
                               )}
 
+                              {/* Reply indicator */}
+                              {replyTo && replyTo.feedback_id === feedback.id && (
+                                <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm">
+                                  <Reply className="w-4 h-4 text-primary shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <span className="text-primary font-medium">{replyTo.user_name}</span>
+                                    <span className="text-muted-foreground">: </span>
+                                    <span className="text-muted-foreground line-clamp-1">{replyTo.content}</span>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 shrink-0"
+                                    onClick={() => setReplyTo(null)}
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
+                              )}
+
                               {/* New comment input */}
                               <div className="flex gap-2">
                                 <UserAvatar 
