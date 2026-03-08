@@ -49,17 +49,50 @@ export function parseMessageContent(content: string): ParsedContent {
     }
   }
 
-  // Match #taskNumber or #taskId (UUID format or number)
-  const taskRefRegex = /#([a-f0-9-]{36}|[0-9]+)/gi;
-  
-  while ((match = taskRefRegex.exec(content)) !== null) {
+  // Match #[taskId](display text) - new format with embedded task ID
+  const taskRefNewRegex = /#\[([a-f0-9-]{36})\]\(([^)]*)\)/gi;
+  while ((match = taskRefNewRegex.exec(content)) !== null) {
     mentions.push({
       type: 'task',
-      value: match[1],
-      taskId: match[1],
+      value: match[2], // display text
+      taskId: match[1], // UUID
       startIndex: match.index,
       endIndex: match.index + match[0].length
     });
+  }
+
+  // Match legacy #taskNumber or #taskId (UUID format or number)
+  const taskRefRegex = /#([a-f0-9-]{36}|[0-9]+)/gi;
+  while ((match = taskRefRegex.exec(content)) !== null) {
+    // Skip if already matched by new format
+    const overlaps = mentions.some(m => 
+      match!.index >= m.startIndex && match!.index < m.endIndex
+    );
+    if (!overlaps) {
+      mentions.push({
+        type: 'task',
+        value: match[1],
+        taskId: match[1],
+        startIndex: match.index,
+        endIndex: match.index + match[0].length
+      });
+    }
+  }
+
+  // Match legacy #GĐN – title format (old messages)
+  const taskRefLegacyRegex = /#(GĐ\d+\s*–\s*[^\n#@]*)/g;
+  while ((match = taskRefLegacyRegex.exec(content)) !== null) {
+    const overlaps = mentions.some(m => 
+      match!.index >= m.startIndex && match!.index < m.endIndex
+    );
+    if (!overlaps) {
+      mentions.push({
+        type: 'task',
+        value: match[1].trim(),
+        startIndex: match.index,
+        endIndex: match.index + match[0].length
+      });
+    }
   }
 
   // Sort by startIndex
