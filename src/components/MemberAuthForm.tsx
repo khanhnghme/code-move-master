@@ -418,7 +418,11 @@ export function MemberAuthForm() {
               ? 'Nhập MSSV và mật khẩu để đăng nhập'
               : activeTab === 'register'
               ? 'Điền thông tin để đăng ký tài khoản mới'
-              : 'Lấy lại mật khẩu qua email'}
+              : forgotStep === 'otp'
+              ? 'Nhập mã xác minh từ email'
+              : forgotStep === 'newpass'
+              ? 'Tạo mật khẩu mới'
+              : 'Xác minh danh tính qua email'}
           </CardDescription>
         </CardHeader>
         <CardContent>
