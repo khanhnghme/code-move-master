@@ -266,6 +266,52 @@ export default function MentionInput({
       <div className="flex items-end gap-2 bg-background rounded-2xl border shadow-sm p-1.5 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40 transition-all">
         {/* Left actions */}
         <div className="flex items-center gap-0.5 pb-0.5">
+          <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 rounded-full transition-colors",
+                  emojiOpen ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                )}
+                title="Emoji"
+              >
+                <Smile className="w-4 h-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" className="w-80 p-0" sideOffset={12}>
+              {/* Category tabs */}
+              <div className="flex gap-1 p-2 border-b overflow-x-auto">
+                {EMOJI_CATEGORIES.map((cat, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setEmojiCategory(i)}
+                    className={cn(
+                      "text-xs px-2 py-1 rounded-md whitespace-nowrap transition-colors",
+                      i === emojiCategory ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+              {/* Emoji grid */}
+              <div className="grid grid-cols-8 gap-0.5 p-2 max-h-48 overflow-y-auto">
+                {EMOJI_CATEGORIES[emojiCategory].emojis.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => { insertEmoji(emoji); setEmojiOpen(false); }}
+                    className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted text-lg transition-colors"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
           <Button
             type="button"
             variant="ghost"
