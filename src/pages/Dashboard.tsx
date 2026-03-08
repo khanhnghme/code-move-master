@@ -140,11 +140,20 @@ export default function Dashboard() {
             style={{ opacity: videoOpacity, zIndex: 0 }}
             src={videoUrl}
           />
-          {/* Dark overlay on top of video */}
+          {/* Multi-layer overlay: gradient + blur + vignette */}
           <div
-            className="fixed inset-0 bg-background/60 pointer-events-none"
+            className="fixed inset-0 pointer-events-none video-blur-overlay"
             style={{ zIndex: 1 }}
           />
+          <div
+            className="fixed inset-0 pointer-events-none video-gradient-overlay"
+            style={{ zIndex: 2 }}
+          />
+          <div
+            className="fixed inset-0 pointer-events-none vignette-overlay"
+            style={{ zIndex: 2 }}
+          />
+          <VideoParticles />
         </>
       )}
 
