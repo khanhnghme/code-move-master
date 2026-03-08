@@ -1046,16 +1046,9 @@ export default function MemberManagementCard({
               />
             </div>
 
-            {/* Email */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Email <span className="text-destructive">*</span></Label>
-              <Input
-                type="email"
-                placeholder="example@gmail.com"
-                value={newMemberEmail}
-                onChange={(e) => setNewMemberEmail(e.target.value)}
-                className="h-11"
-              />
+            {/* Info: Email sẽ được lấy từ Google */}
+            <div className="p-3 bg-muted/50 rounded-lg text-xs text-muted-foreground">
+              📧 Email sẽ được tự động lấy khi thành viên liên kết tài khoản Google lần đầu đăng nhập.
             </div>
 
             {/* Role info */}
