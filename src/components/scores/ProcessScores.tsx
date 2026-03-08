@@ -127,7 +127,7 @@ export default function ProcessScores({
   members,
   isLeader,
 }: ProcessScoresProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   
   const [isLoading, setIsLoading] = useState(true);
