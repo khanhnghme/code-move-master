@@ -56,7 +56,8 @@ export default function AdminSystem() {
 
   // Video background state
   const [videoBgEnabled, setVideoBgEnabled] = useState(false);
-  const [videoBgOpacity, setVideoBgOpacity] = useState(20);
+  const [videoBgLandingOpacity, setVideoBgLandingOpacity] = useState(20);
+  const [videoBgDashboardOpacity, setVideoBgDashboardOpacity] = useState(20);
   const [videoBgUrl, setVideoBgUrl] = useState('');
   const [savingVideo, setSavingVideo] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
