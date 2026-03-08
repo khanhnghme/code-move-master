@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   User, Mail, GraduationCap, BookOpen, Phone, Sparkles, FileText,
-  Camera, Loader2, Save, Shield, Crown, UserCheck, Calendar,
+  Camera, Loader2, Save, Shield, Crown, UserCheck, Calendar, Star,
   CheckCircle2, AlertCircle, Edit3, X, FolderKanban, HardDrive,
   Lock, Unlock, Zap, ArrowRight, Plus
 } from 'lucide-react';
@@ -113,7 +113,7 @@ export default function PersonalInfo() {
     if (isLeader) return {
       label: 'Thành viên Nâng cao',
       description: 'Được tạo & quản lý dự án',
-      icon: Crown,
+      icon: Star,
       gradient: 'from-amber-500 to-orange-600',
       bgGradient: 'from-amber-500/10 to-orange-600/10',
       borderColor: 'border-amber-200 dark:border-amber-800',
