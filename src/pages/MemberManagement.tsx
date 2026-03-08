@@ -997,11 +997,13 @@ export default function MemberManagement() {
               {bulkAction === 'delete' && 'Xác nhận xóa hàng loạt'}
               {bulkAction === 'suspend' && 'Xác nhận khóa hàng loạt'}
               {bulkAction === 'unsuspend' && 'Xác nhận mở khóa hàng loạt'}
+              {bulkAction === 'promote' && 'Xác nhận nâng cấp hàng loạt'}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {bulkAction === 'delete' && (<>Bạn sắp xóa <span className="font-semibold">{selectedIds.size}</span> tài khoản khỏi hệ thống.<br /><br /><span className="text-destructive font-medium">Thao tác này không thể hoàn tác!</span></>)}
               {bulkAction === 'suspend' && (<>Bạn sắp tạm khóa <span className="font-semibold">{selectedIds.size}</span> tài khoản (mặc định 1 ngày).</>)}
               {bulkAction === 'unsuspend' && (<>Bạn sắp mở khóa <span className="font-semibold">{selectedIds.size}</span> tài khoản.</>)}
+              {bulkAction === 'promote' && (<>Bạn sắp nâng cấp <span className="font-semibold">{selectedIds.size}</span> tài khoản lên <span className="font-semibold">Thành viên Nâng cao</span>. Các tài khoản đã là Thành viên Nâng cao hoặc Admin sẽ được bỏ qua.</>)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
