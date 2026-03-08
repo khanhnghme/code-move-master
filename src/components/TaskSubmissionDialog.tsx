@@ -58,7 +58,9 @@ import {
   ChevronDown,
   Award,
   HardDrive,
-  Globe
+  Globe,
+  ShieldAlert,
+  Database
 } from 'lucide-react';
 import type { Task, TaskStatus } from '@/types/database';
 import type { TaskScore } from '@/types/processScores';
@@ -70,6 +72,7 @@ import { notifyTaskSubmitted, notifyTaskVerified } from '@/lib/notifications';
 import TaskComments from './communication/TaskComments';
 import CompactTaskNotes from './CompactTaskNotes';
 import UserAvatar from './UserAvatar';
+import { useStorageUsage } from '@/hooks/useStorageUsage';
 import { CountdownTimer } from './CountdownTimer';
 import ResourceLinkRenderer from './ResourceLinkRenderer';
 
@@ -126,6 +129,9 @@ export default function TaskSubmissionDialog({
   const [showLateWarning, setShowLateWarning] = useState(false);
   const [taskScore, setTaskScore] = useState<TaskScore | null>(null);
   const [isNotesOpen, setIsNotesOpen] = useState(false);
+
+  // Storage usage check
+  const storageUsage = useStorageUsage(user?.id, profile?.storage_limit_mb);
 
   // Get max file size from task (cast since not in types yet)
   const taskWithSize = task as (Task & { max_file_size?: number }) | null;
@@ -879,38 +885,97 @@ export default function TaskSubmissionDialog({
                     {/* Two Column Layout - File Upload & Links */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Method 1: File Upload */}
-                      <div className="rounded-xl border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-background overflow-hidden flex flex-col">
+                      <div className={`rounded-xl border-2 overflow-hidden flex flex-col ${
+                        storageUsage.isOverLimit 
+                          ? 'border-destructive/40 bg-gradient-to-br from-destructive/5 to-background opacity-80' 
+                          : 'border-emerald-500/30 bg-gradient-to-br from-emerald-500/5 to-background'
+                      }`}>
                         {/* Method Header */}
-                        <div className="px-3 py-2 bg-emerald-500/10 border-b border-emerald-500/20 shrink-0">
+                        <div className={`px-3 py-2 border-b shrink-0 ${
+                          storageUsage.isOverLimit 
+                            ? 'bg-destructive/10 border-destructive/20' 
+                            : 'bg-emerald-500/10 border-emerald-500/20'
+                        }`}>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Badge className="bg-emerald-600 text-white border-0 text-[10px] px-1.5 font-bold">
+                              <Badge className={`border-0 text-[10px] px-1.5 font-bold ${
+                                storageUsage.isOverLimit ? 'bg-destructive text-white' : 'bg-emerald-600 text-white'
+                              }`}>
                                 Cách 1
                               </Badge>
-                              <div className="p-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30">
-                                <HardDrive className="w-3.5 h-3.5 text-emerald-600" />
+                              <div className={`p-1.5 rounded-lg border ${
+                                storageUsage.isOverLimit 
+                                  ? 'bg-destructive/20 border-destructive/30' 
+                                  : 'bg-emerald-500/20 border-emerald-500/30'
+                              }`}>
+                                <HardDrive className={`w-3.5 h-3.5 ${storageUsage.isOverLimit ? 'text-destructive' : 'text-emerald-600'}`} />
                               </div>
                               <div>
                                 <h4 className="text-xs font-bold text-foreground">Tải file lên</h4>
                                 <p className="text-[9px] text-muted-foreground">Upload từ máy tính</p>
                               </div>
                             </div>
-                            <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[9px] px-1.5">
+                            <Badge className={`text-[9px] px-1.5 ${
+                              storageUsage.isOverLimit 
+                                ? 'bg-destructive/15 text-destructive border-destructive/30' 
+                                : 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30'
+                            }`}>
                               Max {formatFileSize(maxFileSize)}
                             </Badge>
                           </div>
                         </div>
-                        {/* Upload Area - Expanded */}
-                        <div className="p-3 flex-1 min-h-[280px]">
-                          <MultiFileUploadSubmission
-                            onFilesChanged={setUploadedFiles}
-                            uploadedFiles={uploadedFiles}
-                            userId={user?.id || ''}
-                            taskId={task?.id || ''}
-                            disabled={!canSubmit}
-                            compact
-                            maxTotalSize={maxFileSize}
-                          />
+
+                        {/* Storage Usage Bar */}
+                        {!storageUsage.isLoading && (
+                          <div className="px-3 py-2 border-b border-border/30 bg-muted/20">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Database className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-[10px] text-muted-foreground">
+                                Dung lượng đã dùng: {storageUsage.usedMB.toFixed(1)} / {storageUsage.limitMB} MB
+                              </span>
+                            </div>
+                            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  storageUsage.usagePercent > 90 ? 'bg-destructive' : 
+                                  storageUsage.usagePercent > 70 ? 'bg-warning' : 'bg-emerald-500'
+                                }`}
+                                style={{ width: `${Math.min(100, storageUsage.usagePercent)}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Upload Area or Blocked Message */}
+                        <div className="p-3 flex-1 min-h-[250px]">
+                          {storageUsage.isOverLimit ? (
+                            <div className="h-full flex flex-col items-center justify-center text-center px-4">
+                              <div className="p-3 rounded-full bg-destructive/10 mb-3">
+                                <ShieldAlert className="w-8 h-8 text-destructive" />
+                              </div>
+                              <h4 className="text-sm font-bold text-destructive mb-1">Đã đạt giới hạn dung lượng</h4>
+                              <p className="text-xs text-muted-foreground mb-3 max-w-[280px] leading-relaxed">
+                                Bạn đã sử dụng hết {storageUsage.limitMB}MB dung lượng lưu trữ. 
+                                Không thể tải thêm file lên hệ thống.
+                              </p>
+                              <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 px-4 py-2.5">
+                                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-2">
+                                  <Globe className="w-4 h-4 shrink-0" />
+                                  Vui lòng sử dụng <strong>Cách 2 - Dán liên kết</strong> để nộp bài
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <MultiFileUploadSubmission
+                              onFilesChanged={setUploadedFiles}
+                              uploadedFiles={uploadedFiles}
+                              userId={user?.id || ''}
+                              taskId={task?.id || ''}
+                              disabled={!canSubmit}
+                              compact
+                              maxTotalSize={maxFileSize}
+                            />
+                          )}
                         </div>
                       </div>
 
