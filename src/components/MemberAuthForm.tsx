@@ -299,9 +299,7 @@ export function MemberAuthForm() {
     const result = registerSchema.safeParse({
       studentId: regStudentId,
       fullName: regFullName,
-      email: regEmail,
       password: regPassword,
-      confirmPassword: regConfirmPassword,
     });
 
     if (!result.success) {
