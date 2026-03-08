@@ -3908,6 +3908,8 @@ VALUES ('your-user-id', 'admin');
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 6.0 | 08/03/2026 | **MAJOR UPDATE**: Thêm chức năng Họp nhóm (meetings, meeting_attendance, meeting_messages — 3 bảng mới), bảng `system_settings` (tổng 32 bảng), Chế độ bảo trì (đặt lịch bắt đầu/kết thúc, tự động tắt), Chính sách hệ thống (Markdown, bắt buộc đồng ý khi đăng nhập/đăng ký), AI Assistant truyền dữ liệu cuộc họp + điểm quá trình (chỉ điểm bản thân), components mới (GroupMeetings, CreateMeetingDialog, MeetingRoom, MaintenanceScreen, MemberNavigation, MemberRoleManagementDialog, ProjectTransferDialog), page mới (AdminSystem), route `/admin/system` |
+| 5.0 | 02/03/2026 | Full RLS policies + detailed columns |
 | 4.0 | 02/03/2026 | **MAJOR UPDATE**: Thêm cơ chế Undo Delete toàn hệ thống (14 files), bảng `system_error_logs` (28 bảng), suspension fields cho profiles, components mới (ExcelMemberImport, MemberDetailDialog, ResourceUploadDialog, SuspendMemberDialog, SuspendedScreen, SystemErrorLogs), libs mới (deleteWithUndo, errorLogger), FilePreviewContext, cập nhật routes |
 | 3.1 | 04/02/2026 | **STORAGE UPDATE**: Chi tiết hóa toàn bộ phần Supabase Storage với đầy đủ bucket, naming convention, RLS policies, liên kết DB |
 | 3.0 | 04/02/2026 | Full detailed guide |
