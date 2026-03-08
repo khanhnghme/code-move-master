@@ -402,6 +402,14 @@ export default function ProjectResources({ groupId, isLeader }: ProjectResources
       onDelete: async () => {
         await (supabase.from('project_resources').update({ folder_id: null } as any).eq('folder_id', folderRef.id) as any);
         await (supabase.from('resource_folders' as any).delete().eq('id', folderRef.id) as any);
+        if (user && profile) {
+          await logActivity({
+            userId: user.id, userName: profile.full_name,
+            action: 'DELETE_FOLDER', actionType: 'resource',
+            description: `Xóa thư mục "${folderRef.name}" (các file được chuyển về gốc)`,
+            groupId,
+          });
+        }
         fetchFolders();
         fetchResources();
       },
