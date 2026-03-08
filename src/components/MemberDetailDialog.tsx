@@ -107,13 +107,14 @@ export default function MemberDetailDialog({
   const fetchGroups = async (userId: string) => {
     const { data } = await supabase
       .from('group_members')
-      .select('group_id, role, groups(name, image_url)')
+      .select('group_id, role, groups(name, image_url, created_by)')
       .eq('user_id', userId);
     setGroups((data || []).map((d: any) => ({
       id: d.group_id,
       name: d.groups?.name || 'Unknown',
       role: d.role,
       image_url: d.groups?.image_url || null,
+      is_creator: d.groups?.created_by === userId,
     })));
   };
 
