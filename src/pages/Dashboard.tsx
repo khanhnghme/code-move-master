@@ -230,4 +230,4 @@ export default function Dashboard() {
     </DashboardLayout>
   );
 }
-
+  const { isConnected } = useUserPresence('system-global');
