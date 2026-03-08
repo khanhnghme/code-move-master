@@ -56,9 +56,9 @@ function ThemeToggle() {
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="h-9 w-9 relative border-border bg-background hover:bg-accent"
+          className="h-9 w-9 relative"
           onClick={() => setTheme(isDark ? 'light' : 'dark')}
         >
           <Sun className="h-[1.1rem] w-[1.1rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
