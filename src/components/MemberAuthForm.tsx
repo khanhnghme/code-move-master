@@ -456,13 +456,15 @@ export function MemberAuthForm() {
                   />
                 </div>
                 {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-                <button
-                  type="button"
-                  className="text-xs font-medium text-foreground hover:underline"
-                  onClick={() => { setActiveTab('forgot'); setErrors({}); }}
-                >
-                  Quên mật khẩu?
-                </button>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="text-xs font-medium text-foreground hover:underline"
+                    onClick={() => { setActiveTab('forgot'); setForgotStep('input'); setErrors({}); }}
+                  >
+                    Quên mật khẩu?
+                  </button>
+                </div>
               </div>
 
               {/* Policy checkbox - checked by default for login */}
