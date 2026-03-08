@@ -243,6 +243,7 @@ export type Database = {
           instructor_name: string | null
           is_public: boolean | null
           join_code: string | null
+          join_member_limit: number | null
           leader_id: string | null
           name: string
           share_token: string | null
@@ -268,6 +269,7 @@ export type Database = {
           instructor_name?: string | null
           is_public?: boolean | null
           join_code?: string | null
+          join_member_limit?: number | null
           leader_id?: string | null
           name: string
           share_token?: string | null
@@ -293,6 +295,7 @@ export type Database = {
           instructor_name?: string | null
           is_public?: boolean | null
           join_code?: string | null
+          join_member_limit?: number | null
           leader_id?: string | null
           name?: string
           share_token?: string | null

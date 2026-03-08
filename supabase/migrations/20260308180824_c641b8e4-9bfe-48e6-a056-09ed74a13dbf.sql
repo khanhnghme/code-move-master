@@ -1,0 +1,1 @@
+ALTER TABLE public.groups ADD COLUMN join_member_limit integer DEFAULT NULL;

@@ -23,6 +23,7 @@ interface GroupPreview {
   zalo_link: string | null;
   memberCount: number;
   leaderName: string | null;
+  joinMemberLimit: number | null;
 }
 
 interface JoinByCodeDialogProps {
@@ -57,7 +58,7 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
     try {
       const { data: group, error: groupError } = await supabase
         .from('groups')
-        .select('id, name, description, class_code, instructor_name, created_at, image_url, created_by, zalo_link')
+        .select('id, name, description, class_code, instructor_name, created_at, image_url, created_by, zalo_link, join_member_limit')
         .eq('join_code', code)
         .eq('allow_join_by_code', true)
         .single();
@@ -79,6 +80,7 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
         ...group,
         memberCount: memberRes.count || 0,
         leaderName: leaderRes.data?.full_name || null,
+        joinMemberLimit: (group as any).join_member_limit ?? null,
       });
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
@@ -199,7 +201,12 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Thành viên:</span>
-                    <span className="font-medium">{groupPreview.memberCount} người</span>
+                    <span className="font-medium">
+                      {groupPreview.memberCount} người
+                      {groupPreview.joinMemberLimit && (
+                        <span className="text-muted-foreground"> / {groupPreview.joinMemberLimit}</span>
+                      )}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Ngày tạo:</span>
@@ -222,7 +229,12 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
               </CardContent>
             </Card>
 
-            {alreadyMember ? (
+            {groupPreview.joinMemberLimit && groupPreview.memberCount >= groupPreview.joinMemberLimit ? (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
+                <Users className="w-4 h-4 shrink-0" />
+                <span className="text-sm font-medium">Project đã đạt giới hạn {groupPreview.joinMemberLimit} thành viên</span>
+              </div>
+            ) : alreadyMember ? (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20 text-warning">
                 <CheckCircle2 className="w-4 h-4 shrink-0" />
                 <span className="text-sm font-medium">Bạn đã là thành viên của project này</span>
@@ -238,7 +250,7 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
                 <ArrowLeft className="w-4 h-4" />
                 Quay lại
               </Button>
-              {!alreadyMember && (
+              {!alreadyMember && !(groupPreview.joinMemberLimit && groupPreview.memberCount >= groupPreview.joinMemberLimit) && (
                 <Button
                   className="flex-1"
                   onClick={handleConfirmJoin}
