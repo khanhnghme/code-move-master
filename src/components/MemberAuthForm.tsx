@@ -669,15 +669,25 @@ export function MemberAuthForm() {
                     <button type="button" className="text-primary hover:underline font-medium" onClick={() => { setForgotStep('input'); setOtpCode(''); setErrors({}); }}>
                       ← Quay lại
                     </button>
-                    <button type="button" className="text-muted-foreground hover:underline text-xs" onClick={async () => {
+                    <button type="button" className="text-muted-foreground hover:underline text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline" disabled={resendCountdown > 0 || forgotLoading} onClick={async () => {
                       setForgotLoading(true);
-                      await supabase.functions.invoke('password-reset-otp', {
-                        body: { action: 'send_code', email: forgotEmail },
-                      });
-                      setForgotLoading(false);
-                      toast({ title: 'Đã gửi lại mã', description: 'Mã mới đã được gửi đến email của bạn.' });
+                      try {
+                        const res = await supabase.functions.invoke('password-reset-otp', {
+                          body: { action: 'send_code', email: forgotEmail },
+                        });
+                        setForgotLoading(false);
+                        if (res.data?.error) {
+                          toast({ title: 'Không thể gửi mã', description: res.data.error, variant: 'destructive' });
+                        } else {
+                          setResendCountdown(60);
+                          toast({ title: 'Đã gửi lại mã', description: 'Mã mới đã được gửi đến email của bạn.' });
+                        }
+                      } catch {
+                        setForgotLoading(false);
+                        toast({ title: 'Lỗi', description: 'Có lỗi xảy ra.', variant: 'destructive' });
+                      }
                     }}>
-                      Gửi lại mã
+                      {resendCountdown > 0 ? `Gửi lại sau (${resendCountdown}s)` : 'Gửi lại mã'}
                     </button>
                   </div>
                 </form>
