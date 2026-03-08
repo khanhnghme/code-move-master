@@ -53,6 +53,18 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
           setAttendance(grouped);
         }
       }
+      // Auto-select meeting from URL params
+      const meetingId = searchParams.get('meeting');
+      if (meetingId && data) {
+        const target = data.find((m: any) => m.id === meetingId);
+        if (target) {
+          setSelectedMeeting(target);
+          // Clean up the search param
+          const newParams = new URLSearchParams(searchParams);
+          newParams.delete('meeting');
+          setSearchParams(newParams, { replace: true });
+        }
+      }
     }
     setIsLoading(false);
   };
