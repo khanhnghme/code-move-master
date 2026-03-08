@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Vui lòng nhập Mã số sinh viên'),
