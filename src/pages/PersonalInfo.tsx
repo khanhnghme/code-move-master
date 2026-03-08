@@ -292,34 +292,8 @@ export default function PersonalInfo() {
                 </Badge>
               )}
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Role & Stats Compact Bar */}
-        <Card className={`${roleInfo.borderColor} border`}>
-          <CardContent className="p-4">
-            {/* Role header inline */}
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`p-2 rounded-lg bg-gradient-to-r ${roleInfo.gradient} text-white shadow`}>
-                <RoleIcon className="w-4 h-4" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="font-semibold text-sm">{roleInfo.label}</span>
-                <span className="text-muted-foreground text-xs ml-2">— {roleInfo.description}</span>
-              </div>
-              {canCreateProject ? (
-                <Badge variant="outline" className="text-emerald-600 border-emerald-300 dark:border-emerald-700 gap-1 text-xs shrink-0">
-                  <Unlock className="w-3 h-3" /> Tạo dự án
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="text-muted-foreground gap-1 text-xs shrink-0">
-                  <Lock className="w-3 h-3" /> Không tạo dự án
-                </Badge>
-              )}
-            </div>
-
-            {/* Stats row */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-4 gap-3 mt-4 pt-4 border-t">
               <div className="flex items-center gap-2.5 rounded-lg border bg-muted/30 px-3 py-2">
                 <FolderKanban className="w-4 h-4 text-primary shrink-0" />
                 <div className="min-w-0">
