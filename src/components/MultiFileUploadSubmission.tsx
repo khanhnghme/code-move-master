@@ -16,10 +16,12 @@ import {
   AlertCircle,
   Eye,
   Pencil,
-  Check
+  Check,
+  ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFilePreview } from '@/contexts/FilePreviewContext';
+import GoogleDriveUploadButton, { type DriveFileResult } from '@/components/GoogleDriveUploadButton';
 
 export interface UploadedFile {
   file_path: string;
