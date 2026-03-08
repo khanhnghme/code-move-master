@@ -462,11 +462,12 @@ export default function GroupDetail() {
                           </div>
                         </DialogHeader>
                         
-                        {/* Content - 3 columns */}
+                        {/* Content - 2 columns */}
                         <div className="flex-1 overflow-hidden">
                           <div className="grid grid-cols-12 h-full">
-                            {/* Col 1: Title + Description (5 cols) */}
-                            <div className="col-span-5 p-4 border-r flex flex-col gap-3 overflow-y-auto">
+                            {/* Left: Form (8 cols) */}
+                            <div className="col-span-8 p-4 border-r flex flex-col gap-3 overflow-y-auto">
+                              {/* Title */}
                               <div>
                                 <Label className="text-xs font-semibold mb-1.5 block">
                                   Tên task <span className="text-destructive">*</span>
@@ -478,6 +479,50 @@ export default function GroupDetail() {
                                   className="h-10 text-base font-medium" 
                                 />
                               </div>
+
+                              {/* Config row: all fields inline */}
+                              <div className={`grid gap-3 ${stages.length > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                                {stages.length > 0 && (
+                                  <div>
+                                    <Label className="text-[11px] font-medium mb-1 block flex items-center gap-1 text-warning">
+                                      <Layers className="w-3 h-3" /> Giai đoạn <span className="text-destructive">*</span>
+                                    </Label>
+                                    <Select value={newTaskStageId} onValueChange={setNewTaskStageId}>
+                                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Chọn..." /></SelectTrigger>
+                                      <SelectContent>
+                                        {stages.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
+                                <div>
+                                  <Label className="text-[11px] font-medium mb-1 block flex items-center gap-1 text-accent">
+                                    <Calendar className="w-3 h-3" /> Deadline
+                                  </Label>
+                                  <DeadlineHourPicker value={newTaskDeadline} onChange={setNewTaskDeadline} placeholder="Chọn..." />
+                                </div>
+                                <div>
+                                  <Label className="text-[11px] font-medium mb-1 block flex items-center gap-1">
+                                    <Send className="w-3 h-3" /> Cách nộp
+                                  </Label>
+                                  <Select value={newTaskSubmissionMethod} onValueChange={setNewTaskSubmissionMethod}>
+                                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="both">Cả hai cách</SelectItem>
+                                      <SelectItem value="file_only">Chỉ tải file</SelectItem>
+                                      <SelectItem value="link_only">Chỉ dán link</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <Label className="text-[11px] font-medium mb-1 block flex items-center gap-1 text-muted-foreground">
+                                    <FileText className="w-3 h-3" /> Giới hạn file
+                                  </Label>
+                                  <FileSizeLimitSelector value={newTaskMaxFileSize} onChange={setNewTaskMaxFileSize} />
+                                </div>
+                              </div>
+
+                              {/* Description - fills remaining space */}
                               <div className="flex-1 flex flex-col min-h-0">
                                 <Label className="text-xs font-semibold mb-1.5 block">Mô tả công việc</Label>
                                 <ResourceTagTextarea 
@@ -490,53 +535,7 @@ export default function GroupDetail() {
                               </div>
                             </div>
                             
-                            {/* Col 2: Config fields (3 cols) */}
-                            <div className="col-span-3 p-4 border-r flex flex-col gap-3 overflow-y-auto">
-                              {stages.length > 0 && (
-                                <div>
-                                  <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-warning">
-                                    <Layers className="w-3.5 h-3.5" />
-                                    Giai đoạn <span className="text-destructive">*</span>
-                                  </Label>
-                                  <Select value={newTaskStageId} onValueChange={setNewTaskStageId}>
-                                    <SelectTrigger className="h-9"><SelectValue placeholder="Chọn..." /></SelectTrigger>
-                                    <SelectContent>
-                                      {stages.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                              <div>
-                                <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-accent">
-                                  <Calendar className="w-3.5 h-3.5" />
-                                  Deadline
-                                </Label>
-                                <DeadlineHourPicker value={newTaskDeadline} onChange={setNewTaskDeadline} placeholder="Chọn deadline..." />
-                              </div>
-                              <div>
-                                <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5">
-                                  <Send className="w-3.5 h-3.5" />
-                                  Cách nộp bài
-                                </Label>
-                                <Select value={newTaskSubmissionMethod} onValueChange={setNewTaskSubmissionMethod}>
-                                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="both">Cả hai cách</SelectItem>
-                                    <SelectItem value="file_only">Chỉ tải file</SelectItem>
-                                    <SelectItem value="link_only">Chỉ dán link</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-muted-foreground">
-                                  <FileText className="w-3.5 h-3.5" />
-                                  Giới hạn file
-                                </Label>
-                                <FileSizeLimitSelector value={newTaskMaxFileSize} onChange={setNewTaskMaxFileSize} />
-                              </div>
-                            </div>
-                            
-                            {/* Col 3: Assignees (4 cols) */}
+                            {/* Right: Assignees (4 cols) */}
                             <div className="col-span-4 flex flex-col">
                               <div className="px-4 py-2.5 border-b bg-success/5">
                                 <div className="flex items-center gap-2">
@@ -571,16 +570,9 @@ export default function GroupDetail() {
                                           }
                                         }}
                                       >
-                                        <Checkbox 
-                                          checked={newTaskAssignees.includes(m.user_id)} 
-                                          className="h-4 w-4"
-                                        />
+                                        <Checkbox checked={newTaskAssignees.includes(m.user_id)} className="h-4 w-4" />
                                         {m.profiles?.avatar_url ? (
-                                          <img 
-                                            src={m.profiles.avatar_url} 
-                                            alt={m.profiles.full_name || ''} 
-                                            className="w-8 h-8 rounded-full object-cover shrink-0"
-                                          />
+                                          <img src={m.profiles.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
                                         ) : (
                                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                                             {m.profiles?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
@@ -607,16 +599,8 @@ export default function GroupDetail() {
                         {/* Footer */}
                         <DialogFooter className="px-5 py-3 border-t bg-muted/30 gap-2 shrink-0">
                           <Button variant="outline" onClick={() => setIsTaskDialogOpen(false)} className="h-9 min-w-20">Hủy</Button>
-                          <Button 
-                            onClick={handleCreateTask} 
-                            disabled={isCreatingTask} 
-                            className="h-9 min-w-28 gap-2"
-                          >
-                            {isCreatingTask ? (
-                              <><Loader2 className="w-4 h-4 animate-spin" />Đang tạo...</>
-                            ) : (
-                              <><Plus className="w-4 h-4" />Tạo task</>
-                            )}
+                          <Button onClick={handleCreateTask} disabled={isCreatingTask} className="h-9 min-w-28 gap-2">
+                            {isCreatingTask ? <><Loader2 className="w-4 h-4 animate-spin" />Đang tạo...</> : <><Plus className="w-4 h-4" />Tạo task</>}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
