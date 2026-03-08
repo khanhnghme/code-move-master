@@ -10,35 +10,39 @@ import { Skeleton } from '@/components/ui/skeleton';
 /* ─── Intro Images Context ─── */
 type IntroImages = Record<string, string>;
 
-function IntroHeroImage({ imageUrl, fallbackGradient, alt }: { imageUrl?: string; fallbackGradient: string; alt: string }) {
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
+const IntroHeroImage = React.forwardRef<HTMLDivElement, { imageUrl?: string; fallbackGradient: string; alt: string }>(
+  function IntroHeroImage({ imageUrl, fallbackGradient, alt }, ref) {
+    const [loaded, setLoaded] = useState(false);
+    const [error, setError] = useState(false);
 
-  if (!imageUrl || error) {
-    return (
-      <div className={`w-full h-full rounded-xl ${fallbackGradient} flex items-center justify-center`}>
-        <div className="text-center text-primary-foreground/60">
-          <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-xs opacity-50">AI Illustration</p>
+    if (!imageUrl || error) {
+      return (
+        <div ref={ref} className={`w-full h-full rounded-xl ${fallbackGradient} border border-border/30 flex items-center justify-center`}>
+          <div className="text-center text-muted-foreground">
+            <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-muted/50 flex items-center justify-center">
+              <Zap className="w-5 h-5 opacity-40" />
+            </div>
+            <p className="text-[10px] opacity-60">Chưa có ảnh minh họa</p>
+            <p className="text-[9px] opacity-40">Admin có thể tạo trong Quản trị hệ thống</p>
+          </div>
         </div>
+      );
+    }
+
+    return (
+      <div ref={ref} className="w-full h-full relative rounded-xl overflow-hidden">
+        {!loaded && <Skeleton className="absolute inset-0 rounded-xl" />}
+        <img
+          src={imageUrl}
+          alt={alt}
+          className={`w-full h-full object-cover rounded-xl transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+        />
       </div>
     );
   }
-
-  return (
-    <div className="w-full h-full relative rounded-xl overflow-hidden">
-      {!loaded && <Skeleton className="absolute inset-0 rounded-xl" />}
-      <img
-        src={imageUrl}
-        alt={alt}
-        className={`w-full h-full object-cover rounded-xl transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-        onLoad={() => setLoaded(true)}
-        onError={() => setError(true)}
-      />
-    </div>
-  );
-}
-
+);
 /* ─── Visual Page Components ─── */
 
 function Page1Overview({ images }: { images: IntroImages }) {
