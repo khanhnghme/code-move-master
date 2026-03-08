@@ -456,55 +456,61 @@ function TaskRow({
               </div>
 
               <div className="flex items-center gap-1">
-                {/* Meeting join button - mobile */}
-                {isMeetingTask && (meetingIsLive || meetingIsScheduled) && onJoinMeeting && (
-                  <Button
-                    size="sm"
-                    variant={meetingIsLive ? "default" : "outline"}
-                    className={`h-7 text-xs px-2 gap-1 ${meetingIsLive ? 'animate-pulse' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
-                  >
-                    <Video className="w-3 h-3" />
-                    {meetingIsLive ? 'Vào họp' : 'Phòng họp'}
-                  </Button>
-                )}
-                <SubmissionHistoryPopup 
-                  taskId={task.id}
-                  groupId={groupId}
-                  taskDeadline={task.deadline}
-                  currentSubmissionLink={task.submission_link}
-                />
+                {isMeetingTask ? (
+                  /* Meeting task: show join button instead of submit */
+                  onJoinMeeting && (
+                    <Button
+                      size="sm"
+                      variant={meetingIsLive ? "default" : meetingIsCompleted ? "secondary" : "outline"}
+                      className={`h-7 text-xs px-2 gap-1 ${meetingIsLive ? 'animate-pulse' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
+                    >
+                      <Video className="w-3 h-3" />
+                      {meetingIsLive ? 'Vào họp' : meetingIsCompleted ? 'Xem lại' : 'Phòng họp'}
+                    </Button>
+                  )
+                ) : (
+                  /* Normal task: show submit buttons */
+                  <>
+                    <SubmissionHistoryPopup 
+                      taskId={task.id}
+                      groupId={groupId}
+                      taskDeadline={task.deadline}
+                      currentSubmissionLink={task.submission_link}
+                    />
 
-                <SubmissionButton 
-                  submissionLink={task.submission_link} 
-                  variant="compact"
-                  onStopPropagation={true}
-                  taskId={task.id}
-                  groupId={groupId}
-                />
+                    <SubmissionButton 
+                      submissionLink={task.submission_link} 
+                      variant="compact"
+                      onStopPropagation={true}
+                      taskId={task.id}
+                      groupId={groupId}
+                    />
 
-                {(isAssignee || isLeaderInGroup) && (
-                  <Button
-                    variant={task.submission_link ? "outline" : "default"}
-                    size="sm"
-                    className="h-7 text-xs px-2 gap-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openSubmissionDialog(task);
-                    }}
-                  >
-                    {task.submission_link ? (
-                      <>
-                        <Edit className="w-3 h-3" />
-                        <span className="hidden sm:inline">Sửa</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-3 h-3" />
-                        <span className="hidden sm:inline">Nộp</span>
-                      </>
+                    {(isAssignee || isLeaderInGroup) && (
+                      <Button
+                        variant={task.submission_link ? "outline" : "default"}
+                        size="sm"
+                        className="h-7 text-xs px-2 gap-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openSubmissionDialog(task);
+                        }}
+                      >
+                        {task.submission_link ? (
+                          <>
+                            <Edit className="w-3 h-3" />
+                            <span className="hidden sm:inline">Sửa</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-3 h-3" />
+                            <span className="hidden sm:inline">Nộp</span>
+                          </>
+                        )}
+                      </Button>
                     )}
-                  </Button>
+                  </>
                 )}
 
                 {isLeaderInGroup && (
