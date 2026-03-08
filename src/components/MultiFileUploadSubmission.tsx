@@ -338,7 +338,10 @@ export default function MultiFileUploadSubmission({
 
   const handleRemoveFile = async (fileToRemove: UploadedFile) => {
     try {
-      await supabase.storage.from('task-submissions').remove([fileToRemove.file_path]);
+      // Don't try to delete from storage if it's a Drive file
+      if (!fileToRemove.file_path.startsWith('drive://')) {
+        await supabase.storage.from('task-submissions').remove([fileToRemove.file_path]);
+      }
       const newFiles = uploadedFiles.filter(f => f.file_path !== fileToRemove.file_path);
       onFilesChanged(newFiles);
     } catch (error) {
