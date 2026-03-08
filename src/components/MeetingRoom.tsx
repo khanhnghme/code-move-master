@@ -32,9 +32,38 @@ export default function MeetingRoom({ meeting, members, isLeader, groupId, onBac
   const [isSavingNotes, setIsSavingNotes] = useState(false);
   const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Auto check-in when member opens the room
   useEffect(() => {
-    fetchAttendance();
-  }, [meeting.id]);
+    fetchAttendance().then(() => {
+      if (user && (meeting.status === 'in_progress' || meeting.status === 'scheduled')) {
+        autoCheckIn();
+      }
+    });
+  }, [meeting.id, user]);
+
+  const autoCheckIn = async () => {
+    if (!user) return;
+    try {
+      // Update own attendance to present if currently absent
+      const { data: existing } = await (supabase.from('meeting_attendance') as any)
+        .select('id, status')
+        .eq('meeting_id', meeting.id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existing && existing.status === 'absent') {
+        await (supabase.from('meeting_attendance') as any)
+          .update({
+            status: 'present',
+            joined_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id);
+        fetchAttendance();
+      }
+    } catch (e) {
+      console.error('Auto check-in failed:', e);
+    }
+  };
 
   // Auto-save notes with debounce
   const handleNotesChange = (value: string) => {
