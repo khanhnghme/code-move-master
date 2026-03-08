@@ -497,6 +497,7 @@ export default function MemberManagement() {
     setIsBulkProcessing(true);
     const ids = Array.from(selectedIds);
     const demoted: string[] = [];
+    const demotedIds: string[] = [];
     for (const id of ids) {
       const member = members.find(m => m.id === id);
       if (!member) continue;
@@ -504,7 +505,7 @@ export default function MemberManagement() {
       if (!roles.includes('leader')) continue;
       if (roles.includes('admin')) continue;
       const { error } = await supabase.from('user_roles').delete().eq('user_id', id).eq('role', 'leader');
-      if (!error) demoted.push(member.full_name);
+      if (!error) { demoted.push(member.full_name); demotedIds.push(id); }
     }
     if (demoted.length > 0) {
       await supabase.from('activity_logs').insert({
@@ -512,6 +513,7 @@ export default function MemberManagement() {
         action: 'BULK_DEMOTE_MEMBERS', action_type: 'member',
         description: `Hạ cấp hàng loạt ${demoted.length} tài khoản về Thành viên: ${demoted.join(', ')}`,
       });
+      await notifyRoleChanged({ userIds: demotedIds, adminName: currentProfile?.full_name || 'Admin', newRole: 'Thành viên', action: 'demote' });
       toast({ title: 'Đã hạ cấp hàng loạt', description: `${demoted.length} tài khoản đã được hạ về Thành viên.` });
     } else {
       toast({ title: 'Không có thay đổi', description: 'Không có tài khoản nào đủ điều kiện để hạ cấp.', variant: 'destructive' });
