@@ -194,11 +194,21 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
                   )}
                 </div>
 
-                <div className="flex items-center justify-center gap-5 text-sm text-muted-foreground pt-1">
+                <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground pt-1">
                   <span className="flex items-center gap-1.5">
                     <Users className="w-4 h-4" />
                     {groupPreview.memberCount} thành viên
                   </span>
+                  <span className="flex items-center gap-1.5">
+                    <ListTodo className="w-4 h-4" />
+                    {groupPreview.taskCount} nhiệm vụ
+                  </span>
+                  {groupPreview.leaderName && (
+                    <span className="flex items-center gap-1.5">
+                      <Crown className="w-4 h-4 text-warning" />
+                      {groupPreview.leaderName}
+                    </span>
+                  )}
                   <span className="flex items-center gap-1.5">
                     <Calendar className="w-4 h-4" />
                     {format(new Date(groupPreview.created_at), 'dd/MM/yyyy', { locale: vi })}
