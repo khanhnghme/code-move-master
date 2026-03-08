@@ -250,7 +250,7 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
                 <ArrowLeft className="w-4 h-4" />
                 Quay lại
               </Button>
-              {!alreadyMember && (
+              {!alreadyMember && !(groupPreview.joinMemberLimit && groupPreview.memberCount >= groupPreview.joinMemberLimit) && (
                 <Button
                   className="flex-1"
                   onClick={handleConfirmJoin}
