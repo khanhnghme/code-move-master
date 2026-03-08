@@ -22,6 +22,10 @@ import introP3Formula from '@/assets/intro-p3-formula.png';
 import introP3Weights from '@/assets/intro-p3-weights.png';
 import introP3Appeal from '@/assets/intro-p3-appeal.png';
 import introP3Leaderboard from '@/assets/intro-p3-leaderboard.png';
+import introP4Team from '@/assets/intro-p4-team.png';
+import introP4Stages from '@/assets/intro-p4-stages.png';
+import introP4Resources from '@/assets/intro-p4-resources.png';
+import introP4Sharing from '@/assets/intro-p4-sharing.png';
 
 /* ─── Intro Images ─── */
 type IntroImages = Record<string, string>;
