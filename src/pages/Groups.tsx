@@ -680,92 +680,133 @@ export default function Groups() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {groups.map((group) => (
-              <Link key={group.id} to={`/p/${group.slug}`}>
-                <Card className="h-full hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 cursor-pointer group overflow-hidden border-border/60 hover:border-primary/30">
-                  {/* Cover image / gradient hero */}
-                  <div className="relative h-36 overflow-hidden">
-                    {group.image_url ? (
-                      <img
-                        src={group.image_url}
-                        alt={group.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 via-primary/10 to-accent/10 flex items-center justify-center">
-                        <FolderKanban className="w-12 h-12 text-primary/25" />
-                      </div>
-                    )}
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
-                    
-                    {/* Role badge - floating */}
-                    <div className="absolute top-3 right-3">
-                      {group.myRole === 'admin' ? (
-                        <Badge className="bg-destructive/90 text-destructive-foreground shadow-lg backdrop-blur-sm">
-                          <Crown className="w-3 h-3 mr-1" />
-                          Admin
-                        </Badge>
-                      ) : group.myRole === 'leader' ? (
-                        <Badge className="bg-primary/90 text-primary-foreground shadow-lg backdrop-blur-sm">
-                          <Crown className="w-3 h-3 mr-1" />
-                          Leader
-                        </Badge>
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {groups.map((group, index) => {
+              // Generate a unique gradient per card based on index
+              const gradients = [
+                'from-[hsl(183,100%,21%)] via-[hsl(183,58%,30%)] to-[hsl(200,80%,35%)]',
+                'from-[hsl(18,88%,48%)] via-[hsl(30,85%,50%)] to-[hsl(45,90%,55%)]',
+                'from-[hsl(183,80%,25%)] via-[hsl(160,60%,35%)] to-[hsl(140,50%,40%)]',
+                'from-[hsl(250,60%,50%)] via-[hsl(280,50%,45%)] to-[hsl(310,55%,50%)]',
+                'from-[hsl(18,88%,58%)] via-[hsl(183,70%,30%)] to-[hsl(183,100%,21%)]',
+                'from-[hsl(200,70%,40%)] via-[hsl(220,60%,50%)] to-[hsl(250,50%,55%)]',
+              ];
+              const gradient = gradients[index % gradients.length];
+
+              return (
+                <Link key={group.id} to={`/p/${group.slug}`}>
+                  <div className="group relative h-full rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/15 bg-card border border-border/40 hover:border-primary/40">
+                    {/* Decorative top accent bar */}
+                    <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
+
+                    {/* Cover Section */}
+                    <div className="relative h-40 overflow-hidden">
+                      {group.image_url ? (
+                        <img
+                          src={group.image_url}
+                          alt={group.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                        />
                       ) : (
-                        <Badge variant="secondary" className="shadow-lg backdrop-blur-sm bg-background/80">
-                          Member
-                        </Badge>
+                        <div className={`w-full h-full bg-gradient-to-br ${gradient} opacity-90`}>
+                          {/* Decorative pattern */}
+                          <div className="absolute inset-0 opacity-10">
+                            <div className="absolute top-4 right-4 w-24 h-24 rounded-full border-2 border-white/30" />
+                            <div className="absolute bottom-2 left-6 w-16 h-16 rounded-full border border-white/20" />
+                            <div className="absolute top-8 left-1/2 w-8 h-8 rounded-full bg-white/10" />
+                          </div>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <FolderKanban className="w-14 h-14 text-white/30" />
+                          </div>
+                        </div>
                       )}
+                      {/* Strong gradient overlay for text readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                      {/* Role badge - top right with glow */}
+                      <div className="absolute top-3 right-3">
+                        {group.myRole === 'admin' ? (
+                          <Badge className="bg-destructive text-destructive-foreground shadow-lg shadow-destructive/30 backdrop-blur-md border border-white/20 font-semibold">
+                            <Crown className="w-3 h-3 mr-1" />
+                            Admin
+                          </Badge>
+                        ) : group.myRole === 'leader' ? (
+                          <Badge className="bg-accent text-accent-foreground shadow-lg shadow-accent/30 backdrop-blur-md border border-white/20 font-semibold">
+                            <Crown className="w-3 h-3 mr-1" />
+                            Leader
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-white/20 text-white shadow-lg backdrop-blur-md border border-white/20 font-medium">
+                            Member
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* Title + member count overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h3 className="text-lg font-bold text-white line-clamp-2 drop-shadow-md leading-tight">
+                          {group.name}
+                        </h3>
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <div className="flex -space-x-1.5">
+                            {[...Array(Math.min(group.memberCount, 3))].map((_, i) => (
+                              <div key={i} className="w-5 h-5 rounded-full bg-white/30 border border-white/50 backdrop-blur-sm" />
+                            ))}
+                          </div>
+                          <span className="text-xs text-white/80 font-medium ml-1">
+                            {group.memberCount} thành viên
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
-                    {/* Title overlaid on image */}
-                    <div className="absolute bottom-0 left-0 right-0 px-4 pb-3">
-                      <h3 className="text-lg font-bold text-foreground line-clamp-2 drop-shadow-sm">
-                        {group.name}
-                      </h3>
+                    {/* Content */}
+                    <div className="p-4 space-y-3">
+                      {/* Description */}
+                      {group.description ? (
+                        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                          {group.description}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground/50 italic">Chưa có mô tả</p>
+                      )}
+
+                      {/* Info chips with color */}
+                      <div className="flex flex-wrap gap-2">
+                        {group.class_code && (
+                          <div className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                            <BookOpen className="w-3 h-3" />
+                            {group.class_code}
+                          </div>
+                        )}
+                        {group.instructor_name && (
+                          <div className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-accent/10 text-accent font-medium">
+                            <GraduationCap className="w-3 h-3" />
+                            {group.instructor_name}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer with date and arrow */}
+                      <div className="flex items-center justify-between pt-3 border-t border-border/40">
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(group.created_at).toLocaleDateString('vi-VN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          Mở dự án
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Content area */}
-                  <CardContent className="pt-3 pb-4 space-y-3">
-                    {/* Description */}
-                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem]">
-                      {group.description || 'Không có mô tả'}
-                    </p>
-
-                    {/* Info chips */}
-                    <div className="flex flex-wrap gap-2">
-                      {group.class_code && (
-                        <div className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-muted/80 text-muted-foreground">
-                          <BookOpen className="w-3 h-3" />
-                          {group.class_code}
-                        </div>
-                      )}
-                      {group.instructor_name && (
-                        <div className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-muted/80 text-muted-foreground">
-                          <GraduationCap className="w-3 h-3" />
-                          {group.instructor_name}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <Users className="w-3.5 h-3.5" />
-                        <span className="font-medium">{group.memberCount}</span>
-                        <span>thành viên</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(group.created_at).toLocaleDateString('vi-VN')}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
