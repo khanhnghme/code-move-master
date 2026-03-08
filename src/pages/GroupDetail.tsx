@@ -480,8 +480,8 @@ export default function GroupDetail() {
                                 />
                               </div>
 
-                              {/* Stage, Deadline, Submission Method, File Limit - Single row */}
-                              <div className={`grid gap-3 ${stages.length > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                              {/* Config row 1: Stage + Deadline */}
+                              <div className={`grid gap-3 ${stages.length > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                                 {stages.length > 0 && (
                                   <div>
                                     <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-warning">
@@ -501,8 +501,11 @@ export default function GroupDetail() {
                                     <Calendar className="w-3.5 h-3.5" />
                                     Deadline
                                   </Label>
-                                  <DeadlineHourPicker value={newTaskDeadline} onChange={setNewTaskDeadline} placeholder="Chọn..." />
+                                  <DeadlineHourPicker value={newTaskDeadline} onChange={setNewTaskDeadline} placeholder="Chọn deadline..." />
                                 </div>
+                              </div>
+                              {/* Config row 2: Submission method + File limit */}
+                              <div className="grid grid-cols-2 gap-3">
                                 <div>
                                   <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
                                     <Send className="w-3.5 h-3.5" />
