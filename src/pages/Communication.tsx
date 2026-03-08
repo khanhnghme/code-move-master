@@ -851,7 +851,7 @@ export default function Communication() {
             <div>
               <h1 className="text-base font-bold">{selectedProject.name}</h1>
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 <span>{projectMembers.length} thành viên</span>
               </div>
             </div>
