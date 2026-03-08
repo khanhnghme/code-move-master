@@ -113,7 +113,7 @@ export default function PersonalInfo() {
     if (isLeader) return {
       label: 'Thành viên Nâng cao',
       description: 'Được tạo & quản lý dự án',
-      icon: Crown,
+      icon: Star,
       gradient: 'from-amber-500 to-orange-600',
       bgGradient: 'from-amber-500/10 to-orange-600/10',
       borderColor: 'border-amber-200 dark:border-amber-800',
