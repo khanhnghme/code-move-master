@@ -16,10 +16,12 @@ import {
   AlertCircle,
   Eye,
   Pencil,
-  Check
+  Check,
+  ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useFilePreview } from '@/contexts/FilePreviewContext';
+import GoogleDriveUploadButton, { type DriveFileResult } from '@/components/GoogleDriveUploadButton';
 
 export interface UploadedFile {
   file_path: string;
@@ -336,7 +338,10 @@ export default function MultiFileUploadSubmission({
 
   const handleRemoveFile = async (fileToRemove: UploadedFile) => {
     try {
-      await supabase.storage.from('task-submissions').remove([fileToRemove.file_path]);
+      // Don't try to delete from storage if it's a Drive file
+      if (!fileToRemove.file_path.startsWith('drive://')) {
+        await supabase.storage.from('task-submissions').remove([fileToRemove.file_path]);
+      }
       const newFiles = uploadedFiles.filter(f => f.file_path !== fileToRemove.file_path);
       onFilesChanged(newFiles);
     } catch (error) {
@@ -349,6 +354,11 @@ export default function MultiFileUploadSubmission({
   };
 
   const handlePreviewFile = (file: UploadedFile) => {
+    // Drive files: open the Drive URL directly
+    if (file.file_path.startsWith('drive://')) {
+      window.open(file.storage_name, '_blank');
+      return;
+    }
     const params = new URLSearchParams();
     params.set('path', file.file_path);
     params.set('name', file.file_name);
@@ -424,6 +434,23 @@ export default function MultiFileUploadSubmission({
         )}
       </div>
 
+      {/* Google Drive button */}
+      <GoogleDriveUploadButton
+        disabled={disabled || isUploading}
+        variant="outline"
+        size="sm"
+        className="w-full gap-2 text-xs h-8"
+        onFilesSelected={(driveFiles) => {
+          const newFiles: UploadedFile[] = driveFiles.map(df => ({
+            file_path: `drive://${df.driveFileId}`,
+            file_name: df.name,
+            file_size: df.size,
+            storage_name: df.url,
+          }));
+          onFilesChanged([...uploadedFiles, ...newFiles]);
+        }}
+      />
+
       <div className="flex items-center justify-between text-[10px] px-0.5">
         <span className="text-muted-foreground">
           {formatFileSize(currentTotalSize)} / {formatFileSize(maxTotalSize)}
@@ -449,7 +476,18 @@ export default function MultiFileUploadSubmission({
               key={file.file_path || index}
               className="flex items-center gap-1.5 p-1.5 rounded border bg-card hover:bg-accent/50 transition-colors group"
             >
-              {getFileIcon(file.file_name)}
+              {file.file_path.startsWith('drive://') ? (
+                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8H0c0 1.55.4 3.1 1.2 4.5l5.4 9.35z" fill="#0066DA"/>
+                  <path d="M43.65 25L29.9 1.2C28.55 2 27.4 3.1 26.6 4.5L3.2 45.15c-.8 1.4-1.2 2.95-1.2 4.5h27.5L43.65 25z" fill="#00AC47"/>
+                  <path d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l5.95 10.3 7.8 13.5z" fill="#EA4335"/>
+                  <path d="M43.65 25L57.4 1.2C56.05.4 54.5 0 52.9 0H34.4c-1.6 0-3.15.45-4.5 1.2L43.65 25z" fill="#00832D"/>
+                  <path d="M59.8 49.65H27.5l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.5c1.6 0 3.15-.45 4.5-1.2L59.8 49.65z" fill="#2684FC"/>
+                  <path d="M73.4 26.5l-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3L43.65 25l16.15 24.65h27.5c0-1.55-.4-3.1-1.2-4.5L73.4 26.5z" fill="#FFBA00"/>
+                </svg>
+              ) : (
+                getFileIcon(file.file_name)
+              )}
               
               {editingIndex === index ? (
                 <div className="flex-1 flex items-center gap-1 min-w-0">
