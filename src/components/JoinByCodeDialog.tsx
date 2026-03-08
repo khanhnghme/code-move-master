@@ -21,6 +21,8 @@ interface GroupPreview {
   created_at: string;
   image_url: string | null;
   memberCount: number;
+  leaderName: string | null;
+  taskCount: number;
 }
 
 interface JoinByCodeDialogProps {
