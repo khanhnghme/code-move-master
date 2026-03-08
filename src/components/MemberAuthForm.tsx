@@ -59,7 +59,7 @@ function PolicyCheckbox({
           <span>Tôi đồng ý với</span>
           <Dialog>
             <DialogTrigger asChild>
-              <button type="button" className="text-primary hover:underline font-medium">
+              <button type="button" className="text-warning hover:underline font-semibold">
                 Chính sách hệ thống
               </button>
             </DialogTrigger>
