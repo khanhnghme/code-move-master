@@ -612,104 +612,105 @@ function TaskRow({
             </Button>
           ) : (
             <div className="grid grid-cols-[64px_104px_92px_40px] items-center justify-end gap-1 flex-nowrap min-w-0">
-          <div className="flex justify-end">
-            <SubmissionHistoryPopup 
-              taskId={task.id}
-              groupId={groupId}
-              taskDeadline={task.deadline}
-              currentSubmissionLink={task.submission_link}
-            />
-          </div>
+              <div className="flex justify-end">
+                <SubmissionHistoryPopup 
+                  taskId={task.id}
+                  groupId={groupId}
+                  taskDeadline={task.deadline}
+                  currentSubmissionLink={task.submission_link}
+                />
+              </div>
 
-          <div className="flex justify-end">
-            <SubmissionButton 
-              submissionLink={task.submission_link} 
-              variant="compact"
-              onStopPropagation={true}
-              taskId={task.id}
-              groupId={groupId}
-            />
-          </div>
+              <div className="flex justify-end">
+                <SubmissionButton 
+                  submissionLink={task.submission_link} 
+                  variant="compact"
+                  onStopPropagation={true}
+                  taskId={task.id}
+                  groupId={groupId}
+                />
+              </div>
 
-          <div className="flex justify-end">
-            {canSubmit ? (
-              <Button
-                variant={task.submission_link ? "outline" : "default"}
-                size="sm"
-                className="h-7 w-[92px] text-xs px-2 gap-1 shrink-0 justify-center"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openSubmissionDialog(task);
-                }}
-              >
-                {task.submission_link ? (
-                  <>
-                    <Edit className="w-3 h-3" />
-                    <span className="hidden lg:inline">Sửa</span>
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-3 h-3" />
-                    <span className="hidden lg:inline">Nộp</span>
-                  </>
-                )}
-              </Button>
-            ) : (
-              <span className="h-7 w-[92px]" aria-hidden />
-            )}
-          </div>
-
-          <div className="flex justify-end">
-            {isLeaderInGroup ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-7 w-7 shrink-0"
-                    onClick={(e) => e.stopPropagation()}
+              <div className="flex justify-end">
+                {canSubmit ? (
+                  <Button
+                    variant={task.submission_link ? "outline" : "default"}
+                    size="sm"
+                    className="h-7 w-[92px] text-xs px-2 gap-1 shrink-0 justify-center"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openSubmissionDialog(task);
+                    }}
                   >
-                    <MoreVertical className="w-3.5 h-3.5" />
+                    {task.submission_link ? (
+                      <>
+                        <Edit className="w-3 h-3" />
+                        <span className="hidden lg:inline">Sửa</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-3 h-3" />
+                        <span className="hidden lg:inline">Nộp</span>
+                      </>
+                    )}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
-                    <Edit className="w-3.5 h-3.5 mr-2" />
-                    Chỉnh sửa
-                  </DropdownMenuItem>
-                  {onScoreTask && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onScoreTask(task); }} className="text-xs">
-                      <Award className="w-3.5 h-3.5 mr-2" />
-                      Chấm điểm
-                    </DropdownMenuItem>
-                  )}
-                  {onToggleHidden && (
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggleHidden(task); }} className="text-xs">
-                      {task.is_hidden ? (
-                        <>
-                          <Eye className="w-3.5 h-3.5 mr-2" />
-                          Hiện task
-                        </>
-                      ) : (
-                        <>
-                          <EyeOff className="w-3.5 h-3.5 mr-2" />
-                          Ẩn task
-                        </>
+                ) : (
+                  <span className="h-7 w-[92px]" aria-hidden />
+                )}
+              </div>
+
+              <div className="flex justify-end">
+                {isLeaderInGroup ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-7 w-7 shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="w-3.5 h-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
+                        <Edit className="w-3.5 h-3.5 mr-2" />
+                        Chỉnh sửa
+                      </DropdownMenuItem>
+                      {onScoreTask && (
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onScoreTask(task); }} className="text-xs">
+                          <Award className="w-3.5 h-3.5 mr-2" />
+                          Chấm điểm
+                        </DropdownMenuItem>
                       )}
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
-                    <Trash2 className="w-3.5 h-3.5 mr-2" />
-                    Xóa
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <span className="h-7 w-7" aria-hidden />
-            )}
-          </div>
-        </div>
+                      {onToggleHidden && (
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onToggleHidden(task); }} className="text-xs">
+                          {task.is_hidden ? (
+                            <>
+                              <Eye className="w-3.5 h-3.5 mr-2" />
+                              Hiện task
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="w-3.5 h-3.5 mr-2" />
+                              Ẩn task
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
+                        <Trash2 className="w-3.5 h-3.5 mr-2" />
+                        Xóa
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <span className="h-7 w-7" aria-hidden />
+                )}
+              </div>
+            </div>
+          )}
       </div>
     </div>
   );
