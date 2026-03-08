@@ -3309,9 +3309,22 @@ Deno.serve(async (req) => {
 
 **Features:**
 - Giới hạn 100 từ/câu hỏi
-- Streaming response
+- Streaming response (SSE)
 - Model: `google/gemini-3-flash-preview`
 - Cần secret: `LOVABLE_API_KEY`
+
+**Dữ liệu truyền vào AI:**
+- Thông tin dự án (tên, mô tả, mã lớp, GVHD)
+- Giai đoạn và số task mỗi giai đoạn
+- Danh sách thành viên và vai trò
+- Tất cả task (trạng thái, deadline, người thực hiện)
+- Tài nguyên dự án (file, link, thư mục)
+- **Cuộc họp nhóm** (tiêu đề, thời gian, thời lượng, trạng thái, task liên kết)
+- **Điểm quá trình** (CHỈ của user đang hỏi — task scores, stage scores, final score)
+
+**Bảo mật điểm:**
+- AI chỉ trả lời điểm của chính user đang hỏi
+- Nếu hỏi điểm người khác → từ chối: "Bạn chỉ có thể xem điểm của chính mình"
 
 ---
 
