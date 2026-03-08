@@ -22,6 +22,10 @@ import introP3Formula from '@/assets/intro-p3-formula.png';
 import introP3Weights from '@/assets/intro-p3-weights.png';
 import introP3Appeal from '@/assets/intro-p3-appeal.png';
 import introP3Leaderboard from '@/assets/intro-p3-leaderboard.png';
+import introP4Team from '@/assets/intro-p4-team.png';
+import introP4Stages from '@/assets/intro-p4-stages.png';
+import introP4Resources from '@/assets/intro-p4-resources.png';
+import introP4Sharing from '@/assets/intro-p4-sharing.png';
 
 /* ─── Intro Images ─── */
 type IntroImages = Record<string, string>;
@@ -226,96 +230,34 @@ function Page3Scoring({ images }: { images: IntroImages }) {
 }
 
 function Page4Project({ images }: { images: IntroImages }) {
+  const features = [
+    { img: introP4Team, label: 'Cấu trúc nhóm' },
+    { img: introP4Stages, label: 'Giai đoạn dự án' },
+    { img: introP4Resources, label: 'Tài nguyên dự án' },
+    { img: introP4Sharing, label: 'Chia sẻ & Công khai' },
+  ];
+
   return (
-    <div className="h-full flex flex-col gap-4">
-      <div className="h-[38%] min-h-[180px] flex-shrink-0" style={{ animation: 'fade-in 0.5s ease-out both' }}>
-        <IntroHeroImage
-          imageUrl={images.page4}
-          fallbackGradient="bg-gradient-to-br from-primary/15 via-green-500/10 to-accent/10"
-          alt="Quản lý dự án và nhóm"
-        />
+    <div className="flex gap-3 flex-1 min-h-0">
+      {/* Hero image */}
+      <div className="w-[35%] flex-shrink-0 rounded-xl overflow-hidden" style={{ animation: 'fade-in 0.5s ease-out both' }}>
+        <img src={introPage4} alt="Quản lý dự án" className="w-full h-full object-cover" />
       </div>
 
-      <div className="space-y-1">
-        <h3 className="text-2xl font-bold text-foreground">Quản lý dự án</h3>
-        <p className="text-sm text-muted-foreground">Tổ chức nhóm và tài nguyên hiệu quả</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1">
-        {/* Team structure */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 200ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            <Users className="w-3 h-3 inline mr-1" />Cấu trúc nhóm
-          </p>
-          <div className="flex flex-col items-center gap-2">
-            <div className="bg-primary/10 border border-primary/30 rounded-lg px-3 py-1.5 flex items-center gap-2">
-              <Star className="w-3 h-3 text-primary" />
-              <span className="text-[10px] font-bold text-foreground">Leader</span>
-            </div>
-            <div className="w-px h-3 bg-border" />
-            <div className="flex gap-2">
-              {['Bình', 'Châu', 'Dũng'].map((name, i) => (
-                <div key={i} className="bg-background border border-border/60 rounded-lg px-2 py-1 text-center">
-                  <div className="w-5 h-5 rounded-full bg-muted mx-auto mb-0.5 flex items-center justify-center text-[8px] font-bold">{name[0]}</div>
-                  <p className="text-[9px] text-foreground">{name}</p>
-                </div>
-              ))}
+      {/* 2x2 feature grid */}
+      <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-3 min-h-0">
+        {features.map((f, i) => (
+          <div
+            key={i}
+            className="relative group rounded-xl overflow-hidden border border-border/40"
+            style={{ animation: `fade-in 0.4s ease-out ${100 + i * 100}ms both` }}
+          >
+            <img src={f.img} alt={f.label} className="w-full h-full object-cover" />
+            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent px-3 py-2">
+              <p className="text-xs font-semibold text-foreground">{f.label}</p>
             </div>
           </div>
-        </div>
-
-        {/* Stages */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3" style={{ animation: 'fade-in 0.4s ease-out 300ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            <GitBranch className="w-3 h-3 inline mr-1" />Giai đoạn dự án
-          </p>
-          <div className="space-y-1.5">
-            {[
-              { name: 'Lập kế hoạch', progress: 100, tasks: 4 },
-              { name: 'Phân tích & Thiết kế', progress: 75, tasks: 6 },
-              { name: 'Triển khai', progress: 30, tasks: 8 },
-              { name: 'Kiểm thử', progress: 0, tasks: 5 },
-            ].map((stage, i) => (
-              <div key={i} className="bg-background rounded-lg border border-border/50 p-2">
-                <div className="flex items-center justify-between mb-0.5">
-                  <span className="text-[10px] font-semibold text-foreground">{stage.name}</span>
-                  <span className="text-[9px] text-muted-foreground">{stage.tasks} tasks</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full ${stage.progress === 100 ? 'bg-green-500' : stage.progress > 0 ? 'bg-primary' : 'bg-muted-foreground/20'}`} style={{ width: `${stage.progress}%` }} />
-                  </div>
-                  <span className="text-[9px] font-medium text-muted-foreground">{stage.progress}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Resources */}
-        <div className="bg-muted/30 border border-border/60 rounded-xl p-3 md:col-span-2" style={{ animation: 'fade-in 0.4s ease-out 400ms both' }}>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            <FolderOpen className="w-3 h-3 inline mr-1" />Tài nguyên dự án
-          </p>
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { icon: FolderOpen, name: 'Tài liệu', count: '12 files' },
-              { icon: FileText, name: 'Báo cáo', count: '3 files' },
-              { icon: Globe, name: 'Links', count: '7 links' },
-              { icon: Upload, name: 'Minh chứng', count: '24 files' },
-            ].map((folder, i) => (
-              <div key={i} className="bg-background rounded-lg border border-border/50 p-2 flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <folder.icon className="w-3.5 h-3.5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-semibold text-foreground">{folder.name}</p>
-                  <p className="text-[9px] text-muted-foreground">{folder.count}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
