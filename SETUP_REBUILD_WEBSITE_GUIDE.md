@@ -15,7 +15,7 @@
 2. [Công nghệ & Phiên bản](#2-công-nghệ--phiên-bản)
 3. [Supabase - Cấu hình chi tiết](#3-supabase---cấu-hình-chi-tiết)
    - 3.1 Tạo Project
-   - 3.2 Database Schema (28 bảng)
+   - 3.2 Database Schema (32 bảng)
    - 3.3 Database Functions
    - 3.4 Database Triggers
    - 3.5 Row Level Security (RLS) - CHI TIẾT TẤT CẢ POLICIES
