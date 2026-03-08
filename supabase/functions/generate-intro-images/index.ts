@@ -6,26 +6,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const MODEL = "google/gemini-3-pro-image-preview";
+
 const IMAGE_PROMPTS = [
   {
     key: "page1",
-    prompt: "Clean modern isometric illustration of a team collaboration dashboard with colorful charts, kanban task boards, and diverse student avatars working together, soft gradients, teal and orange accent colors, white background, no text"
+    prompt: "Professional 3D illustration of a modern team collaboration platform dashboard showing colorful analytics charts, task cards, team avatars with progress indicators, clean UI design, teal and orange accent colors, white background, no text, high quality render"
   },
   {
     key: "page2",
-    prompt: "Flat design illustration of a vibrant Kanban board with colorful sticky notes in columns (todo, in progress, done), deadline clocks, progress bars, drag and drop arrows, teal and orange colors, white background, no text"
+    prompt: "Vibrant 3D illustration of a Kanban board interface with colorful task cards being dragged between columns (To Do, In Progress, Done, Verified), deadline timers, file upload icons, teal and orange accent colors, white background, no text, high quality render"
   },
   {
     key: "page3",
-    prompt: "Modern flat illustration of a scoring and grading dashboard with bar charts, star ratings, gold medals, trophy, percentage circles, leaderboard, teal and orange accent colors, white background, no text"
+    prompt: "Elegant 3D illustration of an automated scoring system with gold trophies, star ratings, bar chart comparisons, percentage circles, leaderboard rankings, teal and orange accent colors, white background, no text, high quality render"
   },
   {
     key: "page4",
-    prompt: "Isometric illustration of project management workspace with team hierarchy org chart, timeline gantt chart, file folders, resource management, teal and orange colors, white background, no text"
+    prompt: "Professional 3D illustration of project management with team organization chart, timeline gantt chart, folder structure, resource sharing icons, teal and orange accent colors, white background, no text, high quality render"
   },
   {
     key: "page5",
-    prompt: "Futuristic flat illustration of advanced features: AI robot assistant with chat bubbles, document export icons, security shield, notification bells, communication tools, teal and orange accent colors, white background, no text"
+    prompt: "Futuristic 3D illustration of AI assistant robot chatting, document export (PDF/Excel), security shield with lock, real-time notification bells, communication bubbles, teal and orange accent colors, white background, no text, high quality render"
   }
 ];
 
@@ -75,7 +77,7 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
+          model: MODEL,
           messages: [{ role: "user", content: item.prompt }],
           modalities: ["image", "text"],
         }),
@@ -84,8 +86,8 @@ serve(async (req) => {
       if (!response.ok) {
         if (response.status === 429) {
           // Wait and retry once
-          console.log(`Rate limited on ${item.key}, waiting 10s...`);
-          await new Promise(r => setTimeout(r, 10000));
+          console.log(`Rate limited on ${item.key}, waiting 20s...`);
+          await new Promise(r => setTimeout(r, 20000));
           const retry = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -93,7 +95,7 @@ serve(async (req) => {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-flash-image",
+              model: MODEL,
               messages: [{ role: "user", content: item.prompt }],
               modalities: ["image", "text"],
             }),
@@ -122,8 +124,8 @@ serve(async (req) => {
         if (url) imageUrls[item.key] = url;
       }
 
-      // Small delay between requests
-      await new Promise(r => setTimeout(r, 2000));
+      // Longer delay for pro model
+      await new Promise(r => setTimeout(r, 5000));
     }
 
     // Save URLs to system_settings
