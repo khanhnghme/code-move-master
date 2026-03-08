@@ -262,6 +262,19 @@ export default function GroupDetail() {
       }
       
       toast({ title: 'Thành công', description: 'Đã tạo task mới' });
+      
+      const assigneeNames = newTaskAssignees.length > 0 
+        ? members.filter(m => newTaskAssignees.includes(m.user_id)).map(m => m.profiles?.full_name).filter(Boolean).join(', ')
+        : '';
+      await logActivity({
+        userId: user!.id,
+        userName: profile?.full_name || user?.email || 'Unknown',
+        action: 'CREATE_TASK', actionType: 'task',
+        description: `Tạo task "${newTaskTitle.trim()}"${assigneeNames ? ` — Giao cho: ${assigneeNames}` : ''}${newTaskDeadline ? ` — Deadline: ${new Date(newTaskDeadline).toLocaleString('vi-VN')}` : ''}`,
+        groupId: group!.id,
+        metadata: { task_id: newTask?.id, task_title: newTaskTitle.trim(), assignees: newTaskAssignees },
+      });
+
       setIsTaskDialogOpen(false);
       setNewTaskTitle('');
       setNewTaskDescription('');
