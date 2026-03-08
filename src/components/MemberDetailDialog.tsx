@@ -179,9 +179,15 @@ export default function MemberDetailDialog({
     'admin': 'Admin', 'leader': 'Thành viên Nâng cao', 'member': 'Thành viên'
   };
 
-  // Project role labels (for group_members)
-  const projectRoleLabel: Record<string, string> = {
-    'admin': 'Admin', 'leader': 'Phó nhóm', 'member': 'Thành viên'
+  // Use centralized role label utility
+  const getGroupRoleLabel = (role: string, isCreator: boolean) => {
+    if (isCreator) return 'Trưởng nhóm';
+    switch (role) {
+      case 'admin': return 'Admin';
+      case 'leader': return 'Phó nhóm';
+      case 'member': return 'Thành viên';
+      default: return role;
+    }
   };
 
   const taskStats = {
