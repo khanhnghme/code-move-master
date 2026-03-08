@@ -423,7 +423,19 @@ export default function ProcessScores({
           await supabase.from('stage_weights').insert([{ group_id: groupId, stage_id: stageId, weight }]);
         }
       }
+      const weightChanges = weights.map(w => {
+        const stage = stages.find(s => s.id === w.stageId);
+        return `${stage?.name || 'Unknown'}: ${w.weight}%`;
+      }).join(', ');
       toast({ title: 'Thành công', description: 'Đã lưu trọng số giai đoạn' });
+      if (user && profile) {
+        await logActivity({
+          userId: user.id, userName: profile.full_name,
+          action: 'UPDATE_STAGE_WEIGHTS', actionType: 'score',
+          description: `Thay đổi trọng số giai đoạn: ${weightChanges}`,
+          groupId,
+        });
+      }
       setWeightDialog(false);
       fetchScoreData();
     } catch (error: any) {
