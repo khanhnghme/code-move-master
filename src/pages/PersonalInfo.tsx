@@ -486,6 +486,9 @@ export default function PersonalInfo() {
             )}
           </CardContent>
         </Card>
+
+        {/* Google Account Linking */}
+        <GoogleAccountLinking />
       </div>
     </DashboardLayout>
   );

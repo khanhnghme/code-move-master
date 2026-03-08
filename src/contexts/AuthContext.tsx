@@ -248,6 +248,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Show profile completion for Google users without student_id
+  if (user && profile && needsProfileCompletion && !isAdmin) {
+    return (
+      <AuthContext.Provider value={contextValue}>
+        <ProfileCompletionForm />
+      </AuthContext.Provider>
+    );
+  }
+
   return (
     <AuthContext.Provider value={contextValue}>
       {children}
