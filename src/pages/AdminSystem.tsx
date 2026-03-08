@@ -350,32 +350,32 @@ export default function AdminSystem() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden grid grid-cols-2 divide-x">
+          <div className="flex-1 min-h-0 overflow-hidden grid grid-cols-2 divide-x">
             {/* Editor */}
-            <div className="flex flex-col">
+            <div className="flex flex-col min-h-0">
               <div className="px-4 py-2 border-b bg-muted/30">
                 <span className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                   <Edit className="w-3.5 h-3.5" /> Soạn thảo
                 </span>
               </div>
-              <div className="flex-1 p-4 overflow-hidden flex flex-col">
+              <div className="flex-1 min-h-0 p-4 overflow-hidden flex flex-col">
                 <Textarea
                   value={editPolicyContent}
                   onChange={(e) => setEditPolicyContent(e.target.value)}
                   placeholder={"# Chính sách hệ thống\n\n## 1. Quy tắc chung\n- Không chia sẻ tài khoản...\n\n## 2. Bảo mật thông tin\n..."}
-                  className="font-mono text-sm flex-1 resize-none"
+                  className="font-mono text-sm flex-1 min-h-0 resize-none"
                 />
               </div>
             </div>
 
             {/* Preview */}
-            <div className="flex flex-col">
+            <div className="flex flex-col min-h-0">
               <div className="px-4 py-2 border-b bg-muted/30">
                 <span className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                   <FileText className="w-3.5 h-3.5" /> Xem trước
                 </span>
               </div>
-              <div className="flex-1 p-6 overflow-y-auto">
+              <div className="flex-1 min-h-0 p-6 overflow-y-auto overscroll-contain">
                 <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-primary prose-h1:text-2xl prose-h1:border-b prose-h1:border-primary/20 prose-h1:pb-3 prose-h2:text-lg prose-h2:mt-6 prose-a:text-accent prose-strong:text-foreground">
                   {editPolicyContent ? (
                     <ReactMarkdown rehypePlugins={[rehypeRaw]}>{editPolicyContent}</ReactMarkdown>
