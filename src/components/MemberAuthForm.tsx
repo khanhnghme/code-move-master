@@ -29,12 +29,7 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   studentId: z.string().min(1, 'Vui lòng nhập MSSV').max(20, 'MSSV tối đa 20 ký tự'),
   fullName: z.string().min(1, 'Vui lòng nhập họ tên').max(100, 'Họ tên tối đa 100 ký tự'),
-  email: z.string().email('Email không hợp lệ').max(255, 'Email tối đa 255 ký tự'),
   password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
-  confirmPassword: z.string().min(6, 'Xác nhận mật khẩu tối thiểu 6 ký tự'),
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'Mật khẩu xác nhận không khớp',
-  path: ['confirmPassword'],
 });
 
 function PolicyCheckbox({
