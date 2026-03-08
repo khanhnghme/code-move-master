@@ -274,11 +274,12 @@ export default function MemberManagementCard({
       const newUserId = createResult?.user?.id;
       if (!newUserId) throw new Error('Không thể tạo tài khoản');
 
-      // Step 2: Add to project with role = 'member'
+      // Step 2: Add to project with role based on permission
+      const roleToAssign = canManageProjectRoles ? newMemberRole : 'member';
       const { error: addError } = await supabase.from('group_members').insert({
         group_id: groupId,
         user_id: newUserId,
-        role: 'member',
+        role: roleToAssign,
       });
 
       if (addError) {
