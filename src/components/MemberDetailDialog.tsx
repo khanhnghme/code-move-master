@@ -20,6 +20,7 @@ interface GroupInfo {
   name: string;
   role: string;
   image_url: string | null;
+  is_creator: boolean;
 }
 
 interface ActivityInfo {
