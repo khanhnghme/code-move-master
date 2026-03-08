@@ -376,7 +376,7 @@ export default function TaskEditDialog({
                   <Layers className="w-4 h-4" />
                   <span className="text-xs font-semibold uppercase">Giai đoạn & Cấu hình</span>
                 </div>
-                <div className="grid grid-cols-2 gap-3 pl-6">
+                <div className="grid grid-cols-3 gap-3 pl-6">
                   <div>
                     <Label className="text-xs mb-1.5 block">Giai đoạn</Label>
                     {canEditDetails ? (
@@ -402,6 +402,40 @@ export default function TaskEditDialog({
                       <FileSizeLimitSelector value={maxFileSize} onChange={setMaxFileSize} />
                     ) : (
                       <div className="p-2 rounded-md bg-muted/50 border text-sm">{formatFileSizeMB(maxFileSize)}</div>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-xs mb-1.5 block flex items-center gap-1">
+                      <Send className="w-3 h-3" /> Cách nộp bài
+                    </Label>
+                    {canEditDetails ? (
+                      <Select value={submissionMethod} onValueChange={(v) => setSubmissionMethod(v as SubmissionMethod)}>
+                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="both">
+                            <span className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-primary" />
+                              Cả hai cách
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="file_only">
+                            <span className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                              Chỉ tải file
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="link_only">
+                            <span className="flex items-center gap-2">
+                              <span className="w-2 h-2 rounded-full bg-blue-500" />
+                              Chỉ dán link
+                            </span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="p-2 rounded-md bg-muted/50 border text-sm">
+                        {submissionMethod === 'both' ? 'Cả hai cách' : submissionMethod === 'file_only' ? 'Chỉ tải file' : 'Chỉ dán link'}
+                      </div>
                     )}
                   </div>
                 </div>
