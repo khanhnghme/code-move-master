@@ -41,6 +41,7 @@ import {
   Shield,
   Moon,
   Sun,
+  Wrench,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import uehLogo from '@/assets/ueh-logo-new.png';
@@ -97,6 +98,7 @@ const navigation: NavItem[] = [
   { name: 'Thành viên', href: '/members', icon: Users, requiresAdmin: true, description: 'Quản lý người dùng' },
   { name: 'Sao lưu', href: '/admin/backup', icon: FolderArchive, requiresAdmin: true, description: 'Backup dữ liệu' },
   { name: 'Quản trị', href: '/admin/system', icon: Shield, requiresAdmin: true, description: 'Quản trị hệ thống' },
+  { name: 'Tiện ích', href: '/utilities', icon: Wrench, requiresAdmin: true, description: 'Công cụ & tiện ích' },
 ];
 
 export default function DashboardLayout({ children, projectId, projectName, zaloLink }: DashboardLayoutProps) {

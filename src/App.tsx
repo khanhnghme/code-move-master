@@ -23,6 +23,8 @@ import PublicProjectView from "./pages/PublicProjectView";
 import FilePreview from "./pages/FilePreview";
 import PersonalInfo from "./pages/PersonalInfo";
 import ResetPassword from "./pages/ResetPassword";
+import Utilities from "./pages/Utilities";
+import PublicProfile from "./pages/PublicProfile";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +66,8 @@ function AppRoutes() {
       <Route path="/admin/activity" element={<ProtectedRoute><AdminActivity /></ProtectedRoute>} />
       <Route path="/admin/backup" element={<ProtectedRoute><AdminBackup /></ProtectedRoute>} />
       <Route path="/admin/system" element={<ProtectedRoute><AdminSystem /></ProtectedRoute>} />
+      <Route path="/utilities" element={<ProtectedRoute><Utilities /></ProtectedRoute>} />
+      <Route path="/u/:username" element={<PublicProfile />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

@@ -710,6 +710,7 @@ export type Database = {
           phone: string | null
           project_limit: number | null
           skills: string | null
+          social_links: Json
           storage_limit_mb: number | null
           student_id: string
           suspended_at: string | null
@@ -717,6 +718,7 @@ export type Database = {
           suspended_until: string | null
           suspension_reason: string | null
           updated_at: string
+          username: string | null
           year_batch: string | null
         }
         Insert: {
@@ -732,6 +734,7 @@ export type Database = {
           phone?: string | null
           project_limit?: number | null
           skills?: string | null
+          social_links?: Json
           storage_limit_mb?: number | null
           student_id: string
           suspended_at?: string | null
@@ -739,6 +742,7 @@ export type Database = {
           suspended_until?: string | null
           suspension_reason?: string | null
           updated_at?: string
+          username?: string | null
           year_batch?: string | null
         }
         Update: {
@@ -754,6 +758,7 @@ export type Database = {
           phone?: string | null
           project_limit?: number | null
           skills?: string | null
+          social_links?: Json
           storage_limit_mb?: number | null
           student_id?: string
           suspended_at?: string | null
@@ -761,6 +766,7 @@ export type Database = {
           suspended_until?: string | null
           suspension_reason?: string | null
           updated_at?: string
+          username?: string | null
           year_batch?: string | null
         }
         Relationships: []
