@@ -51,6 +51,12 @@ export default function AdminSystem() {
   // Error logging state
   const [errorLoggingEnabled, setErrorLoggingEnabled] = useState(true);
   const [savingErrorLogging, setSavingErrorLogging] = useState(false);
+
+  // Google Drive state
+  const [driveEnabled, setDriveEnabled] = useState(false);
+  const [driveApiKey, setDriveApiKey] = useState('');
+  const [driveClientId, setDriveClientId] = useState('');
+  const [savingDrive, setSavingDrive] = useState(false);
   useEffect(() => {
     if (!isLoading && !isAdmin) {
       navigate('/dashboard');
