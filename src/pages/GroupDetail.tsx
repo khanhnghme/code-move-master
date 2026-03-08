@@ -311,7 +311,13 @@ export default function GroupDetail() {
         title: newHiddenStatus ? 'Đã ẩn giai đoạn' : 'Đã hiện giai đoạn',
         description: `Giai đoạn "${stage.name}" ${newHiddenStatus ? 'đã được ẩn' : 'đã được hiện'}`,
       });
-      
+      await logActivity({
+        userId: user!.id,
+        userName: profile?.full_name || user?.email || 'Unknown',
+        action: newHiddenStatus ? 'HIDE_STAGE' : 'SHOW_STAGE', actionType: 'stage',
+        description: `${newHiddenStatus ? 'Ẩn' : 'Hiện'} giai đoạn "${stage.name}"`,
+        groupId: group!.id,
+      });
       fetchGroupData();
     } catch (error: any) {
       toast({
