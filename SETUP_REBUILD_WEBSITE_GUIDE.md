@@ -93,6 +93,8 @@
 ✅ Xem nhật ký hệ thống (system activity logs)
 ✅ Backup/Restore database
 ✅ Xem và trả lời feedback từ user
+✅ Bật/tắt chế độ bảo trì (đặt lịch bắt đầu/kết thúc)
+✅ Soạn và cập nhật Chính sách hệ thống (Markdown)
 ✅ Tất cả quyền của Leader
 ```
 
