@@ -169,8 +169,6 @@ export default function ProfileViewDialog({
     })));
   };
 
-  if (!profile) return null;
-
   const taskStats = useMemo(() => ({
     total: tasks.length,
     done: tasks.filter(t => t.status === 'DONE' || t.status === 'VERIFIED').length,
@@ -184,6 +182,8 @@ export default function ProfileViewDialog({
     if (scored.length === 0) return null;
     return scored.reduce((sum, s) => sum + (s.final_score || 0), 0) / scored.length;
   }, [scores]);
+
+  if (!profile) return null;
 
   const completionRate = taskStats.total > 0 ? Math.round((taskStats.done / taskStats.total) * 100) : 0;
 
