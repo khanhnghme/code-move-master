@@ -37,6 +37,7 @@ export default function ShareSettingsCard({
   onUpdate,
 }: ShareSettingsCardProps) {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
   const [localIsPublic, setLocalIsPublic] = useState(isPublic);
   const [localShareToken, setLocalShareToken] = useState(shareToken);
