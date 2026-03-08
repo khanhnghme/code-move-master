@@ -64,10 +64,13 @@ export default function AdminSystem() {
       ]);
 
       if (maintenanceRes.data?.value) {
-        const val = maintenanceRes.data.value as { enabled?: boolean; message?: string; start_at?: string; end_at?: string };
+        const val = maintenanceRes.data.value as { enabled?: boolean; message?: string; duration_days?: number; start_at?: string; end_at?: string };
         setMaintenanceEnabled(val.enabled ?? false);
         setOrigMaintenanceEnabled(val.enabled ?? false);
         setMaintenanceMessage(val.message ?? 'Hệ thống đang bảo trì, vui lòng quay lại sau.');
+        const days = val.duration_days ?? 0;
+        setMaintenanceDays(days);
+        if (days > 0 && ![1,3,5,7,14,30].includes(days)) setCustomDays(String(days));
         setMaintenanceStart(val.start_at ?? '');
         setMaintenanceEnd(val.end_at ?? '');
       }
