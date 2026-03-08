@@ -1,8 +1,8 @@
 # 🚀 HƯỚNG DẪN SETUP VÀ TÁI TẠO WEBSITE TEAMWORKS UEH
-# COMPLETE REBUILD GUIDE - VERSION 5.0
+# COMPLETE REBUILD GUIDE - VERSION 6.0
 
-> **Phiên bản:** 5.0 (FULL RLS POLICIES + DETAILED COLUMNS)  
-> **Cập nhật lần cuối:** 02/03/2026  
+> **Phiên bản:** 6.0 (MEETINGS + MAINTENANCE + POLICY + AI SCORES)  
+> **Cập nhật lần cuối:** 08/03/2026  
 > **Tác giả:** Nguyễn Hoàng Khánh (khanhngh.ueh@gmail.com)  
 > **Đơn vị:** Trường Đại học Kinh tế TP. Hồ Chí Minh (UEH)  
 > **Backend:** Supabase (PostgreSQL + Auth + Storage + Edge Functions)
@@ -15,7 +15,7 @@
 2. [Công nghệ & Phiên bản](#2-công-nghệ--phiên-bản)
 3. [Supabase - Cấu hình chi tiết](#3-supabase---cấu-hình-chi-tiết)
    - 3.1 Tạo Project
-   - 3.2 Database Schema (28 bảng)
+   - 3.2 Database Schema (32 bảng)
    - 3.3 Database Functions
    - 3.4 Database Triggers
    - 3.5 Row Level Security (RLS) - CHI TIẾT TẤT CẢ POLICIES
@@ -69,14 +69,18 @@
 | 11 | **Tài liệu nhóm** | Upload, tổ chức thư mục | `ProjectResources.tsx` |
 | 12 | **Thông báo** | Realtime, mention @user | `NotificationBell.tsx` |
 | 13 | **Trò chuyện** | Chat nhóm, liên kết task | `Communication.tsx`, `TaskComments.tsx` |
-| 14 | **AI Assistant** | Trợ lý AI tra cứu thông tin | `AIAssistantButton.tsx`, `AIAssistantPanel.tsx` |
+| 14 | **AI Assistant** | Trợ lý AI tra cứu thông tin (tasks, meetings, scores) | `AIAssistantButton.tsx`, `AIAssistantPanel.tsx` |
 | 15 | **Xuất báo cáo** | PDF/Excel: nhật ký, bảng điểm | `ProjectEvidenceExport.tsx` |
 | 16 | **Chia sẻ công khai** | Public link, tùy chọn hiển thị | `ShareSettingsCard.tsx`, `PublicProjectView.tsx` |
-| 17 | **Quản lý Admin** | Quản lý user, backup/restore | `AdminUsers.tsx`, `AdminBackup.tsx` |
+| 17 | **Quản lý Admin** | Quản lý user, backup/restore, hệ thống | `AdminUsers.tsx`, `AdminBackup.tsx`, `AdminSystem.tsx` |
 | 18 | **Tạm đình chỉ** | Suspend/unsuspend thành viên | `SuspendMemberDialog.tsx`, `SuspendedScreen.tsx` |
 | 19 | **Import Excel** | Nhập danh sách thành viên từ Excel | `ExcelMemberImport.tsx` |
 | 20 | **Error Logging** | Ghi nhận lỗi hệ thống tự động | `SystemErrorLogs.tsx`, `errorLogger.ts` |
 | 21 | **Xem trước file** | Preview file trực tiếp trong app | `FilePreview.tsx` |
+| 22 | **Họp nhóm** | Tạo/quản lý buổi họp, Jitsi video call, điểm danh, chat phòng họp | `GroupMeetings.tsx`, `CreateMeetingDialog.tsx`, `MeetingRoom.tsx` |
+| 23 | **Chế độ bảo trì** | Bật/tắt bảo trì theo lịch, hiển thị cho non-admin | `MaintenanceScreen.tsx`, `AdminSystem.tsx` |
+| 24 | **Chính sách hệ thống** | Soạn policy Markdown, bắt buộc đồng ý khi đăng nhập/đăng ký | `MemberAuthForm.tsx` |
+| 25 | **Chuyển nhượng dự án** | Chuyển quyền sở hữu project cho thành viên khác | `ProjectTransferDialog.tsx` |
 
 ### 1.3 Đối tượng sử dụng - Chi tiết quyền
 
@@ -89,6 +93,8 @@
 ✅ Xem nhật ký hệ thống (system activity logs)
 ✅ Backup/Restore database
 ✅ Xem và trả lời feedback từ user
+✅ Bật/tắt chế độ bảo trì (đặt lịch bắt đầu/kết thúc)
+✅ Soạn và cập nhật Chính sách hệ thống (Markdown)
 ✅ Tất cả quyền của Leader
 ```
 
@@ -108,6 +114,9 @@
 ✅ Xuất báo cáo (PDF/Excel)
 ✅ Quản lý tài liệu dự án
 ✅ Cấu hình chia sẻ công khai
+✅ Tạo/sửa/xóa cuộc họp nhóm
+✅ Quản lý điểm danh cuộc họp
+✅ Chuyển nhượng quyền sở hữu project
 ✅ Tất cả quyền của Member
 ```
 
@@ -125,6 +134,10 @@
 ✅ Sử dụng AI Assistant
 ✅ Xem tài liệu dự án
 ✅ Cập nhật thông tin cá nhân
+✅ Tham gia cuộc họp nhóm (Jitsi video call)
+✅ Xem và cập nhật điểm danh cuộc họp
+✅ Chat trong phòng họp
+✅ Đồng ý Chính sách hệ thống khi đăng nhập/đăng ký
 ```
 
 ### 1.4 Luồng hoạt động chi tiết
@@ -1284,6 +1297,113 @@ CREATE INDEX idx_error_logs_user ON public.system_error_logs(user_id);
 
 ---
 
+#### 3.2.29 Bảng `system_settings`
+
+**Mục đích:** Lưu cấu hình hệ thống (chế độ bảo trì, chính sách hệ thống, v.v.)
+
+```sql
+CREATE TABLE public.system_settings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key TEXT NOT NULL UNIQUE,
+  value JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_by UUID,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX idx_system_settings_key ON public.system_settings(key);
+```
+
+**Các key hiện có:**
+
+| key | Mô tả | Cấu trúc value |
+|-----|--------|----------------|
+| `maintenance_mode` | Chế độ bảo trì | `{ enabled: bool, message: string, start_at?: string, end_at?: string }` |
+| `system_policy` | Chính sách hệ thống | `{ content: string (Markdown), updated_at: string }` |
+
+---
+
+#### 3.2.30 Bảng `meetings`
+
+**Mục đích:** Quản lý cuộc họp nhóm với tích hợp Jitsi Meet
+
+```sql
+CREATE TABLE public.meetings (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  group_id UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  scheduled_at TIMESTAMPTZ NOT NULL,
+  duration_minutes INTEGER NOT NULL DEFAULT 60,
+  status TEXT NOT NULL DEFAULT 'scheduled',
+  jitsi_room_name TEXT NOT NULL,
+  external_link TEXT,
+  notes TEXT,
+  task_id UUID REFERENCES tasks(id) ON DELETE SET NULL,
+  created_by UUID NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_meetings_group ON public.meetings(group_id);
+CREATE INDEX idx_meetings_scheduled ON public.meetings(scheduled_at);
+```
+
+| status | Mô tả |
+|--------|-------|
+| `scheduled` | Đã lên lịch |
+| `in_progress` | Đang diễn ra |
+| `completed` | Đã kết thúc |
+| `cancelled` | Đã hủy |
+
+---
+
+#### 3.2.31 Bảng `meeting_attendance`
+
+**Mục đích:** Điểm danh thành viên tham gia cuộc họp
+
+```sql
+CREATE TABLE public.meeting_attendance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  status TEXT NOT NULL DEFAULT 'absent',
+  joined_at TIMESTAMPTZ,
+  marked_by UUID,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(meeting_id, user_id)
+);
+
+CREATE INDEX idx_attendance_meeting ON public.meeting_attendance(meeting_id);
+```
+
+| status | Mô tả |
+|--------|-------|
+| `present` | Có mặt |
+| `absent` | Vắng mặt |
+| `late` | Đến trễ |
+| `excused` | Có phép |
+
+---
+
+#### 3.2.32 Bảng `meeting_messages`
+
+**Mục đích:** Tin nhắn chat trong phòng họp
+
+```sql
+CREATE TABLE public.meeting_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  user_name TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_meeting_messages ON public.meeting_messages(meeting_id);
+```
+
+---
+
 ### 3.3 DATABASE FUNCTIONS
 
 ```sql
@@ -1623,6 +1743,10 @@ ALTER TABLE public.pending_approvals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.feedbacks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.feedback_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_error_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meetings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meeting_attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meeting_messages ENABLE ROW LEVEL SECURITY;
 ```
 
 ---
@@ -2401,7 +2525,114 @@ FOR DELETE USING (is_admin(auth.uid()));
 
 ---
 
-#### 3.5.30 BẢNG TỔNG HỢP QUYỀN RLS
+#### 3.5.30 Policies - `system_settings`
+
+**Quyền có:** SELECT (tất cả), ALL (admin)
+
+```sql
+-- Tất cả user đọc system settings (cho maintenance mode, policy)
+CREATE POLICY "Anyone can read system settings" ON public.system_settings
+FOR SELECT USING (true);
+
+-- Chỉ admin sửa system settings
+CREATE POLICY "Only admin can modify system settings" ON public.system_settings
+FOR ALL USING (is_admin(auth.uid()))
+WITH CHECK (is_admin(auth.uid()));
+```
+
+---
+
+#### 3.5.31 Policies - `meetings`
+
+**Quyền có:** SELECT (member/admin), ALL (leader)
+
+```sql
+-- Thành viên nhóm xem cuộc họp
+CREATE POLICY "Group members can view meetings" ON public.meetings
+FOR SELECT USING (
+  is_group_member(auth.uid(), group_id) OR is_admin(auth.uid())
+);
+
+-- Leader quản lý cuộc họp
+CREATE POLICY "Leaders can manage meetings" ON public.meetings
+FOR ALL USING (is_group_leader(auth.uid(), group_id));
+```
+
+---
+
+#### 3.5.32 Policies - `meeting_attendance`
+
+**Quyền có:** SELECT (member/admin), ALL (leader), UPDATE (self)
+
+```sql
+-- Thành viên nhóm xem điểm danh
+CREATE POLICY "Group members can view attendance" ON public.meeting_attendance
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM meetings m
+    WHERE m.id = meeting_attendance.meeting_id
+    AND (is_group_member(auth.uid(), m.group_id) OR is_admin(auth.uid()))
+  )
+);
+
+-- Leader quản lý điểm danh
+CREATE POLICY "Leaders can manage attendance" ON public.meeting_attendance
+FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM meetings m
+    WHERE m.id = meeting_attendance.meeting_id
+    AND is_group_leader(auth.uid(), m.group_id)
+  )
+);
+
+-- Thành viên tự cập nhật điểm danh
+CREATE POLICY "Members can update own attendance" ON public.meeting_attendance
+FOR UPDATE USING (user_id = auth.uid())
+WITH CHECK (user_id = auth.uid());
+```
+
+---
+
+#### 3.5.33 Policies - `meeting_messages`
+
+**Quyền có:** SELECT (member/admin), INSERT (member), DELETE (self/leader)  
+**Quyền KHÔNG có:** UPDATE
+
+```sql
+-- Thành viên nhóm xem tin nhắn
+CREATE POLICY "Group members can view meeting messages" ON public.meeting_messages
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM meetings m
+    WHERE m.id = meeting_messages.meeting_id
+    AND (is_group_member(auth.uid(), m.group_id) OR is_admin(auth.uid()))
+  )
+);
+
+-- Thành viên nhóm gửi tin nhắn
+CREATE POLICY "Group members can insert meeting messages" ON public.meeting_messages
+FOR INSERT WITH CHECK (
+  (user_id = auth.uid()) AND EXISTS (
+    SELECT 1 FROM meetings m
+    WHERE m.id = meeting_messages.meeting_id
+    AND is_group_member(auth.uid(), m.group_id)
+  )
+);
+
+-- Xóa tin nhắn (bản thân hoặc leader)
+CREATE POLICY "Leaders can delete meeting messages" ON public.meeting_messages
+FOR DELETE USING (
+  (user_id = auth.uid()) OR EXISTS (
+    SELECT 1 FROM meetings m
+    WHERE m.id = meeting_messages.meeting_id
+    AND is_group_leader(auth.uid(), m.group_id)
+  )
+);
+```
+
+---
+
+#### 3.5.34 BẢNG TỔNG HỢP QUYỀN RLS
 
 | # | Bảng | SELECT | INSERT | UPDATE | DELETE |
 |---|------|--------|--------|--------|--------|
@@ -2433,6 +2664,10 @@ FOR DELETE USING (is_admin(auth.uid()));
 | 26 | feedbacks | self/admin | self | self/admin | ❌ |
 | 27 | feedback_comments | self/admin | self/admin | ❌ | ❌ |
 | 28 | system_error_logs | admin | all | ❌ | admin |
+| 29 | system_settings | all | admin | admin | admin |
+| 30 | meetings | member/admin | leader | leader | leader |
+| 31 | meeting_attendance | member/admin | leader | leader/self | leader |
+| 32 | meeting_messages | member/admin | member (self) | ❌ | self/leader |
 
 ---
 
@@ -3074,9 +3309,22 @@ Deno.serve(async (req) => {
 
 **Features:**
 - Giới hạn 100 từ/câu hỏi
-- Streaming response
+- Streaming response (SSE)
 - Model: `google/gemini-3-flash-preview`
 - Cần secret: `LOVABLE_API_KEY`
+
+**Dữ liệu truyền vào AI:**
+- Thông tin dự án (tên, mô tả, mã lớp, GVHD)
+- Giai đoạn và số task mỗi giai đoạn
+- Danh sách thành viên và vai trò
+- Tất cả task (trạng thái, deadline, người thực hiện)
+- Tài nguyên dự án (file, link, thư mục)
+- **Cuộc họp nhóm** (tiêu đề, thời gian, thời lượng, trạng thái, task liên kết)
+- **Điểm quá trình** (CHỈ của user đang hỏi — task scores, stage scores, final score)
+
+**Bảo mật điểm:**
+- AI chỉ trả lời điểm của chính user đang hỏi
+- Nếu hỏi điểm người khác → từ chối: "Bạn chỉ có thể xem điểm của chính mình"
 
 ---
 
@@ -3384,6 +3632,13 @@ teamworks-ueh/
 | UserChangePasswordDialog.tsx | Đổi password |
 | UserPresenceIndicator.tsx | Trạng thái online |
 | ExcelMemberImport.tsx | Import thành viên từ Excel |
+| GroupMeetings.tsx | Quản lý cuộc họp nhóm |
+| CreateMeetingDialog.tsx | Dialog tạo cuộc họp mới |
+| MeetingRoom.tsx | Phòng họp (Jitsi + chat + điểm danh) |
+| MaintenanceScreen.tsx | Màn hình bảo trì hệ thống |
+| MemberNavigation.tsx | Navigation cho member |
+| MemberRoleManagementDialog.tsx | Quản lý vai trò thành viên |
+| ProjectTransferDialog.tsx | Dialog chuyển nhượng dự án |
 
 ---
 
@@ -3412,6 +3667,7 @@ teamworks-ueh/
 | `/admin/activity` | AdminActivity.tsx | ✅ Admin | Nhật ký hệ thống |
 | `/admin/backup` | AdminBackup.tsx | ✅ Admin | Backup/Restore |
 | `/admin/users` | AdminUsers.tsx | ✅ Admin | Quản lý users (hidden) |
+| `/admin/system` | AdminSystem.tsx | ✅ Admin | Cài đặt hệ thống (bảo trì, chính sách) |
 | `*` | NotFound.tsx | ❌ | 404 |
 
 ---
@@ -3557,7 +3813,7 @@ VALUES ('your-user-id', 'admin');
 
 ```
 ✅ Database
-   [ ] Tất cả 28 bảng đã được tạo
+   [ ] Tất cả 32 bảng đã được tạo
    [ ] Tất cả indexes đã được tạo
    [ ] Tất cả functions đã được tạo
    [ ] Tất cả triggers đã được tạo
@@ -3652,6 +3908,8 @@ VALUES ('your-user-id', 'admin');
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 6.0 | 08/03/2026 | **MAJOR UPDATE**: Thêm chức năng Họp nhóm (meetings, meeting_attendance, meeting_messages — 3 bảng mới), bảng `system_settings` (tổng 32 bảng), Chế độ bảo trì (đặt lịch bắt đầu/kết thúc, tự động tắt), Chính sách hệ thống (Markdown, bắt buộc đồng ý khi đăng nhập/đăng ký), AI Assistant truyền dữ liệu cuộc họp + điểm quá trình (chỉ điểm bản thân), components mới (GroupMeetings, CreateMeetingDialog, MeetingRoom, MaintenanceScreen, MemberNavigation, MemberRoleManagementDialog, ProjectTransferDialog), page mới (AdminSystem), route `/admin/system` |
+| 5.0 | 02/03/2026 | Full RLS policies + detailed columns |
 | 4.0 | 02/03/2026 | **MAJOR UPDATE**: Thêm cơ chế Undo Delete toàn hệ thống (14 files), bảng `system_error_logs` (28 bảng), suspension fields cho profiles, components mới (ExcelMemberImport, MemberDetailDialog, ResourceUploadDialog, SuspendMemberDialog, SuspendedScreen, SystemErrorLogs), libs mới (deleteWithUndo, errorLogger), FilePreviewContext, cập nhật routes |
 | 3.1 | 04/02/2026 | **STORAGE UPDATE**: Chi tiết hóa toàn bộ phần Supabase Storage với đầy đủ bucket, naming convention, RLS policies, liên kết DB |
 | 3.0 | 04/02/2026 | Full detailed guide |
