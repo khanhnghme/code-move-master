@@ -102,6 +102,7 @@ function formatFileSize(bytes: number): string {
 
 export default function ProjectResources({ groupId, isLeader }: ProjectResourcesProps) {
   const { toast } = useToast();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { openFilePreview } = useFilePreview();
   const [resources, setResources] = useState<ProjectResource[]>([]);
