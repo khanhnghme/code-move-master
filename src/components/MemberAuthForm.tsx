@@ -535,14 +535,20 @@ export function MemberAuthForm() {
                     return;
                   }
                   setForgotLoading(true);
-                  const { error } = await supabase.auth.updateUser({ password: newPassword });
-                  if (error) {
+                  try {
+                    const { data, error } = await supabase.functions.invoke('password-reset-otp', {
+                      body: { action: 'reset_password', email: forgotEmail, code: otpCode, new_password: newPassword },
+                    });
                     setForgotLoading(false);
-                    toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
-                  } else {
-                    await supabase.auth.signOut({ scope: 'local' });
+                    if (error || data?.error) {
+                      toast({ title: 'Lỗi', description: data?.error || error?.message || 'Không thể đặt lại mật khẩu', variant: 'destructive' });
+                    } else {
+                      await supabase.auth.signOut({ scope: 'local' });
+                      setForgotStep('done');
+                    }
+                  } catch {
                     setForgotLoading(false);
-                    setForgotStep('done');
+                    toast({ title: 'Lỗi hệ thống', description: 'Có lỗi xảy ra.', variant: 'destructive' });
                   }
                 }} className="space-y-4">
                   <p className="text-sm text-muted-foreground text-center">
