@@ -27,7 +27,7 @@ import {
   Layers, Edit, Clock, HardDrive, CalendarPlus, ArrowRight,
   CheckCircle2, X, Plus, Send
 } from 'lucide-react';
-import type { Task, Stage, GroupMember, TaskStatus } from '@/types/database';
+import type { Task, Stage, GroupMember, TaskStatus, SubmissionMethod } from '@/types/database';
 import { formatDeadlineVN, formatDeadlineShortVN, isDeadlineOverdue, parseLocalDateTime } from '@/lib/datetime';
 import { DeadlineHourPicker } from './DeadlineHourPicker';
 import FileSizeLimitSelector, { formatFileSizeMB } from './FileSizeLimitSelector';
