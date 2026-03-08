@@ -402,9 +402,9 @@ export default function AIAssistantPanel({
           {messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full py-4 px-2">
               {/* Hero section */}
-              <div className="relative mb-5">
-                <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150" />
-                <Avatar className="relative h-16 w-16 ring-4 ring-primary/10 shadow-xl">
+              <div className="relative mb-5 ai-hero-entrance">
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-xl scale-150 ai-pulse-glow" />
+                <Avatar className="relative h-16 w-16 ring-4 ring-primary/10 shadow-xl ai-hero-bounce">
                   <AvatarImage src={aiLogo} alt="AI Assistant" />
                   <AvatarFallback className="bg-primary/10">
                     <Sparkles className="h-8 w-8 text-primary" />
