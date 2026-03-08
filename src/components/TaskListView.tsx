@@ -456,55 +456,61 @@ function TaskRow({
               </div>
 
               <div className="flex items-center gap-1">
-                {/* Meeting join button - mobile */}
-                {isMeetingTask && (meetingIsLive || meetingIsScheduled) && onJoinMeeting && (
-                  <Button
-                    size="sm"
-                    variant={meetingIsLive ? "default" : "outline"}
-                    className={`h-7 text-xs px-2 gap-1 ${meetingIsLive ? 'animate-pulse' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
-                  >
-                    <Video className="w-3 h-3" />
-                    {meetingIsLive ? 'Vào họp' : 'Phòng họp'}
-                  </Button>
-                )}
-                <SubmissionHistoryPopup 
-                  taskId={task.id}
-                  groupId={groupId}
-                  taskDeadline={task.deadline}
-                  currentSubmissionLink={task.submission_link}
-                />
+                {isMeetingTask ? (
+                  /* Meeting task: show join button instead of submit */
+                  onJoinMeeting && (
+                    <Button
+                      size="sm"
+                      variant={meetingIsLive ? "default" : meetingIsCompleted ? "secondary" : "outline"}
+                      className={`h-7 text-xs px-2 gap-1 ${meetingIsLive ? 'animate-pulse' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
+                    >
+                      <Video className="w-3 h-3" />
+                      {meetingIsLive ? 'Vào họp' : meetingIsCompleted ? 'Xem lại' : 'Phòng họp'}
+                    </Button>
+                  )
+                ) : (
+                  /* Normal task: show submit buttons */
+                  <>
+                    <SubmissionHistoryPopup 
+                      taskId={task.id}
+                      groupId={groupId}
+                      taskDeadline={task.deadline}
+                      currentSubmissionLink={task.submission_link}
+                    />
 
-                <SubmissionButton 
-                  submissionLink={task.submission_link} 
-                  variant="compact"
-                  onStopPropagation={true}
-                  taskId={task.id}
-                  groupId={groupId}
-                />
+                    <SubmissionButton 
+                      submissionLink={task.submission_link} 
+                      variant="compact"
+                      onStopPropagation={true}
+                      taskId={task.id}
+                      groupId={groupId}
+                    />
 
-                {(isAssignee || isLeaderInGroup) && (
-                  <Button
-                    variant={task.submission_link ? "outline" : "default"}
-                    size="sm"
-                    className="h-7 text-xs px-2 gap-1"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openSubmissionDialog(task);
-                    }}
-                  >
-                    {task.submission_link ? (
-                      <>
-                        <Edit className="w-3 h-3" />
-                        <span className="hidden sm:inline">Sửa</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-3 h-3" />
-                        <span className="hidden sm:inline">Nộp</span>
-                      </>
+                    {(isAssignee || isLeaderInGroup) && (
+                      <Button
+                        variant={task.submission_link ? "outline" : "default"}
+                        size="sm"
+                        className="h-7 text-xs px-2 gap-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openSubmissionDialog(task);
+                        }}
+                      >
+                        {task.submission_link ? (
+                          <>
+                            <Edit className="w-3 h-3" />
+                            <span className="hidden sm:inline">Sửa</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-3 h-3" />
+                            <span className="hidden sm:inline">Nộp</span>
+                          </>
+                        )}
+                      </Button>
                     )}
-                  </Button>
+                  </>
                 )}
 
                 {isLeaderInGroup && (
@@ -600,17 +606,43 @@ function TaskRow({
         {/* Desktop actions */}
         <div className="hidden md:flex items-center justify-end gap-1 flex-nowrap min-w-0">
           {/* Meeting join button - desktop */}
-          {isMeetingTask && (meetingIsLive || meetingIsScheduled) && onJoinMeeting ? (
-            <Button
-              size="sm"
-              variant={meetingIsLive ? "default" : "outline"}
-              className={`h-7 text-xs px-3 gap-1.5 ${meetingIsLive ? '' : ''}`}
-              onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
-            >
-              {meetingIsLive ? <Sparkles className="w-3 h-3" /> : <Video className="w-3 h-3" />}
-              {meetingIsLive ? 'Vào họp ngay' : 'Phòng họp'}
-            </Button>
+          {isMeetingTask ? (
+            /* Meeting task: show join button + menu */
+            <div className="flex items-center gap-1">
+              {onJoinMeeting && (
+                <Button
+                  size="sm"
+                  variant={meetingIsLive ? "default" : meetingIsCompleted ? "secondary" : "outline"}
+                  className={`h-7 text-xs px-3 gap-1.5 ${meetingIsLive ? 'animate-pulse' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); onJoinMeeting(meeting.id); }}
+                >
+                  {meetingIsLive ? <Sparkles className="w-3 h-3" /> : <Video className="w-3 h-3" />}
+                  {meetingIsLive ? 'Vào họp ngay' : meetingIsCompleted ? 'Xem lại' : 'Phòng họp'}
+                </Button>
+              )}
+              {isLeaderInGroup && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <MoreVertical className="w-3.5 h-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditTask(task); }} className="text-xs">
+                      <Edit className="w-3.5 h-3.5 mr-2" />
+                      Chỉnh sửa
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setTaskToDelete(task); }} className="text-destructive text-xs">
+                      <Trash2 className="w-3.5 h-3.5 mr-2" />
+                      Xóa buổi họp
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           ) : (
+            /* Normal task: show submit buttons + menu */
             <div className="grid grid-cols-[64px_104px_92px_40px] items-center justify-end gap-1 flex-nowrap min-w-0">
               <div className="flex justify-end">
                 <SubmissionHistoryPopup 
@@ -944,6 +976,14 @@ export default function TaskListView({
     deleteWithUndo({
       description: `Đã xóa task "${taskRef.title}"`,
       onDelete: async () => {
+        // Cascade: delete linked meeting if this is a meeting task
+        const meetingLinked = meetingsByTaskId[taskRef.id];
+        if (meetingLinked) {
+          await (supabase.from('meeting_messages') as any).delete().eq('meeting_id', meetingLinked.id);
+          await (supabase.from('meeting_attendance') as any).delete().eq('meeting_id', meetingLinked.id);
+          await (supabase.from('meetings') as any).delete().eq('id', meetingLinked.id);
+        }
+
         await supabase.from('task_assignments').delete().eq('task_id', taskRef.id);
         await supabase.from('task_scores').delete().eq('task_id', taskRef.id);
         await supabase.from('submission_history').delete().eq('task_id', taskRef.id);
@@ -955,9 +995,9 @@ export default function TaskListView({
           user_name: user?.email || 'Unknown',
           action: 'DELETE_TASK',
           action_type: 'task',
-          description: `Xóa task "${taskRef.title}"`,
+          description: `Xóa task "${taskRef.title}"${meetingLinked ? ' (kèm buổi họp)' : ''}`,
           group_id: groupId,
-          metadata: { task_id: taskRef.id, task_title: taskRef.title }
+          metadata: { task_id: taskRef.id, task_title: taskRef.title, meeting_deleted: !!meetingLinked }
         });
 
         onRefresh();

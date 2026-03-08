@@ -1,12 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { deleteWithUndo } from '@/lib/deleteWithUndo';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Video, Plus, Calendar, Clock, Users, ChevronRight, Sparkles } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Video, Plus, Calendar, Clock, Users, ChevronRight, Sparkles, Trash2, MoreVertical, CheckSquare, X } from 'lucide-react';
 import CreateMeetingDialog from '@/components/CreateMeetingDialog';
 import MeetingRoom from '@/components/MeetingRoom';
 import type { Stage, GroupMember } from '@/types/database';
@@ -21,12 +31,18 @@ interface GroupMeetingsProps {
 
 export default function GroupMeetings({ groupId, groupName, stages, members, isLeader }: GroupMeetingsProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [meetings, setMeetings] = useState<any[]>([]);
   const [attendance, setAttendance] = useState<Record<string, any[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<any | null>(null);
   const [filter, setFilter] = useState('all');
+  
+  // Multi-select state
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => { fetchMeetings(); }, [groupId]);
 
@@ -59,7 +75,6 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
         const target = data.find((m: any) => m.id === meetingId);
         if (target) {
           setSelectedMeeting(target);
-          // Clean up the search param
           const newParams = new URLSearchParams(searchParams);
           newParams.delete('meeting');
           setSearchParams(newParams, { replace: true });
@@ -67,6 +82,111 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
       }
     }
     setIsLoading(false);
+  };
+
+  // Delete a single meeting (cascade: delete linked task too)
+  const handleDeleteMeeting = useCallback((meeting: any) => {
+    deleteWithUndo({
+      description: `Đã xóa cuộc họp "${meeting.title}"`,
+      onDelete: async () => {
+        // Delete meeting related data
+        await (supabase.from('meeting_messages') as any).delete().eq('meeting_id', meeting.id);
+        await (supabase.from('meeting_attendance') as any).delete().eq('meeting_id', meeting.id);
+        
+        // Delete linked task if exists
+        if (meeting.task_id) {
+          await supabase.from('task_assignments').delete().eq('task_id', meeting.task_id);
+          await supabase.from('task_scores').delete().eq('task_id', meeting.task_id);
+          await supabase.from('submission_history').delete().eq('task_id', meeting.task_id);
+          await supabase.from('tasks').delete().eq('id', meeting.task_id);
+        }
+        
+        await (supabase.from('meetings') as any).delete().eq('id', meeting.id);
+
+        if (user) {
+          await supabase.from('activity_logs').insert({
+            user_id: user.id,
+            user_name: user.email || 'Unknown',
+            action: 'DELETE_MEETING',
+            action_type: 'meeting',
+            description: `Xóa cuộc họp "${meeting.title}"${meeting.task_id ? ' (kèm task)' : ''}`,
+            group_id: groupId,
+            metadata: { meeting_id: meeting.id, meeting_title: meeting.title }
+          });
+        }
+
+        fetchMeetings();
+      },
+      onUndo: () => {
+        fetchMeetings();
+      },
+    });
+  }, [user, groupId]);
+
+  // Bulk delete selected meetings
+  const handleBulkDelete = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    const count = selectedIds.size;
+    const idsToDelete = new Set(selectedIds);
+    setSelectedIds(new Set());
+    setIsMultiSelectMode(false);
+
+    deleteWithUndo({
+      description: `Đã xóa ${count} cuộc họp`,
+      onDelete: async () => {
+        for (const id of idsToDelete) {
+          const meeting = meetings.find(m => m.id === id);
+          if (!meeting) continue;
+
+          await (supabase.from('meeting_messages') as any).delete().eq('meeting_id', id);
+          await (supabase.from('meeting_attendance') as any).delete().eq('meeting_id', id);
+          
+          if (meeting.task_id) {
+            await supabase.from('task_assignments').delete().eq('task_id', meeting.task_id);
+            await supabase.from('task_scores').delete().eq('task_id', meeting.task_id);
+            await supabase.from('submission_history').delete().eq('task_id', meeting.task_id);
+            await supabase.from('tasks').delete().eq('id', meeting.task_id);
+          }
+          
+          await (supabase.from('meetings') as any).delete().eq('id', id);
+        }
+
+        if (user) {
+          await supabase.from('activity_logs').insert({
+            user_id: user.id,
+            user_name: user.email || 'Unknown',
+            action: 'BULK_DELETE_MEETINGS',
+            action_type: 'meeting',
+            description: `Xóa ${count} cuộc họp`,
+            group_id: groupId,
+            metadata: { count }
+          });
+        }
+
+        fetchMeetings();
+      },
+      onUndo: () => {
+        fetchMeetings();
+      },
+    });
+  }, [selectedIds, meetings, user, groupId]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedIds(new Set(filteredMeetings.map(m => m.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setIsMultiSelectMode(false);
   };
 
   if (selectedMeeting) {
@@ -101,12 +221,48 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
           </h2>
           <p className="text-sm text-muted-foreground">Quản lý cuộc họp nhóm với video call và điểm danh tự động</p>
         </div>
-        {isLeader && (
-          <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> Tạo cuộc họp
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {isLeader && filteredMeetings.length > 0 && (
+            <Button
+              variant={isMultiSelectMode ? "secondary" : "outline"}
+              size="sm"
+              onClick={() => {
+                if (isMultiSelectMode) clearSelection();
+                else setIsMultiSelectMode(true);
+              }}
+              className="gap-1.5"
+            >
+              {isMultiSelectMode ? <X className="w-4 h-4" /> : <CheckSquare className="w-4 h-4" />}
+              {isMultiSelectMode ? 'Hủy' : 'Chọn nhiều'}
+            </Button>
+          )}
+          {isLeader && (
+            <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+              <Plus className="w-4 h-4" /> Tạo cuộc họp
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Bulk action bar */}
+      {isMultiSelectMode && selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+          <span className="text-sm font-medium">Đã chọn {selectedIds.size} cuộc họp</span>
+          <Button variant="outline" size="sm" onClick={selectAll} className="h-7 text-xs">
+            Chọn tất cả ({filteredMeetings.length})
+          </Button>
+          <div className="flex-1" />
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleBulkDelete}
+            className="gap-1.5 h-7 text-xs"
+          >
+            <Trash2 className="w-3 h-3" />
+            Xóa {selectedIds.size} cuộc họp
+          </Button>
+        </div>
+      )}
 
       {/* Filter tabs */}
       <Tabs value={filter} onValueChange={setFilter}>
@@ -145,23 +301,44 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
             const isLive = meeting.status === 'in_progress';
             const isCompleted = meeting.status === 'completed';
             const scheduledDate = new Date(meeting.scheduled_at);
+            const isSelected = selectedIds.has(meeting.id);
 
             return (
               <div
                 key={meeting.id}
-                onClick={() => setSelectedMeeting(meeting)}
+                onClick={() => {
+                  if (isMultiSelectMode) {
+                    toggleSelect(meeting.id);
+                    return;
+                  }
+                  setSelectedMeeting(meeting);
+                }}
                 className={`
                   group relative flex items-center gap-4 px-4 py-3 rounded-xl border cursor-pointer transition-all
-                  ${isLive
+                  ${isSelected ? 'ring-2 ring-primary/50 bg-primary/5 border-primary/30' : ''}
+                  ${isLive && !isSelected
                     ? 'border-primary/40 bg-primary/5 shadow-sm shadow-primary/10 hover:shadow-md hover:shadow-primary/15 hover:border-primary/60'
-                    : isCompleted
+                    : isCompleted && !isSelected
                       ? 'border-border/50 bg-muted/30 hover:bg-muted/50 hover:border-border'
-                      : 'border-border hover:border-primary/30 hover:bg-accent/30 hover:shadow-sm'
+                      : !isSelected
+                        ? 'border-border hover:border-primary/30 hover:bg-accent/30 hover:shadow-sm'
+                        : ''
                   }
                 `}
               >
+                {/* Multi-select checkbox */}
+                {isMultiSelectMode && (
+                  <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleSelect(meeting.id)}
+                      className="h-4.5 w-4.5"
+                    />
+                  </div>
+                )}
+
                 {/* Live pulse indicator */}
-                {isLive && (
+                {isLive && !isMultiSelectMode && (
                   <div className="absolute -left-1 top-1/2 -translate-y-1/2">
                     <span className="relative flex h-2.5 w-2.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
@@ -226,13 +403,32 @@ export default function GroupMeetings({ groupId, groupName, stages, members, isL
                   </span>
                 </div>
 
-                {/* Action */}
-                {isLive ? (
-                  <Button size="sm" className="shrink-0 gap-1.5 h-7 text-xs px-3">
-                    <Sparkles className="w-3 h-3" /> Vào họp
-                  </Button>
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+                {/* Actions */}
+                {!isMultiSelectMode && (
+                  <div className="flex items-center gap-1">
+                    {isLive ? (
+                      <Button size="sm" className="shrink-0 gap-1.5 h-7 text-xs px-3">
+                        <Sparkles className="w-3 h-3" /> Vào họp
+                      </Button>
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0 group-hover:text-primary transition-colors" />
+                    )}
+                    {isLeader && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+                            <MoreVertical className="w-3.5 h-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="z-50 bg-popover min-w-[140px]" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuItem onClick={() => handleDeleteMeeting(meeting)} className="text-destructive text-xs">
+                            <Trash2 className="w-3.5 h-3.5 mr-2" />
+                            Xóa cuộc họp
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 )}
               </div>
             );
