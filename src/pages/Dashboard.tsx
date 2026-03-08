@@ -5,7 +5,6 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
 import UserAvatar from '@/components/UserAvatar';
 import DashboardProjectCard from '@/components/dashboard/DashboardProjectCard';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,8 +23,6 @@ import {
   Star,
   User,
   KeyRound,
-  Video,
-  Eye,
 } from 'lucide-react';
 import type { Group } from '@/types/database';
 
@@ -34,8 +31,9 @@ export default function Dashboard() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showJoinDialog, setShowJoinDialog] = useState(false);
-  const [videoOpacity, setVideoOpacity] = useState(0.2);
-  const [showVideoControls, setShowVideoControls] = useState(false);
+  const [videoOpacity, setVideoOpacity] = useState(0);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [videoEnabled, setVideoEnabled] = useState(false);
   const { isConnected } = useUserPresence('system-global');
   useEffect(() => {
     if (user) {
