@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { logActivity } from '@/lib/activityLogger';
-import { Loader2, KeyRound, FolderKanban, Users, Calendar, ArrowLeft, CheckCircle2, Crown, ListTodo } from 'lucide-react';
+import { Loader2, KeyRound, FolderKanban, Users, Calendar, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
@@ -20,9 +20,9 @@ interface GroupPreview {
   instructor_name: string | null;
   created_at: string;
   image_url: string | null;
+  zalo_link: string | null;
   memberCount: number;
   leaderName: string | null;
-  taskCount: number;
 }
 
 interface JoinByCodeDialogProps {
@@ -57,7 +57,7 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
     try {
       const { data: group, error: groupError } = await supabase
         .from('groups')
-        .select('id, name, description, class_code, instructor_name, created_at, image_url, created_by')
+        .select('id, name, description, class_code, instructor_name, created_at, image_url, created_by, zalo_link')
         .eq('join_code', code)
         .eq('allow_join_by_code', true)
         .single();
@@ -67,11 +67,10 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
         return;
       }
 
-      // Get member count, leader profile, task count in parallel
-      const [memberRes, leaderRes, taskRes, existingRes] = await Promise.all([
+      // Get member count, leader profile in parallel
+      const [memberRes, leaderRes, existingRes] = await Promise.all([
         supabase.from('group_members').select('id', { count: 'exact', head: true }).eq('group_id', group.id),
         supabase.from('profiles').select('full_name').eq('id', group.created_by).single(),
-        supabase.from('tasks').select('id', { count: 'exact', head: true }).eq('group_id', group.id),
         supabase.from('group_members').select('id').eq('group_id', group.id).eq('user_id', user.id).maybeSingle(),
       ]);
 
@@ -80,7 +79,6 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
         ...group,
         memberCount: memberRes.count || 0,
         leaderName: leaderRes.data?.full_name || null,
-        taskCount: taskRes.count || 0,
       });
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
@@ -194,25 +192,32 @@ export default function JoinByCodeDialog({ open, onOpenChange, onJoined }: JoinB
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground pt-1">
-                  <span className="flex items-center gap-1.5">
-                    <Users className="w-4 h-4" />
-                    {groupPreview.memberCount} thành viên
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <ListTodo className="w-4 h-4" />
-                    {groupPreview.taskCount} nhiệm vụ
-                  </span>
-                  {groupPreview.leaderName && (
-                    <span className="flex items-center gap-1.5">
-                      <Crown className="w-4 h-4 text-warning" />
-                      {groupPreview.leaderName}
-                    </span>
+                <div className="space-y-2 text-sm pt-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Trưởng nhóm:</span>
+                    <span className="font-medium">{groupPreview.leaderName || 'Không rõ'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Thành viên:</span>
+                    <span className="font-medium">{groupPreview.memberCount} người</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Ngày tạo:</span>
+                    <span className="font-medium">{format(new Date(groupPreview.created_at), 'dd/MM/yyyy', { locale: vi })}</span>
+                  </div>
+                  {groupPreview.zalo_link && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Nhóm Zalo:</span>
+                      <a
+                        href={groupPreview.zalo_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-primary hover:underline"
+                      >
+                        Tham gia Zalo
+                      </a>
+                    </div>
                   )}
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4" />
-                    {format(new Date(groupPreview.created_at), 'dd/MM/yyyy', { locale: vi })}
-                  </span>
                 </div>
               </CardContent>
             </Card>
