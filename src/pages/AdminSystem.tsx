@@ -28,6 +28,7 @@ export default function AdminSystem() {
 
   // Maintenance state
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
+  const [showGuidePopover, setShowGuidePopover] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState('Hệ thống đang bảo trì, vui lòng quay lại sau.');
   const [maintenanceStart, setMaintenanceStart] = useState('');
   const [maintenanceEnd, setMaintenanceEnd] = useState('');
@@ -349,10 +350,10 @@ export default function AdminSystem() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden grid grid-cols-[2fr_1fr_2fr] divide-x">
+          <div className="flex-1 overflow-hidden grid grid-cols-2 divide-x">
             {/* Editor */}
             <div className="flex flex-col">
-              <div className="px-4 py-2 border-b bg-muted/30 flex items-center justify-between">
+              <div className="px-4 py-2 border-b bg-muted/30">
                 <span className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
                   <Edit className="w-3.5 h-3.5" /> Soạn thảo
                 </span>
@@ -364,111 +365,6 @@ export default function AdminSystem() {
                   placeholder={"# Chính sách hệ thống\n\n## 1. Quy tắc chung\n- Không chia sẻ tài khoản...\n\n## 2. Bảo mật thông tin\n..."}
                   className="font-mono text-sm flex-1 resize-none"
                 />
-              </div>
-            </div>
-
-            {/* Markdown Guide Panel */}
-            <div className="flex flex-col border-r">
-              <div className="px-4 py-2 border-b bg-muted/30">
-                <span className="text-xs font-semibold uppercase text-muted-foreground flex items-center gap-1.5">
-                  <HelpCircle className="w-3.5 h-3.5" /> Hướng dẫn soạn thảo
-                </span>
-              </div>
-              <div className="flex-1 p-3 overflow-y-auto text-xs text-muted-foreground space-y-3">
-                {/* Basic formatting */}
-                <div>
-                  <p className="font-semibold text-foreground mb-1.5">📝 Định dạng cơ bản</p>
-                  <div className="space-y-0.5">
-                    <p><code className="bg-muted px-1 rounded text-[11px]">**text**</code> → <strong>in đậm</strong></p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">*text*</code> → <em>in nghiêng</em></p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">***text***</code> → <strong><em>đậm + nghiêng</em></strong></p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">~~text~~</code> → <span className="line-through">gạch ngang</span></p>
-                  </div>
-                </div>
-
-                {/* Headings */}
-                <div>
-                  <p className="font-semibold text-foreground mb-1.5">📌 Tiêu đề</p>
-                  <div className="space-y-0.5">
-                    <p><code className="bg-muted px-1 rounded text-[11px]"># Tiêu đề</code> → <span className="font-bold text-sm">H1 (lớn nhất)</span></p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">## Tiêu đề</code> → <span className="font-semibold">H2</span></p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">### Tiêu đề</code> → <span className="font-medium">H3</span></p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">#### Tiêu đề</code> → H4 (nhỏ nhất)</p>
-                  </div>
-                </div>
-
-                {/* Line breaks */}
-                <div>
-                  <p className="font-semibold text-foreground mb-1.5">↵ Xuống hàng & đoạn</p>
-                  <div className="space-y-0.5">
-                    <p><code className="bg-muted px-1 rounded text-[11px]">Enter 2 lần</code> → xuống đoạn mới</p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">2 dấu cách + Enter</code> → xuống hàng</p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">{'<br/>'}</code> → ép xuống hàng</p>
-                  </div>
-                </div>
-
-                {/* Lists */}
-                <div>
-                  <p className="font-semibold text-foreground mb-1.5">📋 Danh sách</p>
-                  <div className="space-y-0.5">
-                    <p><code className="bg-muted px-1 rounded text-[11px]">- mục 1</code> → danh sách chấm</p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">1. mục 1</code> → danh sách số</p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">{'  '}- mục con</code> → thụt vào (2 space)</p>
-                  </div>
-                </div>
-
-                {/* Links & media */}
-                <div>
-                  <p className="font-semibold text-foreground mb-1.5">🔗 Liên kết & khác</p>
-                  <div className="space-y-0.5">
-                    <p><code className="bg-muted px-1 rounded text-[11px]">[text](url)</code> → liên kết</p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">{'> trích dẫn'}</code> → blockquote</p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">---</code> → đường kẻ ngang</p>
-                    <p><code className="bg-muted px-1 rounded text-[11px]">`code`</code> → <code className="bg-muted px-1 rounded">code inline</code></p>
-                  </div>
-                </div>
-
-                {/* UEH special */}
-                <div className="border-t pt-2">
-                  <p className="font-semibold text-foreground mb-1.5">🎨 Màu sắc & kích thước UEH</p>
-                  <div className="space-y-1">
-                    <p className="text-[11px]">Dùng HTML inline để đổi màu/cỡ chữ:</p>
-                    <div className="bg-muted/60 rounded p-2 font-mono text-[10px] space-y-0.5">
-                      <p>{'<span style="color:#006D6F">Xanh UEH</span>'}</p>
-                      <p>{'<span style="color:#E8702A">Cam UEH</span>'}</p>
-                      <p>{'<span style="color:red">Đỏ cảnh báo</span>'}</p>
-                      <p>{'<span style="font-size:18px">Chữ to</span>'}</p>
-                      <p>{'<span style="font-size:12px">Chữ nhỏ</span>'}</p>
-                    </div>
-                    <p className="text-[11px] mt-1">Kết hợp nhiều thuộc tính:</p>
-                    <div className="bg-muted/60 rounded p-2 font-mono text-[10px]">
-                      <p>{'<span style="color:#006D6F;font-size:20px;font-weight:bold">Tiêu đề UEH</span>'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Color reference */}
-                <div className="border-t pt-2">
-                  <p className="font-semibold text-foreground mb-1.5">🎯 Bảng màu UEH</p>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-primary shrink-0" />
-                      <span className="text-[11px]">#006D6F Xanh teal</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-accent shrink-0" />
-                      <span className="text-[11px]">#E8702A Cam</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-warning shrink-0" />
-                      <span className="text-[11px]">#F59E0B Vàng</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 rounded bg-destructive shrink-0" />
-                      <span className="text-[11px]">#EF4444 Đỏ</span>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -494,8 +390,129 @@ export default function AdminSystem() {
             </div>
           </div>
 
-          <DialogFooter className="px-5 py-3 border-t bg-muted/30 shrink-0 flex items-center">
-            <p className="text-[10px] text-muted-foreground mr-auto">© UEH Teamworks</p>
+          <DialogFooter className="px-5 py-3 border-t bg-muted/30 shrink-0 flex items-center relative">
+            {/* Guide button - bottom left */}
+            <div className="mr-auto relative">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setShowGuidePopover(!showGuidePopover)}
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                Hướng dẫn soạn thảo
+              </Button>
+
+              {/* Guide Popover */}
+              {showGuidePopover && (
+                <div className="absolute bottom-full left-0 mb-2 w-[420px] max-h-[480px] overflow-y-auto rounded-xl border bg-popover shadow-2xl p-4 text-xs text-muted-foreground space-y-3 z-50 animate-scale-in">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="font-bold text-foreground text-sm flex items-center gap-1.5">
+                      <HelpCircle className="w-4 h-4 text-primary" /> Hướng dẫn Markdown
+                    </p>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setShowGuidePopover(false)}>
+                      <span className="text-lg leading-none">×</span>
+                    </Button>
+                  </div>
+
+                  {/* Basic formatting */}
+                  <div>
+                    <p className="font-semibold text-foreground mb-1.5">📝 Định dạng cơ bản</p>
+                    <div className="space-y-0.5">
+                      <p><code className="bg-muted px-1 rounded text-[11px]">**text**</code> → <strong>in đậm</strong></p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">*text*</code> → <em>in nghiêng</em></p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">***text***</code> → <strong><em>đậm + nghiêng</em></strong></p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">~~text~~</code> → <span className="line-through">gạch ngang</span></p>
+                    </div>
+                  </div>
+
+                  {/* Headings */}
+                  <div>
+                    <p className="font-semibold text-foreground mb-1.5">📌 Tiêu đề</p>
+                    <div className="space-y-0.5">
+                      <p><code className="bg-muted px-1 rounded text-[11px]"># Tiêu đề</code> → <span className="font-bold text-sm">H1 (lớn nhất)</span></p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">## Tiêu đề</code> → <span className="font-semibold">H2</span></p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">### Tiêu đề</code> → <span className="font-medium">H3</span></p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">#### Tiêu đề</code> → H4 (nhỏ nhất)</p>
+                    </div>
+                  </div>
+
+                  {/* Line breaks */}
+                  <div>
+                    <p className="font-semibold text-foreground mb-1.5">↵ Xuống hàng & đoạn</p>
+                    <div className="space-y-0.5">
+                      <p><code className="bg-muted px-1 rounded text-[11px]">Enter 2 lần</code> → xuống đoạn mới</p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">2 dấu cách + Enter</code> → xuống hàng</p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">{'<br/>'}</code> → ép xuống hàng</p>
+                    </div>
+                  </div>
+
+                  {/* Lists */}
+                  <div>
+                    <p className="font-semibold text-foreground mb-1.5">📋 Danh sách</p>
+                    <div className="space-y-0.5">
+                      <p><code className="bg-muted px-1 rounded text-[11px]">- mục 1</code> → danh sách chấm</p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">1. mục 1</code> → danh sách số</p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">{'  '}- mục con</code> → thụt vào (2 space)</p>
+                    </div>
+                  </div>
+
+                  {/* Links & media */}
+                  <div>
+                    <p className="font-semibold text-foreground mb-1.5">🔗 Liên kết & khác</p>
+                    <div className="space-y-0.5">
+                      <p><code className="bg-muted px-1 rounded text-[11px]">[text](url)</code> → liên kết</p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">{'> trích dẫn'}</code> → blockquote</p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">---</code> → đường kẻ ngang</p>
+                      <p><code className="bg-muted px-1 rounded text-[11px]">`code`</code> → <code className="bg-muted px-1 rounded">code inline</code></p>
+                    </div>
+                  </div>
+
+                  {/* UEH special */}
+                  <div className="border-t pt-2">
+                    <p className="font-semibold text-foreground mb-1.5">🎨 Màu sắc & kích thước UEH</p>
+                    <div className="space-y-1">
+                      <p className="text-[11px]">Dùng HTML inline để đổi màu/cỡ chữ:</p>
+                      <div className="bg-muted/60 rounded p-2 font-mono text-[10px] space-y-0.5">
+                        <p>{'<span style="color:#006D6F">Xanh UEH</span>'}</p>
+                        <p>{'<span style="color:#E8702A">Cam UEH</span>'}</p>
+                        <p>{'<span style="color:red">Đỏ cảnh báo</span>'}</p>
+                        <p>{'<span style="font-size:18px">Chữ to</span>'}</p>
+                        <p>{'<span style="font-size:12px">Chữ nhỏ</span>'}</p>
+                      </div>
+                      <p className="text-[11px] mt-1">Kết hợp nhiều thuộc tính:</p>
+                      <div className="bg-muted/60 rounded p-2 font-mono text-[10px]">
+                        <p>{'<span style="color:#006D6F;font-size:20px;font-weight:bold">Tiêu đề UEH</span>'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Color reference */}
+                  <div className="border-t pt-2">
+                    <p className="font-semibold text-foreground mb-1.5">🎯 Bảng màu UEH</p>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-primary shrink-0" />
+                        <span className="text-[11px]">#006D6F Xanh teal</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-accent shrink-0" />
+                        <span className="text-[11px]">#E8702A Cam</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-warning shrink-0" />
+                        <span className="text-[11px]">#F59E0B Vàng</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-destructive shrink-0" />
+                        <span className="text-[11px]">#EF4444 Đỏ</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             <Button variant="outline" onClick={() => setPolicyDialogOpen(false)}>Hủy</Button>
             <Button onClick={handleSavePolicy} disabled={savingPolicy} className="gap-2">
               {savingPolicy ? 'Đang lưu...' : <><CheckCircle2 className="w-4 h-4" /> Xác nhận thay đổi</>}
