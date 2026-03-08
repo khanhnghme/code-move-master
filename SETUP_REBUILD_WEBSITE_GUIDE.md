@@ -114,6 +114,9 @@
 ✅ Xuất báo cáo (PDF/Excel)
 ✅ Quản lý tài liệu dự án
 ✅ Cấu hình chia sẻ công khai
+✅ Tạo/sửa/xóa cuộc họp nhóm
+✅ Quản lý điểm danh cuộc họp
+✅ Chuyển nhượng quyền sở hữu project
 ✅ Tất cả quyền của Member
 ```
 
