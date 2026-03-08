@@ -227,6 +227,23 @@ export default function Groups() {
       return;
     }
 
+    // Check project limit for non-admin users
+    if (!isAdmin && profile) {
+      const limit = profile.project_limit ?? 2;
+      const { count } = await supabase
+        .from('groups')
+        .select('id', { count: 'exact', head: true })
+        .eq('created_by', user!.id);
+      if (count !== null && count >= limit) {
+        toast({
+          title: 'Đã đạt giới hạn',
+          description: `Bạn chỉ được tạo tối đa ${limit} dự án. Liên hệ Admin để tăng giới hạn.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     setIsCreating(true);
 
     try {
