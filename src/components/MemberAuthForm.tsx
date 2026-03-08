@@ -493,23 +493,147 @@ export function MemberAuthForm() {
             </form>
           ) : activeTab === 'forgot' ? (
             <div className="space-y-4">
-              {forgotSent ? (
+              {forgotStep === 'done' ? (
                 <div className="text-center space-y-4">
                   <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto">
-                    <Mail className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                    <KeyRound className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <h3 className="text-lg font-heading font-semibold">Đã gửi email đặt lại mật khẩu</h3>
+                  <h3 className="text-lg font-heading font-semibold">Đặt lại mật khẩu thành công!</h3>
                   <p className="text-sm text-muted-foreground">
-                    Một email chứa liên kết đặt lại mật khẩu đã được gửi đến <span className="font-medium text-foreground">{forgotEmail}</span>. Vui lòng kiểm tra hộp thư (bao gồm thư rác).
+                    Mật khẩu đã được thay đổi. Vui lòng đăng nhập lại với mật khẩu mới.
                   </p>
                   <Button
-                    variant="outline"
                     className="w-full"
-                    onClick={() => { setActiveTab('login'); setForgotSent(false); setForgotIdentifier(''); setForgotEmailInput(''); setErrors({}); }}
+                    onClick={() => {
+                      setActiveTab('login');
+                      setForgotStep('input');
+                      setForgotIdentifier('');
+                      setForgotEmailInput('');
+                      setOtpCode('');
+                      setNewPassword('');
+                      setNewPasswordConfirm('');
+                      setErrors({});
+                    }}
                   >
-                    Quay lại đăng nhập
+                    Đăng nhập ngay
                   </Button>
                 </div>
+              ) : forgotStep === 'newpass' ? (
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setErrors({});
+                  if (newPassword.length < 6) {
+                    setErrors({ newPass: 'Mật khẩu tối thiểu 6 ký tự' });
+                    return;
+                  }
+                  if (newPassword !== newPasswordConfirm) {
+                    setErrors({ newPassConfirm: 'Mật khẩu xác nhận không khớp' });
+                    return;
+                  }
+                  setForgotLoading(true);
+                  const { error } = await supabase.auth.updateUser({ password: newPassword });
+                  if (error) {
+                    setForgotLoading(false);
+                    toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
+                  } else {
+                    await supabase.auth.signOut({ scope: 'local' });
+                    setForgotLoading(false);
+                    setForgotStep('done');
+                  }
+                }} className="space-y-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    Xác minh thành công! Nhập mật khẩu mới cho tài khoản <span className="font-medium text-foreground">{forgotEmail}</span>
+                  </p>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-pass">Mật khẩu mới</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input id="new-pass" type="password" placeholder="Tối thiểu 6 ký tự" className="pl-10" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={forgotLoading} autoFocus />
+                    </div>
+                    {errors.newPass && <p className="text-sm text-destructive">{errors.newPass}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="new-pass-confirm">Xác nhận mật khẩu mới</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input id="new-pass-confirm" type="password" placeholder="Nhập lại mật khẩu" className="pl-10" value={newPasswordConfirm} onChange={(e) => setNewPasswordConfirm(e.target.value)} disabled={forgotLoading} />
+                    </div>
+                    {errors.newPassConfirm && <p className="text-sm text-destructive">{errors.newPassConfirm}</p>}
+                  </div>
+                  <Button type="submit" className="w-full font-semibold bg-foreground text-background hover:bg-foreground/90" disabled={forgotLoading}>
+                    {forgotLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    Đặt lại mật khẩu
+                  </Button>
+                </form>
+              ) : forgotStep === 'otp' ? (
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setErrors({});
+                  const code = otpCode.trim();
+                  if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+                    setErrors({ otp: 'Vui lòng nhập đúng mã 6 chữ số' });
+                    return;
+                  }
+                  setForgotLoading(true);
+                  try {
+                    const { error } = await supabase.auth.verifyOtp({
+                      email: forgotEmail,
+                      token: code,
+                      type: 'email',
+                    });
+                    setForgotLoading(false);
+                    if (error) {
+                      toast({ title: 'Mã không hợp lệ', description: 'Mã xác minh không đúng hoặc đã hết hạn. Vui lòng thử lại.', variant: 'destructive' });
+                    } else {
+                      setForgotStep('newpass');
+                    }
+                  } catch {
+                    setForgotLoading(false);
+                    toast({ title: 'Lỗi hệ thống', description: 'Có lỗi xảy ra.', variant: 'destructive' });
+                  }
+                }} className="space-y-4">
+                  <div className="text-center space-y-1">
+                    <Mail className="w-10 h-10 mx-auto text-primary" />
+                    <p className="text-sm text-muted-foreground">
+                      Mã xác minh 6 số đã được gửi đến
+                    </p>
+                    <p className="text-sm font-semibold text-foreground">{forgotEmail}</p>
+                    <p className="text-xs text-muted-foreground">Kiểm tra hộp thư đến và thư rác</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="otp-code">Mã xác minh</Label>
+                    <Input
+                      id="otp-code"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="000000"
+                      className="text-center text-2xl tracking-[0.5em] font-mono"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      disabled={forgotLoading}
+                      autoFocus
+                    />
+                    {errors.otp && <p className="text-sm text-destructive text-center">{errors.otp}</p>}
+                  </div>
+                  <Button type="submit" className="w-full font-semibold bg-foreground text-background hover:bg-foreground/90" disabled={forgotLoading}>
+                    {forgotLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    Xác minh
+                  </Button>
+                  <div className="flex items-center justify-between text-sm">
+                    <button type="button" className="text-primary hover:underline font-medium" onClick={() => { setForgotStep('input'); setOtpCode(''); setErrors({}); }}>
+                      ← Quay lại
+                    </button>
+                    <button type="button" className="text-muted-foreground hover:underline text-xs" onClick={async () => {
+                      setForgotLoading(true);
+                      await supabase.auth.signInWithOtp({ email: forgotEmail });
+                      setForgotLoading(false);
+                      toast({ title: 'Đã gửi lại mã', description: 'Mã mới đã được gửi đến email của bạn.' });
+                    }}>
+                      Gửi lại mã
+                    </button>
+                  </div>
+                </form>
               ) : (
                 <form onSubmit={async (e) => {
                   e.preventDefault();
@@ -537,40 +661,27 @@ export function MemberAuthForm() {
                       toast({ title: 'Không khớp', description: 'Email không khớp với MSSV đã đăng ký.', variant: 'destructive' });
                       return;
                     }
-                    const { error } = await supabase.auth.resetPasswordForEmail(registeredEmail, {
-                      redirectTo: `${window.location.origin}/reset-password`,
-                    });
+                    const { error } = await supabase.auth.signInWithOtp({ email: registeredEmail });
                     setForgotLoading(false);
                     if (error) {
                       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
                     } else {
                       setForgotEmail(registeredEmail);
-                      setForgotSent(true);
+                      setForgotStep('otp');
                     }
                   } catch {
                     setForgotLoading(false);
                     toast({ title: 'Lỗi hệ thống', description: 'Có lỗi xảy ra.', variant: 'destructive' });
                   }
                 }} className="space-y-4">
-                  <div className="text-center space-y-1 mb-2">
-                    <p className="text-sm text-muted-foreground">
-                      Nhập MSSV và email đã đăng ký để xác minh danh tính. Hệ thống sẽ gửi liên kết đặt lại mật khẩu về email của bạn.
-                    </p>
-                  </div>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Nhập MSSV và email đã đăng ký. Hệ thống sẽ gửi mã xác minh 6 số về email của bạn.
+                  </p>
                   <div className="space-y-2">
                     <Label htmlFor="forgot-id">Mã số sinh viên (MSSV)</Label>
                     <div className="relative">
                       <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="forgot-id"
-                        type="text"
-                        placeholder="31241234567"
-                        className="pl-10"
-                        value={forgotIdentifier}
-                        onChange={(e) => setForgotIdentifier(e.target.value)}
-                        disabled={forgotLoading}
-                        autoFocus
-                      />
+                      <Input id="forgot-id" type="text" placeholder="31241234567" className="pl-10" value={forgotIdentifier} onChange={(e) => setForgotIdentifier(e.target.value)} disabled={forgotLoading} autoFocus />
                     </div>
                     {errors.forgotId && <p className="text-sm text-destructive">{errors.forgotId}</p>}
                   </div>
@@ -578,28 +689,16 @@ export function MemberAuthForm() {
                     <Label htmlFor="forgot-email">Email đã đăng ký</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="forgot-email"
-                        type="email"
-                        placeholder="email@example.com"
-                        className="pl-10"
-                        value={forgotEmailInput}
-                        onChange={(e) => setForgotEmailInput(e.target.value)}
-                        disabled={forgotLoading}
-                      />
+                      <Input id="forgot-email" type="email" placeholder="email@example.com" className="pl-10" value={forgotEmailInput} onChange={(e) => setForgotEmailInput(e.target.value)} disabled={forgotLoading} />
                     </div>
                     {errors.forgotEmail && <p className="text-sm text-destructive">{errors.forgotEmail}</p>}
                   </div>
                   <Button type="submit" className="w-full font-semibold bg-foreground text-background hover:bg-foreground/90" disabled={forgotLoading}>
                     {forgotLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Mail className="w-4 h-4 mr-2" />}
-                    Gửi email đặt lại mật khẩu
+                    Gửi mã xác minh
                   </Button>
-                  <p className="text-sm text-center text-muted-foreground">
-                    <button
-                      type="button"
-                      className="text-primary hover:underline font-medium"
-                      onClick={() => { setActiveTab('login'); setErrors({}); setForgotIdentifier(''); setForgotEmailInput(''); }}
-                    >
+                  <p className="text-sm text-center">
+                    <button type="button" className="text-primary hover:underline font-medium" onClick={() => { setActiveTab('login'); setErrors({}); setForgotIdentifier(''); setForgotEmailInput(''); }}>
                       ← Quay lại đăng nhập
                     </button>
                   </p>
