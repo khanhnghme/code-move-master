@@ -165,6 +165,7 @@ export default function MessageItem({ message, isOwn, showAvatar = true, showNam
     setTaskDialogOpen(true);
   };
 
+  const handleDelete = async () => {
     if (!onDelete) return;
     setIsDeleting(true);
     try {
