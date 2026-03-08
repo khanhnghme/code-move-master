@@ -95,7 +95,12 @@ export default function GoogleDriveUploadButton({
       // Set sharing permissions and get public links
       const results: DriveFileResult[] = [];
       for (const file of pickedFiles) {
-        const shareUrl = await setFilePublicAccess(accessToken, file.id);
+        const shareUrl = await setFilePublicAccess({
+          accessToken,
+          fileId: file.id,
+          mimeType: file.mimeType,
+          pickerUrl: file.url,
+        });
         results.push({
           name: file.name,
           url: shareUrl,
