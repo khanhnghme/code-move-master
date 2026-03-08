@@ -939,6 +939,8 @@ export default function Communication() {
                             isOwn={msg.user_id === user?.id}
                             showAvatar={!isConsecutive}
                             showName={!isConsecutive}
+                            members={projectMembers}
+                            groupId={selectedProject?.id}
                             onTaskClick={handleNavigateToTask}
                             onDelete={handleDeleteMessage}
                             onReply={(message) => setReplyingTo(message)}
