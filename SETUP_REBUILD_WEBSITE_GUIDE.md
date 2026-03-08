@@ -1743,6 +1743,10 @@ ALTER TABLE public.pending_approvals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.feedbacks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.feedback_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_error_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meetings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meeting_attendance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meeting_messages ENABLE ROW LEVEL SECURITY;
 ```
 
 ---
