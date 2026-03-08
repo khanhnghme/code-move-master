@@ -10,6 +10,10 @@ import introPage2 from '@/assets/intro-page2-tasks.png';
 import introPage3 from '@/assets/intro-page3-scoring.png';
 import introPage4 from '@/assets/intro-page4-project.png';
 import introPage5 from '@/assets/intro-page5-advanced.png';
+import introP1Workflow from '@/assets/intro-p1-workflow.png';
+import introP1Roles from '@/assets/intro-p1-roles.png';
+import introP1Features from '@/assets/intro-p1-features.png';
+import introP1Multiplatform from '@/assets/intro-p1-multiplatform.png';
 
 /* ─── Intro Images ─── */
 type IntroImages = Record<string, string>;
