@@ -9,12 +9,13 @@ const corsHeaders = {
 const DEFAULT_PASSWORD = "123456";
 
 interface CreateMemberRequest {
-  action: "create_member" | "setup_system_accounts" | "update_password" | "clear_must_change_password" | "delete_user" | "update_email";
+  action: "create_member" | "setup_system_accounts" | "update_password" | "clear_must_change_password" | "delete_user" | "update_email" | "update_role";
   email?: string;
   password?: string;
   student_id?: string;
   full_name?: string;
   role?: "member" | "leader" | "admin";
+  new_role?: "member" | "leader" | "admin";
   user_id?: string;
   requester_id?: string;
 }
