@@ -665,6 +665,8 @@ export default function GroupDetail() {
                 isLeader={isLeaderInGroup}
               />
             </TabsContent>
+
+            <TabsContent value="members" className="mt-6">
               <MemberManagementCard members={members} availableProfiles={availableProfiles} isLeaderInGroup={isLeaderInGroup} isGroupCreator={isGroupCreator} groupId={group.id} currentUserId={user?.id || ''} groupCreatorId={group.created_by} onRefresh={fetchGroupData} />
             </TabsContent>
 
