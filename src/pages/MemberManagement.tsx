@@ -1010,6 +1010,7 @@ export default function MemberManagement() {
               {bulkAction === 'suspend' && (<>Bạn sắp tạm khóa <span className="font-semibold">{selectedIds.size}</span> tài khoản (mặc định 1 ngày).</>)}
               {bulkAction === 'unsuspend' && (<>Bạn sắp mở khóa <span className="font-semibold">{selectedIds.size}</span> tài khoản.</>)}
               {bulkAction === 'promote' && (<>Bạn sắp nâng cấp <span className="font-semibold">{selectedIds.size}</span> tài khoản lên <span className="font-semibold">Thành viên Nâng cao</span>. Các tài khoản đã là Thành viên Nâng cao hoặc Admin sẽ được bỏ qua.</>)}
+              {bulkAction === 'demote' && (<>Bạn sắp hạ cấp <span className="font-semibold">{selectedIds.size}</span> tài khoản về <span className="font-semibold">Thành viên</span>. Chỉ các tài khoản đang là Thành viên Nâng cao mới bị ảnh hưởng (Admin sẽ được bỏ qua).</>)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
