@@ -330,258 +330,204 @@ export default function TaskEditDialog({
           </div>
         </DialogHeader>
         
-        {/* Content */}
+        {/* Content - 3 columns */}
         <div className="flex-1 overflow-hidden">
           <div className="grid grid-cols-12 h-full">
-            {/* Left Column (8 cols) */}
-            <div className="col-span-8 p-4 overflow-y-auto border-r space-y-4">
-              {/* Basic Info */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-primary">
-                  <FileText className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase">Thông tin cơ bản</span>
-                </div>
-                <div className="grid grid-cols-1 gap-3 pl-6">
-                  <div>
-                    <Label className="text-xs mb-1.5 block">Tên task {canEditDetails && <span className="text-destructive">*</span>}</Label>
-                    {canEditDetails ? (
-                      <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nhập tên task..." className="h-9" />
-                    ) : (
-                      <div className="p-2 rounded-md bg-muted/50 border text-sm font-medium">{task?.title}</div>
-                    )}
+            {/* Col 1: Title + Description (5 cols) */}
+            <div className="col-span-5 p-4 border-r flex flex-col gap-3 overflow-y-auto">
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block">
+                  Tên task {canEditDetails && <span className="text-destructive">*</span>}
+                </Label>
+                {canEditDetails ? (
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nhập tên task..." className="h-10 text-base font-medium" />
+                ) : (
+                  <div className="p-2.5 rounded-lg bg-muted/50 border text-sm font-medium">{task?.title}</div>
+                )}
+              </div>
+              <div className="flex-1 flex flex-col min-h-0">
+                <Label className="text-xs font-semibold mb-1.5 block">Mô tả</Label>
+                {canEditDetails ? (
+                  <ResourceTagTextarea 
+                    value={description} 
+                    onChange={setDescription} 
+                    groupId={task?.group_id || ''} 
+                    placeholder="Mô tả công việc... (gõ # để chèn tài nguyên)" 
+                    fillHeight={true}
+                  />
+                ) : (
+                  <div className="p-2.5 rounded-lg bg-muted/50 border text-sm flex-1 overflow-y-auto">
+                    <ResourceLinkRenderer content={task?.description || ''} />
+                    {!task?.description && <span className="text-muted-foreground">Không có mô tả</span>}
                   </div>
-                  <div className="flex-1 flex flex-col min-h-0">
-                    <Label className="text-xs mb-1.5 block">Mô tả</Label>
-                    {canEditDetails ? (
-                      <ResourceTagTextarea 
-                        value={description} 
-                        onChange={setDescription} 
-                        groupId={task?.group_id || ''} 
-                        placeholder="Mô tả công việc... (gõ # để chèn tài nguyên)" 
-                        minHeight="100px"
-                      />
-                    ) : (
-                      <div className="p-2 rounded-md bg-muted/50 border text-sm min-h-[60px]">
-                        <ResourceLinkRenderer content={task?.description || ''} />
-                        {!task?.description && <span className="text-muted-foreground">Không có mô tả</span>}
-                      </div>
-                    )}
+                )}
+              </div>
+            </div>
+            
+            {/* Col 2: Config fields (3 cols) */}
+            <div className="col-span-3 p-4 border-r flex flex-col gap-3 overflow-y-auto">
+              {/* Stage */}
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-warning">
+                  <Layers className="w-3.5 h-3.5" />
+                  Giai đoạn
+                </Label>
+                {canEditDetails ? (
+                  <Select value={stageId} onValueChange={setStageId}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Chọn giai đoạn" /></SelectTrigger>
+                    <SelectContent>
+                      {stages.map((stage) => (
+                        <SelectItem key={stage.id} value={stage.id}>{stage.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="p-2 rounded-md bg-muted/50 border text-sm">
+                    {stages.find(s => s.id === task?.stage_id)?.name || 'Chưa phân'}
                   </div>
-                </div>
+                )}
               </div>
 
-              {/* Stage & Config */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-warning">
-                  <Layers className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase">Giai đoạn & Cấu hình</span>
-                </div>
-                <div className="grid grid-cols-3 gap-3 pl-6">
-                  <div>
-                    <Label className="text-xs mb-1.5 block">Giai đoạn</Label>
-                    {canEditDetails ? (
-                      <Select value={stageId} onValueChange={setStageId}>
-                        <SelectTrigger className="h-9"><SelectValue placeholder="Chọn giai đoạn" /></SelectTrigger>
-                        <SelectContent>
-                          {stages.map((stage) => (
-                            <SelectItem key={stage.id} value={stage.id}>{stage.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <div className="p-2 rounded-md bg-muted/50 border text-sm">
-                        {stages.find(s => s.id === task?.stage_id)?.name || 'Chưa phân giai đoạn'}
-                      </div>
-                    )}
+              {/* Deadline */}
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-accent">
+                  <Calendar className="w-3.5 h-3.5" />
+                  Deadline
+                </Label>
+                {canEditDetails ? (
+                  <DeadlineHourPicker value={deadline} onChange={setDeadline} placeholder="Chọn deadline..." />
+                ) : (
+                  <div className={`p-2 rounded-md border text-sm ${originalDeadlineOverdue && !hasExtension ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'bg-muted/50'}`}>
+                    {task?.deadline ? formatDeadlineVN(task.deadline) : 'Không có'}
                   </div>
-                  <div>
-                    <Label className="text-xs mb-1.5 block flex items-center gap-1">
-                      <Send className="w-3 h-3" /> Cách nộp bài
-                    </Label>
-                    {canEditDetails ? (
-                      <Select value={submissionMethod} onValueChange={(v) => setSubmissionMethod(v as SubmissionMethod)}>
-                        <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="both">
-                            <span className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-primary" />
-                              Cả hai cách
-                            </span>
-                          </SelectItem>
-                          <SelectItem value="file_only">
-                            <span className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                              Chỉ tải file
-                            </span>
-                          </SelectItem>
-                          <SelectItem value="link_only">
-                            <span className="flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-blue-500" />
-                              Chỉ dán link
-                            </span>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <div className="p-2 rounded-md bg-muted/50 border text-sm">
-                        {submissionMethod === 'both' ? 'Cả hai cách' : submissionMethod === 'file_only' ? 'Chỉ tải file' : 'Chỉ dán link'}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <Label className="text-xs mb-1.5 block flex items-center gap-1">
-                      <HardDrive className="w-3 h-3" /> Giới hạn upload
-                    </Label>
-                    {canEditDetails ? (
-                      <FileSizeLimitSelector value={maxFileSize} onChange={setMaxFileSize} />
-                    ) : (
-                      <div className="p-2 rounded-md bg-muted/50 border text-sm">{formatFileSizeMB(maxFileSize)}</div>
-                    )}
-                  </div>
-                </div>
+                )}
               </div>
 
-              {/* Deadline & Extension */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-blue-600">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase">Deadline & Gia hạn</span>
-                </div>
-                <div className="pl-6 space-y-3">
-                  {/* Original Deadline */}
-                  <div>
-                    <Label className="text-xs mb-1.5 block">Deadline ban đầu</Label>
-                    {canEditDetails ? (
-                      <DeadlineHourPicker value={deadline} onChange={setDeadline} placeholder="Chọn deadline..." />
-                    ) : (
-                      <div className={`p-2 rounded-md border text-sm ${originalDeadlineOverdue && !hasExtension ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'bg-muted/50'}`}>
-                        {task?.deadline ? formatDeadlineVN(task.deadline) : 'Không có deadline'}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Extension Section - Only for Edit mode with deadline */}
-                  {canEditDetails && deadline && (
-                    <div className="rounded-lg border-2 border-dashed border-blue-300/50 bg-blue-50/30 dark:bg-blue-950/20 p-3">
-                      {!showExtendSection ? (
+              {/* Extension */}
+              {canEditDetails && deadline && (
+                <div className="rounded-lg border border-dashed border-blue-300/50 bg-blue-50/30 dark:bg-blue-950/20 p-2.5">
+                  {!showExtendSection ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setShowExtendSection(true)}
+                      className="w-full h-8 gap-1.5 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-100/50"
+                    >
+                      <CalendarPlus className="w-3.5 h-3.5" />
+                      Gia hạn deadline
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-blue-600 flex items-center gap-1.5">
+                          <CalendarPlus className="w-3.5 h-3.5" />Gia hạn
+                        </span>
                         <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={() => setShowExtendSection(true)}
-                          className="w-full h-auto py-3 gap-2 text-blue-600 hover:text-blue-700 hover:bg-blue-100/50"
+                          type="button" variant="ghost" size="sm"
+                          onClick={() => { setShowExtendSection(false); setExtensionHours(0); }}
+                          className="h-6 px-1.5 text-[10px] text-muted-foreground hover:text-destructive"
                         >
-                          <Plus className="w-4 h-4" />
-                          <span className="font-medium">Gia hạn deadline</span>
+                          <X className="w-3 h-3" />
                         </Button>
-                      ) : (
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <CalendarPlus className="w-4 h-4 text-blue-600" />
-                              <span className="text-sm font-semibold text-blue-600">Gia hạn deadline</span>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => { setShowExtendSection(false); setExtensionHours(0); }}
-                              className="h-7 px-2 text-muted-foreground hover:text-destructive"
-                            >
-                              <X className="w-3 h-3 mr-1" />Hủy
-                            </Button>
-                          </div>
-
-                          {/* Hours Input */}
-                          <div>
-                            <Label className="text-xs mb-1.5 block">Số giờ gia hạn thêm</Label>
-                            <div className="flex items-center gap-2">
-                              <Input
-                                type="number"
-                                min={1}
-                                value={extensionHours || ''}
-                                onChange={(e) => setExtensionHours(Math.max(0, parseInt(e.target.value) || 0))}
-                                placeholder="VD: 24"
-                                className="h-9 w-32"
-                              />
-                              <span className="text-sm text-muted-foreground">giờ</span>
-                              <div className="flex gap-1 ml-2">
-                                {[6, 12, 24, 48, 72].map(h => (
-                                  <Button
-                                    key={h}
-                                    type="button"
-                                    variant={extensionHours === h ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => setExtensionHours(h)}
-                                    className="h-7 px-2 text-xs"
-                                  >
-                                    +{h}h
-                                  </Button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Preview */}
-                          {extensionHours > 0 && extendedDeadlineDate && (
-                            <div className="rounded-lg bg-white dark:bg-background border-2 border-blue-200 p-3">
-                              <p className="text-[10px] text-muted-foreground uppercase mb-2 font-medium">Tóm tắt gia hạn</p>
-                              <div className="flex items-center gap-2">
-                                <div className="flex-1 p-2 rounded bg-muted/50 text-center">
-                                  <p className="text-[9px] text-muted-foreground uppercase">Deadline gốc</p>
-                                  <p className="text-xs font-semibold">{formatDeadlineShortVN(deadline)}</p>
-                                </div>
-                                <div className="flex flex-col items-center shrink-0">
-                                  <div className="px-2 py-1 rounded-full bg-blue-500 text-white text-[10px] font-bold">
-                                    {getExtensionText(extensionHours)}
-                                  </div>
-                                  <ArrowRight className="w-4 h-4 text-blue-500 mt-0.5" />
-                                </div>
-                                <div className="flex-1 p-2 rounded bg-blue-500/10 border border-blue-500/30 text-center">
-                                  <p className="text-[9px] text-blue-600 uppercase font-medium">Deadline mới</p>
-                                  <p className="text-xs font-bold text-blue-700">
-                                    {format(extendedDeadlineDate, "dd/MM – HH:mm", { locale: vi })}
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number" min={1}
+                          value={extensionHours || ''}
+                          onChange={(e) => setExtensionHours(Math.max(0, parseInt(e.target.value) || 0))}
+                          placeholder="Giờ"
+                          className="h-8 w-20 text-xs"
+                        />
+                        <span className="text-[10px] text-muted-foreground">giờ</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {[6, 12, 24, 48, 72].map(h => (
+                          <Button
+                            key={h} type="button"
+                            variant={extensionHours === h ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setExtensionHours(h)}
+                            className="h-6 px-1.5 text-[10px]"
+                          >
+                            +{h}h
+                          </Button>
+                        ))}
+                      </div>
+                      {extensionHours > 0 && extendedDeadlineDate && (
+                        <div className="rounded bg-blue-500/10 border border-blue-500/20 p-2 text-center">
+                          <p className="text-[9px] text-muted-foreground">Deadline mới</p>
+                          <p className="text-xs font-bold text-blue-700">
+                            {format(extendedDeadlineDate, "dd/MM/yyyy – HH:mm", { locale: vi })}
+                          </p>
+                          <Badge className="mt-1 text-[9px] bg-blue-500/10 text-blue-600 border-blue-500/30">
+                            {getExtensionText(extensionHours)}
+                          </Badge>
                         </div>
                       )}
                     </div>
                   )}
-
-                  {/* View mode: Show existing extension */}
-                  {!canEditDetails && hasExtension && (
-                    <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 p-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <CalendarPlus className="w-4 h-4 text-blue-600" />
-                        <span className="text-xs font-semibold text-blue-700">Task đã được gia hạn</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 p-2 rounded bg-white/80 dark:bg-background/50 text-center border">
-                          <p className="text-[9px] text-muted-foreground uppercase">Deadline gốc</p>
-                          <p className="text-xs font-semibold">{formatDeadlineShortVN(task?.deadline)}</p>
-                        </div>
-                        <div className="flex flex-col items-center shrink-0">
-                          <div className="px-2 py-1 rounded-full bg-blue-500 text-white text-[10px] font-bold">
-                            {getExtensionText(getExistingExtensionHours())}
-                          </div>
-                          <ArrowRight className="w-4 h-4 text-blue-500 mt-0.5" />
-                        </div>
-                        <div className="flex-1 p-2 rounded bg-blue-500/10 border border-blue-500/30 text-center">
-                          <p className="text-[9px] text-blue-600 uppercase font-medium">Deadline hiện tại</p>
-                          <p className="text-xs font-bold text-blue-700">{formatDeadlineShortVN(taskWithExtended.extended_deadline)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
+              )}
+
+              {/* View mode extension */}
+              {!canEditDetails && hasExtension && (
+                <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 p-2.5">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <CalendarPlus className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="text-[10px] font-semibold text-blue-700">Đã gia hạn</span>
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Gốc:</span>
+                      <span className="line-through">{formatDeadlineShortVN(task?.deadline)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-600 font-medium">Mới:</span>
+                      <span className="font-bold text-blue-700">{formatDeadlineShortVN(taskWithExtended.extended_deadline)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Submission method */}
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5">
+                  <Send className="w-3.5 h-3.5" />
+                  Cách nộp bài
+                </Label>
+                {canEditDetails ? (
+                  <Select value={submissionMethod} onValueChange={(v) => setSubmissionMethod(v as SubmissionMethod)}>
+                    <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="both">Cả hai cách</SelectItem>
+                      <SelectItem value="file_only">Chỉ tải file</SelectItem>
+                      <SelectItem value="link_only">Chỉ dán link</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="p-2 rounded-md bg-muted/50 border text-sm">
+                    {submissionMethod === 'both' ? 'Cả hai cách' : submissionMethod === 'file_only' ? 'Chỉ tải file' : 'Chỉ dán link'}
+                  </div>
+                )}
+              </div>
+
+              {/* File limit */}
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1.5 text-muted-foreground">
+                  <HardDrive className="w-3.5 h-3.5" />
+                  Giới hạn upload
+                </Label>
+                {canEditDetails ? (
+                  <FileSizeLimitSelector value={maxFileSize} onChange={setMaxFileSize} />
+                ) : (
+                  <div className="p-2 rounded-md bg-muted/50 border text-sm">{formatFileSizeMB(maxFileSize)}</div>
+                )}
               </div>
             </div>
             
-            {/* Right Column - Assignees (4 cols) */}
-            <div className="col-span-4 flex flex-col bg-muted/20">
-              <div className="px-3 py-2 border-b bg-success/5">
+            {/* Col 3: Assignees (4 cols) */}
+            <div className="col-span-4 flex flex-col">
+              <div className="px-4 py-2.5 border-b bg-success/5">
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-success" />
                   <span className="text-xs font-semibold uppercase text-success">Người phụ trách</span>
@@ -593,128 +539,55 @@ export default function TaskEditDialog({
               
               <div className="flex-1 overflow-y-auto p-2">
                 {canEditDetails ? (
-                  <>
-                    {/* Summary View (Default - Collapsed) */}
-                    {!showAssigneesExpanded ? (
-                      <div className="space-y-2">
-                        {/* Summary of selected assignees */}
-                        <div className="p-2 rounded-lg bg-background border min-h-[60px]">
-                          {assignees.length === 0 ? (
-                            <p className="text-xs text-muted-foreground text-center py-2">Chưa chọn người phụ trách</p>
-                          ) : (
-                            <div className="flex flex-wrap gap-1.5">
-                              {assignees.slice(0, 4).map(userId => {
-                                const member = members.find(m => m.user_id === userId);
-                                return member ? (
-                                  <div key={userId} className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-success/10 border border-success/30">
-                                    {member.profiles?.avatar_url ? (
-                                      <img 
-                                        src={member.profiles.avatar_url} 
-                                        alt={member.profiles.full_name || ''} 
-                                        className="w-5 h-5 rounded-full object-cover shrink-0"
-                                      />
-                                    ) : (
-                                      <div className="w-5 h-5 rounded-full bg-success/20 flex items-center justify-center text-[8px] font-bold text-success shrink-0">
-                                        {member.profiles?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                                      </div>
-                                    )}
-                                    <span className="text-[10px] font-medium truncate max-w-[60px]">{member.profiles?.full_name?.split(' ').pop()}</span>
-                                  </div>
-                                ) : null;
-                              })}
-                              {assignees.length > 4 && (
-                                <div className="flex items-center px-2 py-1 rounded-full bg-muted border text-[10px] text-muted-foreground">
-                                  +{assignees.length - 4}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Expand Button */}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowAssigneesExpanded(true)}
-                          className="w-full h-8 gap-1.5 text-xs"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                          Chỉnh sửa
-                        </Button>
+                  <div className="space-y-1">
+                    {members.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                        <p className="text-xs">Chưa có thành viên</p>
                       </div>
                     ) : (
-                      /* Expanded View (Full List) */
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">Chọn thành viên:</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowAssigneesExpanded(false)}
-                            className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                          >
-                            <X className="w-3 h-3 mr-1" />Thu gọn
-                          </Button>
-                        </div>
-                        <div className="space-y-1 max-h-[320px] overflow-y-auto">
-                          {members.length === 0 ? (
-                            <div className="text-center py-6 text-muted-foreground">
-                              <Users className="w-6 h-6 mx-auto mb-2 opacity-30" />
-                              <p className="text-xs">Chưa có thành viên</p>
-                            </div>
+                      members.map((member) => (
+                        <div 
+                          key={member.id} 
+                          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${
+                            assignees.includes(member.user_id) 
+                              ? 'bg-success/10 ring-1 ring-success/40' 
+                              : 'hover:bg-muted/50'
+                          }`}
+                          onClick={() => {
+                            if (assignees.includes(member.user_id)) {
+                              setAssignees(assignees.filter(id => id !== member.user_id));
+                            } else {
+                              setAssignees([...assignees, member.user_id]);
+                            }
+                          }}
+                        >
+                          <Checkbox checked={assignees.includes(member.user_id)} className="h-4 w-4" />
+                          {member.profiles?.avatar_url ? (
+                            <img 
+                              src={member.profiles.avatar_url} 
+                              alt={member.profiles.full_name || ''} 
+                              className="w-8 h-8 rounded-full object-cover shrink-0"
+                            />
                           ) : (
-                            members.map((member) => (
-                              <div 
-                                key={member.id} 
-                                className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${
-                                  assignees.includes(member.user_id) 
-                                    ? 'bg-success/10 ring-1 ring-success/40' 
-                                    : 'hover:bg-background border border-transparent hover:border-border'
-                                }`}
-                                onClick={() => {
-                                  if (assignees.includes(member.user_id)) {
-                                    setAssignees(assignees.filter(id => id !== member.user_id));
-                                  } else {
-                                    setAssignees([...assignees, member.user_id]);
-                                  }
-                                }}
-                              >
-                                <Checkbox checked={assignees.includes(member.user_id)} className="h-4 w-4" />
-                                {member.profiles?.avatar_url ? (
-                                  <img 
-                                    src={member.profiles.avatar_url} 
-                                    alt={member.profiles.full_name || ''} 
-                                    className="w-8 h-8 rounded-full object-cover border-2 border-background shrink-0"
-                                  />
-                                ) : (
-                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0 border-2 border-background">
-                                    {member.profiles?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                                  </div>
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium truncate">{member.profiles?.full_name}</p>
-                                  <p className="text-[10px] text-muted-foreground">{member.profiles?.student_id}</p>
-                                </div>
-                {groupCreatorId && member.user_id === groupCreatorId ? (
-                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 bg-warning/10 text-warning border-warning/30 shrink-0">
-                                    Trưởng nhóm
-                                  </Badge>
-                                ) : member.role === 'leader' && (
-                                  <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary border-primary/30 shrink-0">
-                                    Phó nhóm
-                                  </Badge>
-                                )}
-                              </div>
-                            ))
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                              {member.profiles?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium truncate">{member.profiles?.full_name}</p>
+                            <p className="text-[10px] text-muted-foreground">{member.profiles?.student_id}</p>
+                          </div>
+                          {groupCreatorId && member.user_id === groupCreatorId ? (
+                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-warning/10 text-warning border-warning/30 shrink-0">TN</Badge>
+                          ) : member.role === 'leader' && (
+                            <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-primary/10 text-primary border-primary/30 shrink-0">PN</Badge>
                           )}
                         </div>
-                      </div>
+                      ))
                     )}
-                  </>
+                  </div>
                 ) : (
-                  /* View-only mode */
                   <div className="space-y-1">
                     {task?.task_assignments && task.task_assignments.length > 0 ? (
                       task.task_assignments.map((assignment) => (
@@ -723,10 +596,10 @@ export default function TaskEditDialog({
                             <img 
                               src={assignment.profiles.avatar_url} 
                               alt={assignment.profiles.full_name || ''} 
-                              className="w-8 h-8 rounded-full object-cover border-2 border-background shrink-0"
+                              className="w-8 h-8 rounded-full object-cover shrink-0"
                             />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center text-xs font-bold text-success border-2 border-background">
+                            <div className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center text-xs font-bold text-success">
                               {assignment.profiles?.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                             </div>
                           )}
@@ -734,8 +607,8 @@ export default function TaskEditDialog({
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-6 text-muted-foreground">
-                        <Users className="w-6 h-6 mx-auto mb-2 opacity-30" />
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
                         <p className="text-xs">Chưa có người được giao</p>
                       </div>
                     )}
