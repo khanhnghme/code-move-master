@@ -23,6 +23,9 @@ export interface Profile {
   suspension_reason: string | null;
   suspended_at: string | null;
   suspended_by: string | null;
+  // Limits
+  project_limit: number | null;
+  storage_limit_mb: number | null;
 }
 
 export interface UserRole {

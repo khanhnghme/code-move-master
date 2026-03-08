@@ -13,7 +13,7 @@
 export function getSystemRoleLabel(role: string): string {
   switch (role) {
     case 'admin': return 'Admin';
-    case 'leader': return 'Leader';
+    case 'leader': return 'Thành viên Nâng cao';
     case 'member': return 'Thành viên';
     default: return role;
   }
