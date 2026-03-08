@@ -197,7 +197,10 @@ export default function AdminSystem() {
                 </div>
                 <Switch
                   checked={maintenanceEnabled}
-                  onCheckedChange={setMaintenanceEnabled}
+                  onCheckedChange={(checked) => {
+                    setMaintenanceEnabled(checked);
+                    setShowMaintenanceConfirm(true);
+                  }}
                 />
               </div>
 
