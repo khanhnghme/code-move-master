@@ -4,7 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Send, AtSign, Hash, Loader2, User, ListTodo, Smile, Paperclip } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+
+const EMOJI_CATEGORIES = [
+  { label: '😊 Mặt cười', emojis: ['😀','😁','😂','🤣','😊','😇','🙂','😉','😍','🥰','😘','😋','😛','😜','🤪','😎','🤩','🥳','😏','😌','😴','🤤','😷','🤒','🤕','🤢','🤮','🥴','😵','🤯','🤠','🥹','😤','😡','🤬','😈','👿','💀','☠️','💩','🤡','👻','👽','🤖'] },
+  { label: '👋 Tay & Cử chỉ', emojis: ['👋','🤚','🖐️','✋','🖖','👌','🤌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','🤲','🤝','🙏','💪'] },
+  { label: '❤️ Trái tim', emojis: ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','❤️‍🩹','💕','💞','💓','💗','💖','💘','💝','💟','♥️','🫶'] },
+  { label: '🎉 Vật & Biểu tượng', emojis: ['⭐','🌟','✨','💫','🔥','💥','🎉','🎊','🎈','🎁','🏆','🥇','🥈','🥉','🏅','📌','📍','🔔','💡','📝','✅','❌','⚠️','❓','❗','💯','🆗','🆕','🔴','🟢','🟡','🔵'] },
+  { label: '🍕 Đồ ăn', emojis: ['🍕','🍔','🍟','🌭','🍿','🧂','🍣','🍜','🍝','🍲','🍱','🍛','🍚','☕','🍵','🧋','🍺','🍻','🥤','🧃'] },
+];
 
 interface Member {
   id: string;
@@ -54,6 +63,19 @@ export default function MentionInput({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [triggerType, setTriggerType] = useState<'@' | '#' | null>(null);
   const [triggerStart, setTriggerStart] = useState(-1);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [emojiCategory, setEmojiCategory] = useState(0);
+
+  const insertEmoji = (emoji: string) => {
+    const cursorPos = inputRef.current?.selectionStart || value.length;
+    const newValue = value.slice(0, cursorPos) + emoji + value.slice(cursorPos);
+    onChange(newValue);
+    setTimeout(() => {
+      inputRef.current?.focus();
+      const newPos = cursorPos + emoji.length;
+      inputRef.current?.setSelectionRange(newPos, newPos);
+    }, 0);
+  };
 
   // Auto-resize textarea
   useEffect(() => {
@@ -244,6 +266,52 @@ export default function MentionInput({
       <div className="flex items-end gap-2 bg-background rounded-2xl border shadow-sm p-1.5 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/40 transition-all">
         {/* Left actions */}
         <div className="flex items-center gap-0.5 pb-0.5">
+          <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 rounded-full transition-colors",
+                  emojiOpen ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                )}
+                title="Emoji"
+              >
+                <Smile className="w-4 h-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" className="w-80 p-0" sideOffset={12}>
+              {/* Category tabs */}
+              <div className="flex gap-1 p-2 border-b overflow-x-auto">
+                {EMOJI_CATEGORIES.map((cat, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setEmojiCategory(i)}
+                    className={cn(
+                      "text-xs px-2 py-1 rounded-md whitespace-nowrap transition-colors",
+                      i === emojiCategory ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted"
+                    )}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+              {/* Emoji grid */}
+              <div className="grid grid-cols-8 gap-0.5 p-2 max-h-48 overflow-y-auto">
+                {EMOJI_CATEGORIES[emojiCategory].emojis.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => { insertEmoji(emoji); setEmojiOpen(false); }}
+                    className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted text-lg transition-colors"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
           <Button
             type="button"
             variant="ghost"
