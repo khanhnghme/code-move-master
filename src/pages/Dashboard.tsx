@@ -171,8 +171,8 @@ export default function Dashboard() {
               <CardDescription>Các dự án bạn đang tham gia</CardDescription>
             </div>
             <Link to="/groups">
-              <Button variant="outline" className="gap-2">
-                Xem tất cả Project
+              <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90">
+                Xem tất cả Project và đi đến tạo project
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
