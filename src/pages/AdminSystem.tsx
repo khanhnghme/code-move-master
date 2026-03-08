@@ -96,6 +96,13 @@ export default function AdminSystem() {
         const val = errorLoggingRes.data.value as { enabled?: boolean };
         setErrorLoggingEnabled(val.enabled ?? true);
       }
+
+      if (driveRes.data?.value) {
+        const val = driveRes.data.value as { enabled?: boolean; api_key?: string; client_id?: string };
+        setDriveEnabled(val.enabled ?? false);
+        setDriveApiKey(val.api_key ?? '');
+        setDriveClientId(val.client_id ?? '');
+      }
     } catch (err) {
       console.error('Error fetching settings:', err);
     } finally {
