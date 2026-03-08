@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   User, Mail, GraduationCap, BookOpen, Phone, Sparkles, FileText,
-  Camera, Loader2, Save, Shield, Crown, UserCheck, Calendar,
+  Camera, Loader2, Save, Shield, Crown, UserCheck, Calendar, Star,
   CheckCircle2, AlertCircle, Edit3, X, FolderKanban, HardDrive,
   Lock, Unlock, Zap, ArrowRight, Plus
 } from 'lucide-react';
