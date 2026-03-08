@@ -293,6 +293,7 @@ export default function GroupDetail() {
       setNewTaskAssignees([]);
       setNewTaskStageId('');
       setNewTaskMaxFileSize(10 * 1024 * 1024);
+      setNewTaskSubmissionMethod('both');
       fetchGroupData();
     } catch (error: any) {
       toast({ title: 'Lỗi', description: error.message, variant: 'destructive' });
