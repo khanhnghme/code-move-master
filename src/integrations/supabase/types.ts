@@ -1419,6 +1419,7 @@ export type Database = {
           stage_id: string | null
           status: Database["public"]["Enums"]["task_status"]
           submission_link: string | null
+          submission_method: string
           title: string
           updated_at: string
         }
@@ -1437,6 +1438,7 @@ export type Database = {
           stage_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           submission_link?: string | null
+          submission_method?: string
           title: string
           updated_at?: string
         }
@@ -1455,6 +1457,7 @@ export type Database = {
           stage_id?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           submission_link?: string | null
+          submission_method?: string
           title?: string
           updated_at?: string
         }
