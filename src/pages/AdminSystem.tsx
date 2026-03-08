@@ -54,8 +54,6 @@ export default function AdminSystem() {
 
   // Google Drive state
   const [driveEnabled, setDriveEnabled] = useState(false);
-  const [driveApiKey, setDriveApiKey] = useState('');
-  const [driveClientId, setDriveClientId] = useState('');
   const [savingDrive, setSavingDrive] = useState(false);
   useEffect(() => {
     if (!isLoading && !isAdmin) {
