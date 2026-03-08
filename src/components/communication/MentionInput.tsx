@@ -63,6 +63,19 @@ export default function MentionInput({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [triggerType, setTriggerType] = useState<'@' | '#' | null>(null);
   const [triggerStart, setTriggerStart] = useState(-1);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [emojiCategory, setEmojiCategory] = useState(0);
+
+  const insertEmoji = (emoji: string) => {
+    const cursorPos = inputRef.current?.selectionStart || value.length;
+    const newValue = value.slice(0, cursorPos) + emoji + value.slice(cursorPos);
+    onChange(newValue);
+    setTimeout(() => {
+      inputRef.current?.focus();
+      const newPos = cursorPos + emoji.length;
+      inputRef.current?.setSelectionRange(newPos, newPos);
+    }, 0);
+  };
 
   // Auto-resize textarea
   useEffect(() => {
