@@ -41,10 +41,28 @@ const STATIC_INTRO_IMAGES: IntroImages = {
   page5: introPage5,
 };
 
+// Preload all intro images on mount so they're cached instantly
+const ALL_INTRO_IMAGES = [
+  introPage1, introPage2, introPage3, introPage4, introPage5,
+  introP1Workflow, introP1Roles, introP1Features, introP1Multiplatform,
+  introP2Kanban, introP2Deadline, introP2Submission, introP2Notes,
+  introP3Formula, introP3Weights, introP3Appeal, introP3Leaderboard,
+  introP4Team, introP4Stages, introP4Resources, introP4Sharing,
+  introP5Ai, introP5Notifications, introP5Backup, introP5Meeting,
+];
+
+let _preloaded = false;
+function preloadIntroImages() {
+  if (_preloaded) return;
+  _preloaded = true;
+  ALL_INTRO_IMAGES.forEach(src => {
+    const img = new Image();
+    img.src = src;
+  });
+}
+
 const IntroHeroImage = React.forwardRef<HTMLDivElement, { imageUrl?: string; fallbackGradient: string; alt: string }>(
   function IntroHeroImage({ imageUrl, fallbackGradient, alt }, ref) {
-    const [loaded, setLoaded] = useState(false);
-
     if (!imageUrl) {
       return (
         <div ref={ref} className={`w-full h-full rounded-xl ${fallbackGradient} border border-border/30 flex items-center justify-center`}>
@@ -55,12 +73,10 @@ const IntroHeroImage = React.forwardRef<HTMLDivElement, { imageUrl?: string; fal
 
     return (
       <div ref={ref} className="w-full h-full relative rounded-xl overflow-hidden">
-        {!loaded && <div className="absolute inset-0 rounded-xl bg-muted animate-pulse" />}
         <img
           src={imageUrl}
           alt={alt}
-          className={`w-full h-full object-cover rounded-xl transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-          onLoad={() => setLoaded(true)}
+          className="w-full h-full object-cover rounded-xl"
         />
       </div>
     );
