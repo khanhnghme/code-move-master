@@ -121,6 +121,31 @@ export default function AdminSystem() {
         setVideoBgDashboardOpacity(Math.round((val.dashboard_opacity ?? val.opacity ?? 0.2) * 100));
         setVideoBgUrl(val.url ?? '');
       }
+
+      if (emailDigestRes.data?.value) {
+        const val = emailDigestRes.data.value as { enabled?: boolean; deadline_hours?: number };
+        setEmailDigestEnabled(val.enabled ?? true);
+        setEmailDeadlineHours(val.deadline_hours ?? 24);
+      }
+
+      // Fetch email sent today count
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from('email_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('email_type', 'daily_digest')
+        .gte('sent_at', todayStart.toISOString());
+      setEmailSentToday(count || 0);
+
+      // Recent email logs
+      const { data: logs } = await supabase
+        .from('email_logs')
+        .select('*')
+        .eq('email_type', 'daily_digest')
+        .order('sent_at', { ascending: false })
+        .limit(5);
+      setRecentEmailLogs(logs || []);
     } catch (err) {
       console.error('Error fetching settings:', err);
     } finally {
