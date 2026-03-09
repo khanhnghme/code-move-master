@@ -83,12 +83,13 @@ export default function AdminSystem() {
 
   const fetchSettings = async () => {
     try {
-      const [maintenanceRes, policyRes, errorLoggingRes, videoRes] = await Promise.all([
-        supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
-        supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
-        supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
-        supabase.from('system_settings').select('*').eq('key', 'dashboard_video_bg').maybeSingle(),
-      ]);
+    const [maintenanceRes, policyRes, errorLoggingRes, videoRes, emailDigestRes] = await Promise.all([
+      supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
+      supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
+      supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
+      supabase.from('system_settings').select('*').eq('key', 'dashboard_video_bg').maybeSingle(),
+      supabase.from('system_settings').select('*').eq('key', 'email_daily_digest').maybeSingle(),
+    ]);
 
       if (maintenanceRes.data?.value) {
         const val = maintenanceRes.data.value as { enabled?: boolean; message?: string; duration_days?: number; start_at?: string; end_at?: string };
