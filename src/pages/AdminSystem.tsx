@@ -56,6 +56,15 @@ export default function AdminSystem() {
   const [savingErrorLogging, setSavingErrorLogging] = useState(false);
 
 
+  // Email digest state
+  const [emailDigestEnabled, setEmailDigestEnabled] = useState(true);
+  const [emailDeadlineHours, setEmailDeadlineHours] = useState(24);
+  const [savingEmailDigest, setSavingEmailDigest] = useState(false);
+  const [sendingDigest, setSendingDigest] = useState(false);
+  const [digestResult, setDigestResult] = useState<{ sent: number; skipped: number; total_users: number } | null>(null);
+  const [emailSentToday, setEmailSentToday] = useState(0);
+  const [recentEmailLogs, setRecentEmailLogs] = useState<any[]>([]);
+
   // Video background state
   const [videoBgEnabled, setVideoBgEnabled] = useState(false);
   const [videoBgLandingOpacity, setVideoBgLandingOpacity] = useState(20);
