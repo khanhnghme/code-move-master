@@ -579,7 +579,152 @@ export default function AdminSystem() {
               </CardContent>
             </Card>
 
-            {/* Intro AI Images */}
+            {/* Email Digest */}
+            <Card className="border border-border">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Mail className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        Email Digest hàng ngày
+                        <Badge variant={emailDigestEnabled ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
+                          {emailDigestEnabled ? 'BẬT' : 'TẮT'}
+                        </Badge>
+                      </CardTitle>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={emailDigestEnabled}
+                    onCheckedChange={setEmailDigestEnabled}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Gửi 1 email tổng hợp/user/ngày gồm deadline sắp hết + task mới. Chỉ gửi cho user có task liên quan.
+                </p>
+
+                <div>
+                  <Label className="text-xs text-muted-foreground">
+                    Nhắc deadline trong: {emailDeadlineHours}h tới
+                  </Label>
+                  <Slider
+                    value={[emailDeadlineHours]}
+                    onValueChange={(v) => setEmailDeadlineHours(v[0])}
+                    min={12}
+                    max={48}
+                    step={12}
+                    className="mt-2"
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                    <span>12h</span><span>24h</span><span>36h</span><span>48h</span>
+                  </div>
+                </div>
+
+                <Button
+                  className="w-full gap-2"
+                  disabled={savingEmailDigest}
+                  onClick={async () => {
+                    setSavingEmailDigest(true);
+                    try {
+                      const { error } = await supabase
+                        .from('system_settings')
+                        .update({
+                          value: { enabled: emailDigestEnabled, deadline_hours: emailDeadlineHours },
+                          updated_at: new Date().toISOString(),
+                        })
+                        .eq('key', 'email_daily_digest');
+                      if (error) throw error;
+                      toast({ title: 'Đã lưu cài đặt Email Digest' });
+                    } catch {
+                      toast({ title: 'Lỗi', description: 'Không thể lưu', variant: 'destructive' });
+                    } finally {
+                      setSavingEmailDigest(false);
+                    }
+                  }}
+                >
+                  <Save className="w-4 h-4" />
+                  Lưu cài đặt
+                </Button>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-muted-foreground">
+                    Đã gửi hôm nay: <span className="font-bold text-foreground">{emailSentToday}</span> / 100 email
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 text-xs"
+                    disabled={sendingDigest}
+                    onClick={async () => {
+                      setSendingDigest(true);
+                      setDigestResult(null);
+                      try {
+                        const { data, error } = await supabase.functions.invoke('email-digest');
+                        if (error) throw error;
+                        setDigestResult(data);
+                        setEmailSentToday(prev => prev + (data?.sent || 0));
+                        toast({
+                          title: `Đã gửi ${data?.sent || 0} email`,
+                          description: `Bỏ qua ${data?.skipped || 0} user không có task`,
+                        });
+                        // Refresh logs
+                        const { data: logs } = await supabase
+                          .from('email_logs')
+                          .select('*')
+                          .eq('email_type', 'daily_digest')
+                          .order('sent_at', { ascending: false })
+                          .limit(5);
+                        setRecentEmailLogs(logs || []);
+                      } catch (err: any) {
+                        toast({ title: 'Lỗi gửi email', description: err.message, variant: 'destructive' });
+                      } finally {
+                        setSendingDigest(false);
+                      }
+                    }}
+                  >
+                    {sendingDigest ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
+                    Gửi ngay
+                  </Button>
+                </div>
+
+                {digestResult && (
+                  <div className="rounded-lg border bg-muted/30 p-2.5 text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Đã gửi:</span>
+                      <span className="font-bold text-emerald-600">{digestResult.sent}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Bỏ qua:</span>
+                      <span className="font-medium">{digestResult.skipped}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tổng user có task:</span>
+                      <span className="font-medium">{digestResult.total_users}</span>
+                    </div>
+                  </div>
+                )}
+
+                {recentEmailLogs.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium text-muted-foreground">Gửi gần đây:</p>
+                    {recentEmailLogs.map((log: any) => (
+                      <div key={log.id} className="flex items-center justify-between text-[11px] py-1 border-b border-border/50 last:border-0">
+                        <span className="text-muted-foreground truncate max-w-[140px]">{log.recipient_email}</span>
+                        <span className="text-muted-foreground">
+                          {log.tasks_count} task · {format(new Date(log.sent_at), "HH:mm dd/MM", { locale: vi })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
