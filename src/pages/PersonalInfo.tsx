@@ -56,7 +56,13 @@ export default function PersonalInfo() {
       setSkills(profile.skills || '');
       setBio(profile.bio || '');
     }
-  }, [profile]);
+    // Fetch email notification preference
+    if (user) {
+      supabase.from('profiles').select('email_notifications').eq('id', user.id).single().then(({ data }) => {
+        if (data) setEmailNotifications(data.email_notifications ?? true);
+      });
+    }
+  }, [profile, user]);
 
   useEffect(() => {
     if (user) {
