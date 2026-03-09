@@ -495,6 +495,46 @@ export default function PersonalInfo() {
             )}
           </CardContent>
         </Card>
+
+        {/* Email Notifications */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-primary" />
+                <CardTitle className="text-base">Email thông báo</CardTitle>
+              </div>
+              <Switch
+                checked={emailNotifications}
+                disabled={savingEmailPref}
+                onCheckedChange={async (checked) => {
+                  setSavingEmailPref(true);
+                  try {
+                    const { error } = await supabase
+                      .from('profiles')
+                      .update({ email_notifications: checked } as any)
+                      .eq('id', user!.id);
+                    if (error) throw error;
+                    setEmailNotifications(checked);
+                    toast({
+                      title: checked ? 'Đã bật email thông báo' : 'Đã tắt email thông báo',
+                      description: checked 
+                        ? 'Bạn sẽ nhận email tổng hợp hàng ngày về deadline và task mới.' 
+                        : 'Bạn sẽ không nhận email tổng hợp nữa.',
+                    });
+                  } catch {
+                    toast({ title: 'Lỗi', description: 'Không thể cập nhật', variant: 'destructive' });
+                  } finally {
+                    setSavingEmailPref(false);
+                  }
+                }}
+              />
+            </div>
+            <CardDescription>
+              Nhận email tổng hợp hàng ngày về deadline sắp hết và task mới được giao
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     </DashboardLayout>
   );
