@@ -13,9 +13,10 @@ import { Dialog, DialogContent, DialogTitle, DialogFooter, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle, Bug, Video, Upload, Link, Loader2 } from 'lucide-react';
+import { Shield, Wrench, AlertTriangle, FileText, Clock, Save, Edit, CheckCircle2, HelpCircle, Bug, Video, Upload, Link, Loader2, Mail } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import uehLogoWhite from '@/assets/ueh-logo-new.png';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -56,6 +57,15 @@ export default function AdminSystem() {
   const [savingErrorLogging, setSavingErrorLogging] = useState(false);
 
 
+  // Email digest state
+  const [emailDigestEnabled, setEmailDigestEnabled] = useState(true);
+  const [emailDeadlineHours, setEmailDeadlineHours] = useState(24);
+  const [savingEmailDigest, setSavingEmailDigest] = useState(false);
+  const [sendingDigest, setSendingDigest] = useState(false);
+  const [digestResult, setDigestResult] = useState<{ sent: number; skipped: number; total_users: number } | null>(null);
+  const [emailSentToday, setEmailSentToday] = useState(0);
+  const [recentEmailLogs, setRecentEmailLogs] = useState<any[]>([]);
+
   // Video background state
   const [videoBgEnabled, setVideoBgEnabled] = useState(false);
   const [videoBgLandingOpacity, setVideoBgLandingOpacity] = useState(20);
@@ -74,12 +84,13 @@ export default function AdminSystem() {
 
   const fetchSettings = async () => {
     try {
-      const [maintenanceRes, policyRes, errorLoggingRes, videoRes] = await Promise.all([
-        supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
-        supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
-        supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
-        supabase.from('system_settings').select('*').eq('key', 'dashboard_video_bg').maybeSingle(),
-      ]);
+    const [maintenanceRes, policyRes, errorLoggingRes, videoRes, emailDigestRes] = await Promise.all([
+      supabase.from('system_settings').select('*').eq('key', 'maintenance_mode').maybeSingle(),
+      supabase.from('system_settings').select('*').eq('key', 'system_policy').maybeSingle(),
+      supabase.from('system_settings').select('*').eq('key', 'error_logging').maybeSingle(),
+      supabase.from('system_settings').select('*').eq('key', 'dashboard_video_bg').maybeSingle(),
+      supabase.from('system_settings').select('*').eq('key', 'email_daily_digest').maybeSingle(),
+    ]);
 
       if (maintenanceRes.data?.value) {
         const val = maintenanceRes.data.value as { enabled?: boolean; message?: string; duration_days?: number; start_at?: string; end_at?: string };
@@ -111,6 +122,31 @@ export default function AdminSystem() {
         setVideoBgDashboardOpacity(Math.round((val.dashboard_opacity ?? val.opacity ?? 0.2) * 100));
         setVideoBgUrl(val.url ?? '');
       }
+
+      if (emailDigestRes.data?.value) {
+        const val = emailDigestRes.data.value as { enabled?: boolean; deadline_hours?: number };
+        setEmailDigestEnabled(val.enabled ?? true);
+        setEmailDeadlineHours(val.deadline_hours ?? 24);
+      }
+
+      // Fetch email sent today count
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from('email_logs')
+        .select('id', { count: 'exact', head: true })
+        .eq('email_type', 'daily_digest')
+        .gte('sent_at', todayStart.toISOString());
+      setEmailSentToday(count || 0);
+
+      // Recent email logs
+      const { data: logs } = await supabase
+        .from('email_logs')
+        .select('*')
+        .eq('email_type', 'daily_digest')
+        .order('sent_at', { ascending: false })
+        .limit(5);
+      setRecentEmailLogs(logs || []);
     } catch (err) {
       console.error('Error fetching settings:', err);
     } finally {
@@ -544,7 +580,152 @@ export default function AdminSystem() {
               </CardContent>
             </Card>
 
-            {/* Intro AI Images */}
+            {/* Email Digest */}
+            <Card className="border border-border">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Mail className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base flex items-center gap-2">
+                        Email Digest hàng ngày
+                        <Badge variant={emailDigestEnabled ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
+                          {emailDigestEnabled ? 'BẬT' : 'TẮT'}
+                        </Badge>
+                      </CardTitle>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={emailDigestEnabled}
+                    onCheckedChange={setEmailDigestEnabled}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Gửi 1 email tổng hợp/user/ngày gồm deadline sắp hết + task mới. Chỉ gửi cho user có task liên quan.
+                </p>
+
+                <div>
+                  <Label className="text-xs text-muted-foreground">
+                    Nhắc deadline trong: {emailDeadlineHours}h tới
+                  </Label>
+                  <Slider
+                    value={[emailDeadlineHours]}
+                    onValueChange={(v) => setEmailDeadlineHours(v[0])}
+                    min={12}
+                    max={48}
+                    step={12}
+                    className="mt-2"
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                    <span>12h</span><span>24h</span><span>36h</span><span>48h</span>
+                  </div>
+                </div>
+
+                <Button
+                  className="w-full gap-2"
+                  disabled={savingEmailDigest}
+                  onClick={async () => {
+                    setSavingEmailDigest(true);
+                    try {
+                      const { error } = await supabase
+                        .from('system_settings')
+                        .update({
+                          value: { enabled: emailDigestEnabled, deadline_hours: emailDeadlineHours },
+                          updated_at: new Date().toISOString(),
+                        })
+                        .eq('key', 'email_daily_digest');
+                      if (error) throw error;
+                      toast({ title: 'Đã lưu cài đặt Email Digest' });
+                    } catch {
+                      toast({ title: 'Lỗi', description: 'Không thể lưu', variant: 'destructive' });
+                    } finally {
+                      setSavingEmailDigest(false);
+                    }
+                  }}
+                >
+                  <Save className="w-4 h-4" />
+                  Lưu cài đặt
+                </Button>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-muted-foreground">
+                    Đã gửi hôm nay: <span className="font-bold text-foreground">{emailSentToday}</span> / 100 email
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 text-xs"
+                    disabled={sendingDigest}
+                    onClick={async () => {
+                      setSendingDigest(true);
+                      setDigestResult(null);
+                      try {
+                        const { data, error } = await supabase.functions.invoke('email-digest');
+                        if (error) throw error;
+                        setDigestResult(data);
+                        setEmailSentToday(prev => prev + (data?.sent || 0));
+                        toast({
+                          title: `Đã gửi ${data?.sent || 0} email`,
+                          description: `Bỏ qua ${data?.skipped || 0} user không có task`,
+                        });
+                        // Refresh logs
+                        const { data: logs } = await supabase
+                          .from('email_logs')
+                          .select('*')
+                          .eq('email_type', 'daily_digest')
+                          .order('sent_at', { ascending: false })
+                          .limit(5);
+                        setRecentEmailLogs(logs || []);
+                      } catch (err: any) {
+                        toast({ title: 'Lỗi gửi email', description: err.message, variant: 'destructive' });
+                      } finally {
+                        setSendingDigest(false);
+                      }
+                    }}
+                  >
+                    {sendingDigest ? <Loader2 className="w-3 h-3 animate-spin" /> : <Mail className="w-3 h-3" />}
+                    Gửi ngay
+                  </Button>
+                </div>
+
+                {digestResult && (
+                  <div className="rounded-lg border bg-muted/30 p-2.5 text-xs space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Đã gửi:</span>
+                      <span className="font-bold text-emerald-600">{digestResult.sent}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Bỏ qua:</span>
+                      <span className="font-medium">{digestResult.skipped}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tổng user có task:</span>
+                      <span className="font-medium">{digestResult.total_users}</span>
+                    </div>
+                  </div>
+                )}
+
+                {recentEmailLogs.length > 0 && (
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium text-muted-foreground">Gửi gần đây:</p>
+                    {recentEmailLogs.map((log: any) => (
+                      <div key={log.id} className="flex items-center justify-between text-[11px] py-1 border-b border-border/50 last:border-0">
+                        <span className="text-muted-foreground truncate max-w-[140px]">{log.recipient_email}</span>
+                        <span className="text-muted-foreground">
+                          {log.tasks_count} task · {format(new Date(log.sent_at), "HH:mm dd/MM", { locale: vi })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

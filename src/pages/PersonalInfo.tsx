@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
@@ -17,7 +18,7 @@ import {
   User, Mail, GraduationCap, BookOpen, Phone, Sparkles, FileText,
   Camera, Loader2, Save, Shield, Crown, UserCheck, Calendar, Star,
   CheckCircle2, AlertCircle, Edit3, X, FolderKanban, HardDrive,
-  Lock, Unlock, Zap, ArrowRight, Plus
+  Lock, Unlock, Zap, ArrowRight, Plus, Bell
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -34,6 +35,8 @@ export default function PersonalInfo() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [savingEmailPref, setSavingEmailPref] = useState(false);
   const [ownedProjectCount, setOwnedProjectCount] = useState(0);
   const [joinedProjectCount, setJoinedProjectCount] = useState(0);
   const [storageUsedMb, setStorageUsedMb] = useState(0);
@@ -53,7 +56,13 @@ export default function PersonalInfo() {
       setSkills(profile.skills || '');
       setBio(profile.bio || '');
     }
-  }, [profile]);
+    // Fetch email notification preference
+    if (user) {
+      supabase.from('profiles').select('email_notifications').eq('id', user.id).single().then(({ data }) => {
+        if (data) setEmailNotifications(data.email_notifications ?? true);
+      });
+    }
+  }, [profile, user]);
 
   useEffect(() => {
     if (user) {
@@ -485,6 +494,46 @@ export default function PersonalInfo() {
               </div>
             )}
           </CardContent>
+        </Card>
+
+        {/* Email Notifications */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-primary" />
+                <CardTitle className="text-base">Email thông báo</CardTitle>
+              </div>
+              <Switch
+                checked={emailNotifications}
+                disabled={savingEmailPref}
+                onCheckedChange={async (checked) => {
+                  setSavingEmailPref(true);
+                  try {
+                    const { error } = await supabase
+                      .from('profiles')
+                      .update({ email_notifications: checked } as any)
+                      .eq('id', user!.id);
+                    if (error) throw error;
+                    setEmailNotifications(checked);
+                    toast({
+                      title: checked ? 'Đã bật email thông báo' : 'Đã tắt email thông báo',
+                      description: checked 
+                        ? 'Bạn sẽ nhận email tổng hợp hàng ngày về deadline và task mới.' 
+                        : 'Bạn sẽ không nhận email tổng hợp nữa.',
+                    });
+                  } catch {
+                    toast({ title: 'Lỗi', description: 'Không thể cập nhật', variant: 'destructive' });
+                  } finally {
+                    setSavingEmailPref(false);
+                  }
+                }}
+              />
+            </div>
+            <CardDescription>
+              Nhận email tổng hợp hàng ngày về deadline sắp hết và task mới được giao
+            </CardDescription>
+          </CardHeader>
         </Card>
       </div>
     </DashboardLayout>
