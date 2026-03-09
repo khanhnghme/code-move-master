@@ -96,6 +96,36 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          digest_data: Json | null
+          email_type: string
+          id: string
+          recipient_email: string
+          sent_at: string
+          tasks_count: number
+          user_id: string
+        }
+        Insert: {
+          digest_data?: Json | null
+          email_type?: string
+          id?: string
+          recipient_email: string
+          sent_at?: string
+          tasks_count?: number
+          user_id: string
+        }
+        Update: {
+          digest_data?: Json | null
+          email_type?: string
+          id?: string
+          recipient_email?: string
+          sent_at?: string
+          tasks_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       feedback_comments: {
         Row: {
           content: string
@@ -789,6 +819,7 @@ export type Database = {
           bio: string | null
           created_at: string
           email: string
+          email_notifications: boolean
           full_name: string
           id: string
           is_approved: boolean
@@ -813,6 +844,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           email: string
+          email_notifications?: boolean
           full_name: string
           id: string
           is_approved?: boolean
@@ -837,6 +869,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           email?: string
+          email_notifications?: boolean
           full_name?: string
           id?: string
           is_approved?: boolean
