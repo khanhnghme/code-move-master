@@ -35,6 +35,8 @@ export default function PersonalInfo() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [savingEmailPref, setSavingEmailPref] = useState(false);
   const [ownedProjectCount, setOwnedProjectCount] = useState(0);
   const [joinedProjectCount, setJoinedProjectCount] = useState(0);
   const [storageUsedMb, setStorageUsedMb] = useState(0);
